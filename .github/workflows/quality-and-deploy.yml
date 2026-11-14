@@ -53,6 +53,14 @@ jobs:
         run: node tests/recommend.test.js
       - name: Test account isolation and sync
         run: node tests/account.test.js
+      - name: Test account workflows in Chrome
+        run: |
+          npm install --prefix "$RUNNER_TEMP/nextwork-browser" --no-save --no-package-lock playwright@1.62.1
+          python3 -m http.server 3000 --directory dist > "$RUNNER_TEMP/nextwork-browser-server.log" 2>&1 &
+          account_server_pid=$!
+          trap 'kill "$account_server_pid"' EXIT
+          curl --retry-connrefused --retry 5 --retry-delay 1 --fail --silent http://localhost:3000/ > /dev/null
+          NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/account-browser.cjs
       - name: Test database access policies and AI quotas
         env:
           PGPASSWORD: local-ci-only
