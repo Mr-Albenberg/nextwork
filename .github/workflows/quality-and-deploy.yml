@@ -48,7 +48,9 @@ jobs:
         run: |
           for file in dist/*.js api/*.js lib/*.js; do node --check "$file"; done
       - name: Test resume analysis and backend
-        run: node tests/resume.test.js
+        run: |
+          node tests/resume.test.js
+          node tests/account-resumes.test.js
       - name: Test compatibility ranking and marketplace flow
         run: node tests/listing-match.test.js
       - name: Test profile setup, field criteria and grounded AI evidence
@@ -132,6 +134,12 @@ jobs:
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140005_messaging.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140006_profile_photos.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/profile-photos.test.sql
+      - name: Test private account resumes and first profile values
+        env:
+          PGPASSWORD: local-ci-only
+        run: |
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140007_account_resumes.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/account-resumes.test.sql
       - name: Verify GitHub Pages mirror
         run: |
           diff -qr --exclude=.nojekyll dist docs

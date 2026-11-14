@@ -166,6 +166,8 @@ function linkedInData(user) {
   return {
     name: typeof name === "string" ? name.trim().slice(0, 300) : "",
     email: user.email || data.email || "",
+    tagline: typeof data.headline === "string" ? data.headline.trim().slice(0,300) : "",
+    bio: typeof data.summary === "string" ? data.summary.trim().slice(0,2000) : "",
     picture:
       typeof data.picture === "string"
         ? data.picture

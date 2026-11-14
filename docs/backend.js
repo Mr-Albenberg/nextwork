@@ -14,6 +14,8 @@ const Backend = {
 };
 const extraKeys = [
   "proof-resume-versions",
+  "proof-resume-file",
+  "proof-resume-report",
   "proof-conversations",
   "lp-score",
   "nextwork-growth",
@@ -84,7 +86,7 @@ function hydrateWorkspace(row) {
     Backend.version = row.version;
     saved = row.saved_projects || [];
     applications = (row.application_drafts || []).map((a) => a.jobId);
-    resumeReport = null;
+    try { resumeReport = JSON.parse(workspaceLocal.getItem("proof-resume-report") || "null"); } catch { resumeReport = null; }
   } finally {
     Backend.loading = false;
   }
