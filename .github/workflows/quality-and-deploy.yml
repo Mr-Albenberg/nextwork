@@ -45,8 +45,8 @@ jobs:
     environment: production
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: team_IS0AaE5WZru2JKzDG5Riv3Gf
+      VERCEL_PROJECT_ID: prj_XC0qJ2DbXKTw94LAlqo5P7KUKhuz
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,7 +56,7 @@ jobs:
         shell: bash
         run: |
           if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
-            echo 'Add VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID in repository Actions secrets before requesting deployment.'
+            echo 'Add VERCEL_TOKEN in repository Actions secrets before requesting deployment.'
             exit 1
           fi
       - name: Install Vercel CLI

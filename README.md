@@ -83,8 +83,8 @@ The marketplace reads the resume entered or uploaded in Resume Studio for the cu
 
 To enable manual Actions deployment:
 
-1. Open https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions and add repository secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
-2. Create a Vercel access token in https://vercel.com/account/settings/tokens for the team that owns this project. Obtain the Team ID (`VERCEL_ORG_ID`) from Vercel team settings and Project ID (`VERCEL_PROJECT_ID`) from the project settings. Do not share the token in chat or code.
+1. Open https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions and add the repository secret `VERCEL_TOKEN`. The verified team and project IDs are already configured in the workflow.
+2. Create a Vercel access token in https://vercel.com/account/settings/tokens for the team that owns this project. The workflow targets the verified `symmetrical-waffle` project and owning team. Do not share the token in chat or code.
 3. Open repository Actions → **Check Prooflane and deploy** → **Run workflow**, enable the deployment checkbox, and run it on `main`.
 
 Checks run without secrets. Existing Vercel Git integration continues automatic deployment on push; manual Actions deployment is optional and uses the same configured Vercel project. Keep `OPENAI_API_KEY` in Vercel runtime environment variables. This connection currently lacks repository Actions/Secrets administration permission, so the owner must add secrets or grant that permission through the GitHub app configuration.
