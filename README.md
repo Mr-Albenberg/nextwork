@@ -1,6 +1,6 @@
 # Nextwork
 
-[Find paid projects](https://nextwork-jobs.vercel.app/) · [Set up your profile](https://nextwork-jobs.vercel.app/#profile) · [Resume Studio](https://nextwork-jobs.vercel.app/#resume)
+[Find paid projects](https://mr-albenberg.github.io/nextwork/) · [Set up your profile](https://mr-albenberg.github.io/nextwork/#profile) · [Resume Studio](https://mr-albenberg.github.io/nextwork/#resume)
 
 A graduate marketplace for paid, scoped startup projects. Browse and filter opportunities, compare resume evidence with a listing, save opportunities, and prepare an application.
 
@@ -70,19 +70,13 @@ Official references: https://ai.google.dev/gemini-api/docs/pricing and https://a
 
 ## GitHub Actions and deployment
 
-Actions checks syntax, tests analysis/matching/profile behavior, and verifies the Pages mirror. Vercel deployments are temporarily paused to conserve quota: the Actions deploy job is disabled for both pushes and manual runs, and `vercel.json` disables automatic Git deployments. The existing production deployment stays live. To resume, restore the commented job condition in `.github/workflows/quality-and-deploy.yml` and remove `git.deploymentEnabled` from `vercel.json`.
+GitHub Actions checks syntax, app behavior, database permissions, Chrome workflows, and the recursive Pages mirror. GitHub Pages publishes `docs/` on pushes to `main`. Automatic Vercel deployments are disabled; no Vercel deployment secret is needed for publishing.
 
-Encrypted Actions secrets: `VERCEL_TOKEN` for deployment and optional `GEMINI_API_KEY` for free-tier AI. The free-tier confirmation is a repository Actions variable, not a secret. Verified team/project IDs are in the workflow. The workflow copies the Gemini key without logging it, applies the confirmation flag, and removes unused OpenAI runtime settings. Supabase provides runtime authentication and private account storage; user records do not belong in Actions.
-
-Secret settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions
-
-Variable settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/variables/actions
-
-Free AI does not guarantee unlimited free infrastructure. Vercel and GitHub hosting/execution are governed by their account plans and limits; this change does not purchase or upgrade either service.
+Supabase continues to provide authentication, shared messages, private file storage, and account data. SQL migrations and Storage bucket configuration must be applied separately by an authorized member of the existing project. The `api/` Vercel functions are retained as legacy optional integrations: GitHub Pages cannot run server functions, and the new messaging system does not call them.
 
 ## Remaining production work
 
-Current opportunities are samples. Applications, profiles, and messages are browser-local and are not transmitted to employers. A live marketplace still needs employer-owned listing management, shared application submission and conversations, and real employer-approved project briefs. Account-workspace RLS does not implement those marketplace features. Setting a database connection alone does not implement those features. The public Vercel URL works without a custom domain.
+The built-in catalog is illustrative; organization-owned published listings and submitted applications use the existing Supabase organization tables. Real direct messaging requires the messaging migration and private bucket described below. The frontend is implemented and tested locally, but activation and a live two-account verification require access to that same Supabase project.
 
 ## Sample marketplace catalog
 
@@ -104,9 +98,7 @@ Applications are prefilled from the active graduate profile. The review shows id
 
 The primary navigation now focuses on Find work, Applications, Messages, My profile, and Resume & match. Career tools sit in a secondary expandable group. A concise three-step row replaces the large marketing hero and statistics block, with a direct path from finding work to checking fit and applying. The refreshed visual system uses consistent SVG line icons, vector startup monograms, a refined brand mark, clearer active tabs, larger actions, and responsive layouts.
 
-Messages supports creator conversations from project details, a searchable people directory (14 creators and 3 graduates), profile previews, related-project panels, searchable inboxes, saved/archived threads, unread markers, outgoing-message deletion, quick introduction prompts, Enter/Shift+Enter composition, and linked project sharing. Threads are saved privately to your account. Existing messages are not forwarded to any external service, and no live presence or delivery receipts are simulated.
-
-Workspace settings explains storage, simulated communications, and free AI behavior. No sample-profile controls are exposed. Messaging remains a preview; account profiles, bookmarks, application drafts, and resumes are saved to the account.
+Messages uses real member/organization profiles, shared private conversations, unread counts, per-user saved/archive state, downloadable private attachments, and listing sharing. The composer supports Enter to send and Shift+Enter for a new line. Realtime updates preserve unsent drafts, with polling as a reconnect fallback. No sample contacts or fabricated greeting messages are used. See the activation section below; until setup is complete, delivery is unavailable rather than simulated.
 
 ## Public homepage and proposed plans
 
@@ -123,7 +115,7 @@ The free `#tools` career toolkit (also available at the legacy `#premium` route)
 
 ## Nextwork brand
 
-The public product is named Nextwork. The single-color geometric N mark is provided as `dist/assets/brand/nextwork-mark.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and service identifiers are retained for compatibility. The canonical deployment is https://nextwork-jobs.vercel.app.
+The public product is named Nextwork. The single-color geometric N mark is provided as `dist/assets/brand/nextwork-mark.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and service identifiers are retained for compatibility. The canonical deployment is https://mr-albenberg.github.io/nextwork/. GitHub Pages publishes `docs/`; the checks workflow no longer deploys to Vercel.
 
 
 ## Accounts and private workspace storage
@@ -141,12 +133,12 @@ Public project configuration is in `dist/account.js`. The publishable Supabase k
 Supabase setup:
 
 1. Enable Email, email confirmation, LinkedIn (OIDC), and Allow manual linking in Authentication → Sign In / Providers.
-2. Set Site URL to `https://nextwork-jobs.vercel.app`. Allow `https://nextwork-jobs.vercel.app/` and `https://nextwork-jobs.vercel.app/?auth=recovery` as redirect URLs.
+2. Set Site URL to `https://mr-albenberg.github.io/nextwork`. Allow `https://mr-albenberg.github.io/nextwork/` and `https://mr-albenberg.github.io/nextwork/?auth=recovery` as redirect URLs.
 3. Keep LinkedIn's callback at `https://zkoqafidgromlbvczwzy.supabase.co/auth/v1/callback`.
 4. Run `supabase/migrations/202611140001_accounts.sql`, then `supabase/migrations/202611140003_account_updates.sql` in Supabase SQL Editor. If the first is already applied, run only the second. Never run test bootstrap files in production. The second migration adds account tool state and self-deletion. The publishable key cannot apply migrations.
 5. Test a real confirmed email login, reset email, LinkedIn linking, account deletion, and a second browser login. Browser integration tests mock Supabase; database tests run the SQL against PostgreSQL.
 
-GitHub checks JavaScript, account access, the recursive Pages mirror, database owner isolation, anonymous denial, quotas, and deletion. Vercel deployments are temporarily paused; pushes to main still run checks. SQL migrations must be applied separately in Supabase. No billing upgrades, paid AI fallback, or payment processor are enabled. Production email needs an SMTP provider subject to its own plan and limits.
+GitHub checks JavaScript, account access, the recursive Pages mirror, database owner isolation, anonymous denial, quotas, and deletion. Pushes to main publish the static app through GitHub Pages; automatic Vercel deployment is disabled. SQL migrations must be applied separately in Supabase. No billing upgrades, paid AI fallback, or payment processor are enabled. Production email needs an SMTP provider subject to its own plan and limits.
 
 ## Repository-supplied Nextwork identity
 
@@ -276,3 +268,23 @@ GitHub Pages publishes `docs/` at https://mr-albenberg.github.io/nextwork/. Keep
 Organization signup asks only for organization name, work email, and password. Industry, website, company story, team size, and hiring preferences are optional and can be edited in the portal. A first authenticated visit provisions a minimal organization profile from the signup name, under the existing organization-only database policy. Existing personal accounts still cannot convert.
 
 All select controls use the shared searchable combobox, preserving canonical underlying form values and supported database enums. Skill selection searches 8,882 skill/tool labels, industry search includes 1,022 labels, and role/title suggestions include 1,016 occupations. See `data/catalog-sources.md` for public data attribution. Catalog breadth does not expand the matching engine’s claimed expertise. Search supports common aliases and approximate spelling, keyboard navigation, explicit canonical selection, and bounded suggestion lists. Optional selectors can be left blank.
+
+
+## Real messaging: activate in the existing Supabase project
+
+Messaging uses **only** `https://zkoqafidgromlbvczwzy.supabase.co`, the same project as authentication and account data. It runs directly from GitHub Pages with the existing publishable key; no Vercel API, second Supabase project, service-role key in the browser, or new hosting service is required.
+
+A project owner/admin (Jack, or a member he grants the relevant permissions) must do this once:
+
+1. Open the **existing** project in the Supabase Dashboard and enable Storage if necessary. Under Storage, create a bucket named **`message-attachments`**. Keep it **private**, set the maximum file size to **10 MB**, and allow MIME type **`application/octet-stream`**. Do not use a public bucket.
+2. Ensure the account, organization, account-update, and account-type setup migrations (001–004) are already applied. In the SQL Editor, run [the messaging migration](supabase/migrations/202611140005_messaging.sql). The same SQL is distributed as `docs/messaging-setup.sql` for easy download. It creates shared conversation/message tables, deliberately limited member profiles, private file policies, authenticated RPCs, and the Realtime publication entries. It does not delete existing account/application data or create another project.
+3. In Authentication → URL Configuration, set the Pages site URL to `https://mr-albenberg.github.io/nextwork/` and allow that URL plus `https://mr-albenberg.github.io/nextwork/?auth=recovery` for redirects. Keep additional local development redirects only if needed.
+4. Sign in with two **different real accounts** in separate browser profiles. Set a recognizable profile name for each. In Messages, use New conversation to find the other member, send and reply, refresh each browser, share a listing, and send/download an attachment. Verify a third account cannot see the conversation. Organization accounts have Messages in their own navigation too.
+
+The database exposes member names, public biography, role/company, and skills to signed-in member search. It does not expose account emails, resume text, or private application snapshots. Draft text/files remain in memory until sent and are cleared on account changes. Sends use a stable UUID for retries, private Storage for file bytes, and per-user read/saved/archive state. Realtime refreshes incoming messages without replacing the composer; a 15-second polling fallback catches reconnects. Threads load the newest 50 messages and support loading earlier messages.
+
+Until the existing project has the migration and private bucket, the Messages page shows an unavailable state and does **not** pretend to deliver messages to sample people. Old `proof-conversations` workspace JSON is left untouched but is not imported: its sample IDs are not authenticated recipients. Existing organization application-message records are also retained in the separate application conversation interface.
+
+For account deletion the client removes its uploaded files through the Storage API before deleting the auth account. Conversations and metadata cascade on account removal. If an account is deleted outside the app or a browser is closed during an upload, an administrator should periodically clean up unreferenced/pending files through the **Storage API**, never by deleting `storage.objects` rows directly. Pending reservations are capped; staged files are visible only to their uploader until sent, and deleted messages no longer authorize downloads.
+
+Validation: `node tests/messaging.test.js` tests service contracts and retries. `node tests/messaging-browser.cjs` uses isolated synthetic accounts against a shared transport fixture to test browser interactions, live refresh, attachments, reload, and mobile layout. `tests/messaging.test.sql` exercises the real PostgreSQL RPCs/RLS with three identities plus an organization in a disposable database. These are not a claim that Jack's hosted project has been migrated or verified; the live two-account check is required after activation.

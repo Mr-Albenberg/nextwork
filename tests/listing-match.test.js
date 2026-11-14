@@ -18,7 +18,8 @@ const applicant={name:'Jamie Lee',email:'jamie@example.com',education:'State Uni
 
 vm.runInContext('apply(7)',ctx);assert(element('#modal').innerHTML.includes('Jamie Lee'));assert(element('#modal').innerHTML.includes('jamie@example.com'));assert(element('#modal').innerHTML.includes('Save application'));element('#application-intro').value='I can contribute a responsive, tested booking flow based on my academic projects.';element('#attach-resume').checked=true;element('#application').onsubmit({preventDefault(){}});const snapshot=JSON.parse(data['proof-applications'])[0];assert.equal(snapshot.jobId,7);assert.equal(snapshot.profile.name,'Jamie Lee');assert(snapshot.resume.includes('Jamie Lee'));assert(snapshot.introduction.includes('booking'));vm.runInContext('apply(7)',ctx);assert(element('#modal').innerHTML.includes('YOUR SAVED APPLICATION'));const highlighted=vm.runInContext("highlightedResume('<script>alert(1)</script> React and Git',MatchCriteria.criteriaFor({id:2}))",ctx);assert(highlighted.includes('&lt;script&gt;'));assert(highlighted.includes('highlight-direct'));assert(highlighted.includes('highlight-support'));assert(!highlighted.includes('<script>'));console.log('Profile-backed application snapshots and safe resume highlighting passed.');
 
-vm.runInContext("openConversation('peer-2')",ctx);ctx.location.hash='#messages';vm.runInContext('render()',ctx);assert(element('#app').innerHTML.includes('Leo Santos'));assert(element('#app').innerHTML.includes('View profile'));element('#conversation-input').value='Hello Leo, I would love to exchange portfolio feedback.';vm.runInContext('sendMessage()',ctx);let conversation=JSON.parse(data['proof-conversations'])['peer-2'];assert.equal(conversation.messages.at(-1).text,'Hello Leo, I would love to exchange portfolio feedback.');element('#conversation-input').value='';vm.runInContext('sendMessage(7)',ctx);conversation=JSON.parse(data['proof-conversations'])['peer-2'];assert.equal(conversation.messages.at(-1).projectId,7);vm.runInContext("toggleThread('saved')",ctx);assert(JSON.parse(data['proof-conversations'])['peer-2'].saved);vm.runInContext("toggleThread('archived')",ctx);assert(JSON.parse(data['proof-conversations'])['peer-2'].archived);vm.runInContext('messageCreator(7)',ctx);assert.equal(vm.runInContext('activePerson',ctx),'creator-7');vm.runInContext("showPersonProfile('peer-1')",ctx);assert(element('#modal').innerHTML.includes('Amara Okafor'));assert(element('#modal').innerHTML.includes('Figma'));console.log('People messaging, persisted threads, project sharing, saved/archive controls and profiles passed.');
+ctx.location.hash='#messages';vm.runInContext('render()',ctx);assert(!element('#app').innerHTML.includes('Maya Chen'));assert(!element('#app').innerHTML.includes('Leo Santos'));assert(element('#app').innerHTML.includes('Your conversations start here'));
+vm.runInContext(`Messaging.owner='00000000-0000-0000-0000-000000000001';Messaging.ready=true;Messaging.profiles.set('00000000-0000-0000-0000-000000000002',{id:'00000000-0000-0000-0000-000000000002',name:'Test member',role:'Designer',title:'Designer',bio:'A public member biography.',skills:['Figma'],color:'#eaf0ff'});Messaging.inbox=[{id:'10000000-0000-0000-0000-000000000001',other_id:'00000000-0000-0000-0000-000000000002',contact:{name:'Test member'},saved:false,archived:false,unread:0}];activePerson='00000000-0000-0000-0000-000000000002';Messaging.messages.set(Messaging.inbox[0].id,[]);render()`,ctx);assert(element('#app').innerHTML.includes('Test member'));assert(element('#app').innerHTML.includes('View profile'));assert(element('#app').innerHTML.includes('Attach a file'));console.log('Real-message empty state and conversation UI passed.');
 
 ctx.location.hash='#home';vm.runInContext('render()',ctx);assert(element('#app').innerHTML.includes('Your next chapter'));assert(element('#app').innerHTML.includes('Free to join. Free to apply.'));assert(element('#app').innerHTML.includes('$9'));assert(element('#app').innerHTML.includes('No real checkout or charge'));vm.runInContext('setPricing(true)',ctx);assert(element('#app').innerHTML.includes('$72 billed yearly'));assert(element('#app').innerHTML.includes('$6'));vm.runInContext('openPremiumPreview()',ctx);assert(element('#modal').innerHTML.includes('not subscribing'));ctx.location.hash='#tools';vm.runInContext('render()',ctx);element('#version-name').value='Frontend applications';element('#version-text').value=data['proof-resume'];element('#version-form').onsubmit({preventDefault(){}});assert.equal(JSON.parse(data['proof-resume-versions']).length,1);vm.runInContext('useResumeVersion(0)',ctx);assert.equal(ctx.location.hash,'resume');console.log('Public homepage, annual pricing, no-charge preview and resume version tools passed.');
 
@@ -47,8 +48,8 @@ assert.equal(element('#messages-inbox-content').inert,false);
 assert.equal(element('.new-conversation').inert,false);
 assert.equal(sidebarToggle['aria-expanded'],'true');
 assert.equal(element('#conversation-input').value,'Keep this draft while browsing');
-vm.runInContext("showPersonProfile('peer-1')",ctx);
-assert(element('#modal').innerHTML.includes('Amara Okafor'));
+vm.runInContext("showPersonProfile('00000000-0000-0000-0000-000000000002')",ctx);
+assert(element('#modal').innerHTML.includes('Test member'));
 assert(element('#modal').innerHTML.includes('Figma'));
 assert(element('#modal').innerHTML.includes('person-bio'));
 console.log('Conversation rail preserves drafts, controls keyboard access, and keeps bio information in the profile dialog.');
@@ -63,77 +64,23 @@ vm.runInContext(fs.readFileSync('dist/messaging.js','utf8'),messageCtx);
 // Project sharing stays compact until the user searches the complete catalog.
 vm.runInContext('shareProject()',messageCtx);
 assert.equal((element('#modal').innerHTML.match(/class="project-share-option"/g)||[]).length,3);
-assert(element('#modal').innerHTML.includes('share-project-search'));
-vm.runInContext("searchShareProjects('Patchwork React')",messageCtx);
+assert(element('#modal').innerHTML.indexOf('share-project-search')<element('#modal').innerHTML.indexOf('Recommended for this conversation'));
+vm.runInContext("searchShareProjects('Patchwork React')",ctx);
 assert(element('#share-project-results').innerHTML.includes('accessible booking flow'));
-vm.runInContext("searchShareProjects('no-matching-project-123')",messageCtx);
+vm.runInContext("searchShareProjects('no-matching-project-123')",ctx);
 assert(element('#share-project-results').innerHTML.includes('No projects found'));
-vm.runInContext("searchShareProjects('')",messageCtx);
+vm.runInContext("searchShareProjects('')",ctx);
 assert.equal(element('#share-project-results').innerHTML,'');
+console.log('Compact project recommendations and catalog search passed.');
 
-(async()=>{
-  messageCtx.TextEncoder=TextEncoder;
-  messageCtx.FileReader=class{
-    readAsDataURL(file){
-      if(file.fail){this.onerror();return;}
-      this.result='data:text/plain;base64,aGVsbG8=';this.onload();
-    }
-  };
-  await vm.runInContext("attachMessageFiles([{name:'notes.txt',size:5}])",messageCtx);
-  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),1);
-  assert.equal(vm.runInContext('attachmentDraft().loading',messageCtx),false);
-  element('#conversation-input').value='';
-  vm.runInContext('updateMessageSendState()',messageCtx);
-  assert.equal(element('#send-message').disabled,false);
-  vm.runInContext('sendMessage()',messageCtx);
-  const fileMessage=vm.runInContext('thread(activePerson).messages.at(-1)',messageCtx);
-  assert.equal(fileMessage.attachments[0].name,'notes.txt');
-  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),0);
-  const download=vm.runInContext('messageAttachmentLink(thread(activePerson).messages.at(-1).attachments[0])',messageCtx);
-  assert(download.includes('download="notes.txt"'));
-  assert(download.includes('data:application/octet-stream;base64,'));
-  assert.equal(vm.runInContext("messageAttachmentLink({name:'bad',data:'javascript:alert(1)'})",messageCtx),'');
-  await vm.runInContext("attachMessageFiles([{name:'too-big.txt',size:1048577}])",messageCtx);
-  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),0);
-  await vm.runInContext("attachMessageFiles([{name:'unreadable.txt',size:5,fail:true}])",messageCtx);
-  assert.equal(vm.runInContext('attachmentDraft().loading',messageCtx),false);
-  await vm.runInContext("attachMessageFiles([{name:'remove.txt',size:5}])",messageCtx);
-  vm.runInContext('removePendingAttachment(attachmentDraft().files[0].id)',messageCtx);
-  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),0);
-  assert.equal(vm.runInContext("attachmentsFitWorkspace(activePerson,{messages:[{text:'x'.repeat(1800001)}]})",messageCtx),false);
-  messageCtx.URL=URL;
-  messageCtx.location={href:'https://nextwork-jobs.vercel.app/?tracking=1#explore',hash:'#explore'};
-  let copiedUrl,nativePayload;
-  messageCtx.navigator={clipboard:{writeText:async url=>{copiedUrl=url}},share:async payload=>{nativePayload=payload}};
-  vm.runInContext('shareListing(7)',messageCtx);
-  assert(element('#modal').innerHTML.includes('Send in Messages'));
-  assert(element('#modal').innerHTML.includes('Copy link'));
-  assert(element('#modal').innerHTML.includes('mailto:'));
-  assert(element('#modal').innerHTML.includes('More sharing options'));
-  await vm.runInContext('copyListingLink(7)',messageCtx);
-  assert.equal(copiedUrl,'https://nextwork-jobs.vercel.app/#project/7');
-  await vm.runInContext('nativeShareListing(7)',messageCtx);
-  assert.equal(nativePayload.url,copiedUrl);
-  messageCtx.navigator.clipboard.writeText=async()=>{throw new Error('denied')};
-  element('#listing-share-url').select=()=>{};
-  await vm.runInContext('copyListingLink(7)',messageCtx);
-  assert(element('#listing-share-status').textContent.includes('copy it'));
-  vm.runInContext('shareListingRecipients(7)',messageCtx);
-  vm.runInContext("renderListingRecipients(7,'Amara')",messageCtx);
-  assert(element('#listing-recipients').innerHTML.includes('Amara Okafor'));
-  assert(!element('#listing-recipients').innerHTML.includes('Maya Chen'));
-  element('#conversation-input').value='Preserve my unsent draft';
-  const beforeShare=vm.runInContext('activePerson',messageCtx);
-  const shareButton={disabled:false};messageCtx.shareButton=shareButton;
-  vm.runInContext("sendListingToConversation(7,'peer-1',shareButton)",messageCtx);
-  assert.equal(vm.runInContext("thread('peer-1').messages.at(-1).projectId",messageCtx),7);
-  assert.equal(vm.runInContext('activePerson',messageCtx),beforeShare);
-  assert.equal(element('#conversation-input').value,'Preserve my unsent draft');
-  const countAfterShare=vm.runInContext("thread('peer-1').messages.length",messageCtx);
-  vm.runInContext("sendListingToConversation(7,'peer-1',shareButton)",messageCtx);
-  assert.equal(vm.runInContext("thread('peer-1').messages.length",messageCtx),countAfterShare);
-  console.log('Listing sharing covers canonical links, clipboard fallback, native sharing, recipient search, duplicate sends and draft preservation.');
-  console.log('Project recommendations/search and file selection, removal, attachment-only sending, downloads, read errors and storage limits passed.');
-})().catch(error=>{console.error(error);process.exitCode=1});
-assert(vm.runInContext('card(jobs[0])',ctx).includes('aria-pressed='));
-assert(fs.readFileSync('dist/style.css','utf8').includes('.bookmark.saved svg,.bookmark-detail.saved svg{fill:currentColor}'));
+// The asynchronous service and multi-account flows have their own focused suite.
+vm.runInContext('shareProject()',ctx);
+assert.equal((element('#modal').innerHTML.match(/class="project-share-option"/g)||[]).length,3);
+assert(element('#modal').innerHTML.indexOf('share-project-search')<element('#modal').innerHTML.indexOf('Recommended for this conversation'));
+vm.runInContext("searchShareProjects('Patchwork React')",ctx);
+assert(element('#share-project-results').innerHTML.includes('accessible booking flow'));
+vm.runInContext("searchShareProjects('no-matching-project-123')",ctx);
+assert(element('#share-project-results').innerHTML.includes('No projects found'));
+vm.runInContext("searchShareProjects('')",ctx);
+assert.equal(element('#share-project-results').innerHTML,'');
+console.log('Compact project recommendations and catalog search passed.');

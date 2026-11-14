@@ -5,7 +5,7 @@ function isOrganizationAccount(user = typeof Account !== 'undefined' ? Account.u
 function accountHome() { return isOrganizationAccount() ? 'organization' : 'overview'; }
 function accountRouteAllowed(page) {
   if (typeof Account === 'undefined' || !Account.user) return true;
-  if (isOrganizationAccount()) return ['home','pricing','organization','organization-login','organization-signup','settings','login','forgot','password'].includes(page);
+  if (isOrganizationAccount()) return ['home','pricing','organization','organization-login','organization-signup','messages','settings','login','forgot','password'].includes(page);
   return true;
 }
 function organizationAccountRequired() {

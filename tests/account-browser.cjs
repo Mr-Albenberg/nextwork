@@ -151,6 +151,8 @@ async function setup(browser) {
           method === "POST" ? 201 : 200,
         );
       }
+      if (url.pathname.endsWith('/chat_attachments')) { assert(user); return reply([]); }
+      if (url.pathname.endsWith('/rpc/chat_setup_version')) return reply(0);
       return reply({});
     },
   );

@@ -185,3 +185,6 @@ body[data-auth="member"]>aside .nav-caption:first-child{margin-top:0}
 @media(max-width:1000px){.org-landing-hero{gap:25px}.org-benefit-grid{gap:12px}.org-landing-bottom{align-items:flex-start;flex-direction:column}.organization-info dl{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.org-landing-hero,.org-landing-how{grid-template-columns:1fr;gap:25px}.org-landing-hero{padding:24px 0}.org-landing-preview{padding:24px}.org-benefit-grid{grid-template-columns:1fr}.org-landing-how{padding:24px}.organization-info{padding:23px}.org-landing-hero h1{font-size:37px}.org-landing-hero .dialog-actions>*{width:100%;justify-content:center}.org-landing-bottom h2{font-size:23px}}
 @media(max-width:420px){.organization-info dl{grid-template-columns:1fr}.job-top{gap:7px}.job-top .bookmark{width:36px;height:36px;min-width:36px;flex-basis:36px}.org-preview-flow{font-size:10px}}
+
+
+.conversation-main>.chat-empty{margin:auto;max-width:460px}.conversation-main>.chat-empty button{margin-top:14px}.message-file{background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer;width:100%}.message-file small{color:inherit}.earlier-messages{margin:0 auto 20px;display:flex}#message-feedback:empty{display:none}#message-feedback{font-size:11px;margin:6px 0 0}.inbox button:disabled{opacity:.5;cursor:default}

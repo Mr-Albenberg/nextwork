@@ -29,6 +29,7 @@ function memoryStorage() {
 const workspaceLocal = memoryStorage(),
   workspaceSession = memoryStorage();
 function clearWorkspaceMemory() {
+  if (typeof resetMessaging === "function") resetMessaging();
   workspaceLocal.clear();
   workspaceSession.clear();
 }
@@ -282,7 +283,7 @@ function activateWorkspace(user) {
     applications = JSON.parse(workspaceLocal.getItem("lp-apps") || "[]");
     resumeReport = null;
     profileStep = 0;
-    activePerson = "creator-1";
+    activePerson = "";
     inboxFilter = "inbox";
     inboxQuery = "";
     query = "";
@@ -464,6 +465,7 @@ function openDeleteAccount() {
       // Finish outstanding writes so a late request cannot recreate data after deletion.
       if (Backend.ready && (Backend.pending.size || Backend.task))
         await saveWorkspace();
+      if (typeof cleanupMessagingUploads === "function") await cleanupMessagingUploads();
       const result = await Account.client.rpc("delete_my_account");
       if (result.error) throw result.error;
       await endAccountSession();

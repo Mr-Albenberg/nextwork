@@ -122,6 +122,8 @@ assert.equal(vm.runInContext("postLoginRoute()",ctx),'overview');
 vm.runInContext("Account.user={id:'hiring',app_metadata:{nextwork_account_type:'organization'}}",ctx);
 assert.equal(vm.runInContext('isOrganizationAccount()',ctx),true);
 assert.equal(vm.runInContext("postLoginRoute()",ctx),'organization');
-for(const page of ['profile','resume','explore','projects','submissions','messages'])assert.equal(vm.runInContext(`accountRouteAllowed('${page}')`,ctx),false);
+for(const page of ['profile','resume','explore','projects','submissions'])assert.equal(vm.runInContext(`accountRouteAllowed('${page}')`,ctx),false);
 for(const page of ['organization','settings','password'])assert.equal(vm.runInContext(`accountRouteAllowed('${page}')`,ctx),true);
 console.log('Personal and hiring route boundaries use trusted account type; editable metadata cannot convert candidates.');
+
+assert.equal(vm.runInContext("accountRouteAllowed('messages')",ctx),true);

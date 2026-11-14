@@ -1,0 +1,28 @@
+const assert=require('node:assert/strict');
+const ChatService=require('../dist/chat-service.js');
+const {ChatFixture,ids}=require('./helpers/chat-fixture.cjs');
+(async()=>{
+ const fixture=new ChatFixture();let current=true;
+ const a=new ChatService(fixture.client(ids.alex),ids.alex,{isCurrent:()=>current,uuid:()=>fixture.uuid()}),b=new ChatService(fixture.client(ids.taylor),ids.taylor,{uuid:()=>fixture.uuid()});
+ assert.deepEqual(await a.initialize(),[]);await b.initialize();
+ assert.equal((await a.search('Taylor'))[0].user_id,ids.taylor);
+ const conversation=await a.start(ids.taylor);assert.equal(await b.start(ids.alex),conversation);
+ let aEvents=0,bEvents=0;a.subscribe(()=>aEvents++);b.subscribe(()=>bEvents++);
+ const messageId=fixture.uuid();await a.send(conversation,{id:messageId,body:'Hello from Alex'});
+ assert.equal((await b.messages(conversation))[0].body,'Hello from Alex');assert.equal((await b.inbox())[0].unread,1);assert(aEvents>0&&bEvents>0);
+ await b.state(conversation,{mark_read:true,save:true,archive:true});assert.equal((await b.inbox())[0].unread,0);assert.equal((await b.inbox())[0].saved,true);assert.equal((await a.inbox())[0].saved,false);
+ const file={name:'notes.txt',size:5,file:Buffer.from('hello')},fileMessage=fixture.uuid();fixture.failUpload=true;
+ await assert.rejects(a.send(conversation,{id:fileMessage,files:[file]}),/Upload failed/);assert.equal(file.uploaded,undefined);assert.equal(fixture.messages.length,1);
+ fixture.failUpload=false;fixture.failAfterCommit=true;
+ await assert.rejects(a.send(conversation,{id:fileMessage,files:[file]}),/Connection lost/);
+ assert.equal(file.uploaded,true);assert.equal(fixture.messages.length,2);
+ await a.send(conversation,{id:fileMessage,files:[file]});assert.equal(fixture.messages.length,2);assert.equal(fixture.files.length,1);
+ const received=(await b.messages(conversation)).at(-1);assert.equal(received.chat_attachments[0].name,'notes.txt');assert.equal(await (await b.download(received.chat_attachments[0])).text(),'hello');
+ await a.remove((await a.messages(conversation)).at(-1));assert((await b.messages(conversation)).at(-1).deleted_at);assert.equal(fixture.blobs.size,0);
+ await b.send(conversation,{id:fixture.uuid(),body:'Reply',listing:{id:7,title:'Real shared listing',company:'Startup'}});assert.equal((await a.messages(conversation)).at(-1).listing.id,7);
+ const staged={name:'draft.txt',size:5,file:Buffer.from('hello')};staged.remote=(await fixture.rpc(ids.alex,'chat_reserve_attachment',{conversation,filename:staged.name,bytes:5})).data;await a.discard(staged);assert(!fixture.files.includes(staged.remote));
+ const c=new ChatService(fixture.client(ids.outsider),ids.outsider);assert.deepEqual(await c.inbox(),[]);assert.deepEqual(await c.messages(conversation),[]);await assert.rejects(c.send(conversation,{id:fixture.uuid(),body:'Forbidden'}),/unavailable/);
+ let resolveRequest;const delayed=new ChatService({rpc:()=>new Promise(resolve=>resolveRequest=resolve)},ids.alex,{isCurrent:()=>current});const pending=delayed.inbox();current=false;resolveRequest({data:[{private:'old-account'}]});await assert.rejects(pending,{code:'CHAT_ACCOUNT_CHANGED'});
+ const oldEvents=aEvents;fixture.emit();assert.equal(aEvents,oldEvents);a.stop();b.stop();assert.equal(fixture.listeners.size,0);
+ console.log('Shared chat service: two-account delivery, live callbacks, reply, unread/preferences, private file flow, upload/send retries, idempotency, deletion, and account-switch isolation passed.');
+})().catch(error=>{console.error(error);process.exitCode=1});
