@@ -58,6 +58,12 @@ jobs:
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/database-bootstrap.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140001_accounts.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/database.test.sql
+      - name: Test organization permissions and applicant privacy
+        env:
+          PGPASSWORD: local-ci-only
+        run: |
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140002_organizations.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/organizations.test.sql
       - name: Verify GitHub Pages mirror
         run: |
           for file in dist/*; do cmp "$file" "docs/$(basename "$file")"; done

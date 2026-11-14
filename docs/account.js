@@ -288,6 +288,7 @@ function importGuestProfile() {
   Account.message = "Guest profile imported into empty fields.";
 }
 function activateWorkspace(user) {
+  if (typeof resetOrganizationWorkspace === 'function') resetOrganizationWorkspace();
   const owner = user?.id || null,
     changed = workspaceOwner !== owner;
   Account.user = user;

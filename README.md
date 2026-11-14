@@ -189,3 +189,50 @@ Premium records use the existing per-account workspaceLocal cache under nextwork
 Login and registration use a responsive account card with a LinkedIn-blue (#0A66C2) button, the LinkedIn icon, a clear email divider, and labeled email/password inputs. Connected-account settings separate the LinkedIn status, password action, sync status, and sign-out control. Public visitors see marketing navigation rather than a fictional workspace sidebar or avatar.
 
 The public route allowlist is `home`, `pricing`, `login`, `signup`, `forgot`, and `password` (the last shows recovery instructions when signed out). Every other route, including unknown hashes and project details, requires login. Workspace mutations also check the current account; Postgres RLS and the server's verified-session check remain the security boundary for stored data and remote resume analysis. The static sample catalog and public marketing examples are not confidential account data.
+supabase/migrations/202611140002_organizations.sql
+
+A downloadable copy is shipped as organization-setup.sql. Until this migration is applied, the portal shows an activation error and does not pretend to publish or submit shared records.
+
+Organization features:
+- Organization profile with name, website, description, and optional public business email.
+- Job/contract builder with engagement type, field, budget/pay basis, location, skill tags, individual requirements, and deliverables.
+- Draft, published, and closed states. Published listings join Find work and support resume matching.
+- Applicant inbox with listing filters, private profile/resume snapshots, accept/decline/shortlist actions, and private application conversations.
+- Applicant-side Organization applications page for decisions, withdrawal, and messages.
+
+Access is enforced by database RLS and restricted decision RPCs. Only the owner can manage listings or decide applications; applicants cannot accept themselves. Only the applicant and organization owner can read application snapshots or send messages in that thread. No service-role key is exposed in the browser. Other organizations cannot see these applicants. Closing a listing stops new applications.
+
+Existing sample catalog applications retain their prototype behavior. Real organization listings submit to the shared application tables. Messages use refresh to load new messages; they are stored in the database, not sent as email. Organization membership is owner-only in this version; multi-person hiring teams and invitation roles are future work.
+
+## Profile resume upload and canonical skill tags
+
+The experience step of profile setup accepts PDF, DOCX and TXT (5 MB maximum) or pasted text. It uses the existing browser document parser and stores extracted text in the current account's resume workspace for matching/private sync. Uploading does not call an AI provider. Scanned PDFs require pasted/OCR text.
+
+Graduate and organization forms share a searchable skill multi-select with autocomplete, removable tags, keyboard selection, aliases such as JS/TS, and canonical names. Arbitrary free-text tags are not created. A maximum of 20 skills can be selected. Skills are still self-reported; selection does not verify proficiency.
+
+
+## Organization portal, published listings and real applications
+
+The organization portal uses the existing secure Supabase sign-in. A user can maintain both graduate and organization workspaces; each owner can create one organization. Organization profiles and optional explicitly published business contact emails are public. Draft listings and applicant documents are private.
+
+Run the new migration once in the Supabase SQL Editor:
+supabase/migrations/202611140002_organizations.sql
+
+A downloadable copy is shipped as organization-setup.sql. Until this migration is applied, the portal shows an activation error and does not pretend to publish or submit shared records.
+
+Organization features:
+- Organization profile with name, website, description, and optional public business email.
+- Job/contract builder with engagement type, field, budget/pay basis, location, skill tags, individual requirements, and deliverables.
+- Draft, published, and closed states. Published listings join Find work and support resume matching.
+- Applicant inbox with listing filters, private profile/resume snapshots, accept/decline/shortlist actions, and private application conversations.
+- Applicant-side Organization applications page for decisions, withdrawal, and messages.
+
+Access is enforced by database RLS and restricted decision RPCs. Only the owner can manage listings or decide applications; applicants cannot accept themselves. Only the applicant and organization owner can read application snapshots or send messages in that thread. No service-role key is exposed in the browser. Other organizations cannot see these applicants. Closing a listing stops new applications.
+
+Existing sample catalog applications retain their prototype behavior. Real organization listings submit to the shared application tables. Messages use refresh to load new messages; they are stored in the database, not sent as email. Organization membership is owner-only in this version; multi-person hiring teams and invitation roles are future work.
+
+## Profile resume upload and canonical skill tags
+
+The experience step of profile setup accepts PDF, DOCX and TXT (5 MB maximum) or pasted text. It uses the existing browser document parser and stores extracted text in the current account's resume workspace for matching/private sync. Uploading does not call an AI provider. Scanned PDFs require pasted/OCR text.
+
+Graduate and organization forms share a searchable skill multi-select with autocomplete, removable tags, keyboard selection, aliases such as JS/TS, and canonical names. Arbitrary free-text tags are not created. A maximum of 20 skills can be selected. Skills are still self-reported; selection does not verify proficiency.
