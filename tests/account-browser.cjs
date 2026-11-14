@@ -71,7 +71,7 @@ async function setup(browser) {
   page.setDefaultTimeout(10000);
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await context.route("**/api/profile-photo**", async (route) => {
+  await context.route("**/functions/v1/profile-photo**", async (route) => {
     const request = route.request(),
       url = new URL(request.url());
     const jwt = (request.headers().authorization || "").replace("Bearer ", "");
@@ -122,6 +122,7 @@ async function setup(browser) {
       const request = route.request(),
         url = new URL(request.url()),
         method = request.method();
+      if (url.pathname === "/functions/v1/profile-photo") return route.fallback();
       requests.push({ path: url.pathname, method });
       let body;
       try {

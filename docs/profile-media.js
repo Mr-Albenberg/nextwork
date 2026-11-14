@@ -38,13 +38,14 @@ async function photoRequest(
 ) {
   const session = (await Account.client.auth.getSession()).data.session;
   if (!session) throw Error("Log in to manage your profile photo.");
-  const url = new URL("/api/profile-photo", location.origin);
+  const url = new URL(NEXTWORK_SUPABASE_URL + "/functions/v1/profile-photo");
   if (target) url.searchParams.set("userId", target);
   if (account) url.searchParams.set("account", "true");
   const response = await fetch(url.href, {
     method,
     headers: {
       Authorization: "Bearer " + session.access_token,
+      apikey: NEXTWORK_SUPABASE_KEY,
       ...(body ? { "Content-Type": "application/json" } : {}),
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
@@ -90,7 +91,7 @@ function updatePhotoStatus() {
     .forEach((node) => (node.hidden = !ProfileMedia.needsConsent));
 }
 function paintProfilePhotos() {
-  if (!Account.user) return;
+  if (typeof Account === "undefined" || !Account.user) return;
   document
     .querySelectorAll(
       ".avatar,.landing-account-avatar,[data-own-photo],[data-member-id]",
@@ -285,6 +286,24 @@ function imageDimensions(bytes) {
   }
   throw Error("The image dimensions could not be read.");
 }
+async function preparePhotoUpload(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const image = new Image(); image.src = url; await image.decode();
+    const { naturalWidth: width, naturalHeight: height } = image;
+    if (width < 400 || height < 400 || width > 7680 || height > 4320)
+      throw Error("Use a photo between 400 × 400 and 7680 × 4320 pixels after rotation.");
+    const side = Math.min(width, height), target = Math.min(512, side);
+    const canvas = document.createElement('canvas');canvas.width = canvas.height = target;
+    const context = canvas.getContext('2d');
+    if (!context) throw Error("Your browser could not prepare this photo.");
+    context.fillStyle = '#ffffff';context.fillRect(0,0,target,target);
+    context.drawImage(image,(width-side)/2,(height-side)/2,side,side,0,0,target,target);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve,'image/jpeg',0.85));
+    if (!blob) throw Error("Your browser could not prepare this photo.");
+    return new File([blob], 'profile-photo.jpg', {type:'image/jpeg'});
+  } finally { URL.revokeObjectURL(url); }
+}
 function openPhotoEditor() {
   if (!requireAccount()) return;
   closePhotoPreview();
@@ -320,15 +339,19 @@ function openPhotoEditor() {
         size.width * size.height > 7680 * 4320
       )
         throw Error("Use a photo between 400 × 400 and 7680 × 4320 pixels.");
+      const isPNG = new Uint8Array(bytes)[0] === 137;
+      if ((extension === 'png') !== isPNG || (file.type && file.type !== (isPNG ? 'image/png' : 'image/jpeg')))
+        throw Error("The file type does not match its image contents.");
+      const prepared = await preparePhotoUpload(file);
       const digest = [
-        ...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+        ...new Uint8Array(await crypto.subtle.digest("SHA-256", await prepared.arrayBuffer())),
       ]
         .map((n) => n.toString(16).padStart(2, "0"))
         .join("");
       if (!input.isConnected || input.files[0] !== file) return;
       ProfileMedia.sha256 = digest;
-      ProfileMedia.file = file;
-      ProfileMedia.preview = URL.createObjectURL(file);
+      ProfileMedia.file = prepared;
+      ProfileMedia.preview = URL.createObjectURL(prepared);
       const image = document.createElement("img");
       image.src = ProfileMedia.preview;
       image.alt = "Your selected photo preview";
