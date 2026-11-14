@@ -1,5 +1,7 @@
 # Prooflane
 
+[Open Prooflane](https://symmetrical-waffle-coral.vercel.app/) · [Resume Studio](https://symmetrical-waffle-coral.vercel.app/#resume)
+
 Real work. Real proof. Your next role.
 
 A responsive graduate project marketplace with paid startup opportunities, saved projects, local demo applications, resume-based practice quizzes, career gap comparisons, messaging, and profiles.
