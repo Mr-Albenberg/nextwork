@@ -49,6 +49,8 @@ jobs:
         run: node tests/listing-match.test.js
       - name: Test profile setup, field criteria and grounded AI evidence
         run: node tests/profile-and-criteria.test.js
+      - name: Test project recommendations, market data and API
+        run: node tests/recommend.test.js
       - name: Test account isolation and sync
         run: node tests/account.test.js
       - name: Test database access policies and AI quotas
@@ -94,6 +96,8 @@ jobs:
       - name: Configure AI runtime and deploy through the Vercel project API
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
           # Owner explicitly confirmed completion of unbilled Free Tier setup in this session.
           GEMINI_FREE_TIER_CONFIRMED: 'true'
         run: node .github/scripts/vercel-deploy.cjs

@@ -7,6 +7,8 @@ const metadata=await api('/v9/projects/'+project);if(metadata.id!==project)throw
 // Remove the unused paid-provider runtime key. Never read or log its value.
 const configured=await api('/v10/projects/'+project+'/env');for(const item of configured.envs||[]){if(['OPENAI_API_KEY','OPENAI_MODEL'].includes(item.key)&&item.target?.includes('production'))await api('/v9/projects/'+project+'/env/'+item.id,'DELETE')}
 if(process.env.GEMINI_API_KEY){await api('/v10/projects/'+project+'/env?upsert=true','POST',{key:'GEMINI_API_KEY',value:process.env.GEMINI_API_KEY,type:'sensitive',target:['production']});console.log('Optional Gemini key configured securely.');}
+// Optional live job-posting source for Project recommendations. Without keys, Greenhouse/Lever boards and the built-in baseline are used.
+for(const key of ['ADZUNA_APP_ID','ADZUNA_APP_KEY']){if(process.env[key]){await api('/v10/projects/'+project+'/env?upsert=true','POST',{key,value:process.env[key],type:'sensitive',target:['production']});console.log('Optional '+key+' configured securely.')}}
 const confirmed=String(process.env.GEMINI_FREE_TIER_CONFIRMED||'').trim().replace(/^[\"']|[\"']$/g,'').toLowerCase()==='true';await api('/v10/projects/'+project+'/env?upsert=true','POST',{key:'GEMINI_FREE_TIER_CONFIRMED',value:String(confirmed),type:'plain',target:['production']});console.log(confirmed?'Owner confirmed an unbilled Free Tier project.':'Free local review active; external AI disabled until Free Tier is confirmed.');
 
 const deployment=await api('/v13/deployments','POST',{name:metadata.name,project,target:'production',gitSource:{type:'github',repoId:Number(process.env.GITHUB_REPOSITORY_ID),ref:process.env.GITHUB_SHA}});console.log('Production deployment requested.');
