@@ -330,6 +330,27 @@ async function login(page, email) {
     assert(requests.some((r) => r.path.endsWith("/user/identities/authorize")));
     assert.deepEqual(errors, []);
     await context.close();
+    ({ context, page, errors } = await setup(browser));
+    await login(page, "bob@example.com");
+    await page
+      .getByRole("button", { name: "Delete account", exact: true })
+      .click();
+    await page.getByLabel("Type DELETE to confirm").fill("DELETE");
+    await page
+      .getByRole("button", { name: "Permanently delete account", exact: true })
+      .click();
+    await page.waitForURL("**/#login");
+    assert(!rows.has(users["bob@example.com"].id));
+    assert(rows.has(users["alice@example.com"].id));
+    assert.equal(
+      await page.evaluate(() => workspaceLocal.getItem("proof-profile")),
+      null,
+    );
+    await page
+      .getByText("Your account has been deleted.", { exact: true })
+      .waitFor();
+    assert.deepEqual(errors, []);
+    await context.close();
     console.log(
       "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, cloud profile/resume restore, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation and signed-in LinkedIn linking passed (mocked Supabase).",
     );

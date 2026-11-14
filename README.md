@@ -21,7 +21,7 @@ node tests/profile-and-criteria.test.js
 
 The three-step setup collects name, email, education, target field/role, engagement preferences, availability, skills, portfolio, and introduction. Drafts save between steps. Completion and sidebar identity use actual saved information.
 
-Email/password and LinkedIn accounts use Supabase Auth. Signed-in profiles, saved projects, application drafts, and resume text sync to a private account workspace after the database migration is applied. Profiles are available only after sign-in. Personal guest profiles saved by older versions stay on the device until explicitly imported by their owner. No employer-facing submissions are enabled. Self-reported profile skills are not counted as verified resume evidence. Logged-out visitors cannot access resume tools. Signed-in resume text is automatically synced; Clear resume data clears the active resume, while prior application snapshots are retained.
+Email/password and LinkedIn accounts use Supabase Auth. Signed-in profiles, saved projects, application drafts, and resume text are saved in a private account workspace after the database migration is applied. Profiles are available only after sign-in. Legacy guest profiles are no longer used. No employer-facing submissions are enabled. Self-reported profile skills are not counted as verified resume evidence. Logged-out visitors cannot access resume tools. Signed-in resume text is automatically saved; Clear resume data clears the active resume, while prior application snapshots are retained.
 
 ## Listing and field compatibility
 
@@ -82,7 +82,7 @@ Current opportunities are samples. Applications, profiles, and messages are brow
 
 The marketplace contains 14 clearly labeled sample paid projects. Each has its own brief, budget, duration, deliverables, impact, skills, and two project-specific matching criteria, plus its field foundation rubric. The additional catalog is shared by the browser and server through `dist/extra-jobs.js`.
 
-New visitors see the public homepage without a profile, resume, bookmarks, or application records. There is no automatic or manually loadable demo account. All workspace routes require a signed-in Supabase account. The homepage, pricing, and account/recovery screens remain public. Signing out hides workspace navigation and redirects private routes to login. Existing personal guest data from older versions is preserved; fictional guest data is never imported into an account.
+New visitors see the public homepage without a profile, resume, bookmarks, or application records. There is no automatic or manually loadable demo account. All workspace routes require a signed-in Supabase account. The homepage, pricing, and account/recovery screens remain public. Signing out hides workspace navigation and redirects private routes to login. Legacy browser-saved profiles are no longer used.
 
 The owner confirmed Free Tier setup for this deployment. Actions records that confirmation in its deployment environment; set the workflow value `GEMINI_FREE_TIER_CONFIRMED` to `false` to disable remote AI. This remains an owner attestation, not a billing-status check.
 
@@ -98,9 +98,9 @@ Applications are prefilled from the active graduate profile. The review shows id
 
 The primary navigation now focuses on Find work, Applications, Messages, My profile, and Resume & match. Career tools sit in a secondary expandable group. A concise three-step row replaces the large marketing hero and statistics block, with a direct path from finding work to checking fit and applying. The refreshed visual system uses consistent SVG line icons, vector startup monograms, a refined brand mark, clearer active tabs, larger actions, and responsive layouts.
 
-Messages supports creator conversations from project details, a searchable people directory (14 creators and 3 graduates), profile previews, related-project panels, searchable inboxes, saved/archived threads, unread markers, outgoing-message deletion, quick introduction prompts, Enter/Shift+Enter composition, and linked project sharing. Threads persist on this device. Existing messages are not forwarded to any external service, and no live presence or delivery receipts are simulated.
+Messages supports creator conversations from project details, a searchable people directory (14 creators and 3 graduates), profile previews, related-project panels, searchable inboxes, saved/archived threads, unread markers, outgoing-message deletion, quick introduction prompts, Enter/Shift+Enter composition, and linked project sharing. Threads are saved privately to your account. Existing messages are not forwarded to any external service, and no live presence or delivery receipts are simulated.
 
-Workspace settings explains storage, simulated communications, and free AI behavior. No sample-profile controls are exposed. Messaging remains a browser-local prototype; account profiles, bookmarks, application drafts, and resumes can sync separately.
+Workspace settings explains storage, simulated communications, and free AI behavior. No sample-profile controls are exposed. Messaging remains a preview; account profiles, bookmarks, application drafts, and resumes are saved to the account.
 
 ## Public homepage and proposed plans
 
@@ -113,7 +113,7 @@ Proposed graduate plans:
 
 These are proposed prices, not live subscriptions. No checkout, card collection, payment processor, charges, subscription entitlements, or cancellation system is connected. The price switch and Premium preview are interactive, but do not enroll the user in a paid plan.
 
-The free `#tools` career toolkit (also available at the legacy `#premium` route) includes named resume versions (maximum 10), side-by-side text/skill-term comparison, loading a version into matching, a Markdown case-study draft download, and a personal application overview/next action. Data is stored on the device; these tools are included in Free. Premium outreach and visibility benefits are future proposals, not active subscription entitlements. Premium does not introduce paid AI APIs or guarantee unlimited free-provider capacity.
+The free `#tools` career toolkit (also available at the legacy `#premium` route) includes named resume versions (maximum 10), side-by-side text/skill-term comparison, loading a version into matching, a Markdown case-study draft download, and a personal application overview/next action. Data is stored in the account; these tools are included in Free. Premium outreach and visibility benefits are future proposals, not active subscription entitlements. Premium does not introduce paid AI APIs or guarantee unlimited free-provider capacity.
 
 ## Nextwork brand
 
@@ -122,34 +122,25 @@ The public product is named Nextwork. The single-color geometric N mark is provi
 
 ## Accounts and private workspace storage
 
-Supported flows: email/password registration, confirmation, sign-in, password recovery, password changes, LinkedIn sign-in, and connecting LinkedIn to an existing signed-in account. The LinkedIn OAuth product supplies basic identity fields, not a complete career history. Sign-in and linking use distinct Supabase APIs. Resume Studio and skill analysis require sign-in; the server validates the bearer token with Supabase before processing any analysis POST.
+Email/password registration, confirmation, login, password recovery, password changes, LinkedIn login, and linking LinkedIn to an existing account use Supabase Auth. LinkedIn supplies basic identity details, not a complete career history. All workspace pages require login. Postgres RLS isolates each account, and the resume API verifies the current session server-side.
 
-Supabase project: `https://zkoqafidgromlbvczwzy.supabase.co`. The publishable key in `dist/account.js` is public browser configuration, not a privileged credential. The pinned Supabase JS SDK (2.89.0, MIT license) is served locally. LinkedIn's Client Secret belongs only in the Supabase provider configuration. Gemini and Vercel tokens stay in server/Actions secrets. No service-role key is required by this app. AI review only sends sessions to the canonical Nextwork API, never a configurable third-party server.
+All account content is stored in Supabase. The browser holds only the active page's working state in memory; it does not persist profiles, resumes, saved projects, applications, messages, or tool state to localStorage/sessionStorage. Supabase's login session and PKCE verifier still use browser storage as required for authentication. Legacy browser-saved workspace records are removed and never imported. Database failures block the workspace rather than opening an offline account. There are no sync, import, copy-conflict, or device-replacement controls.
 
-One-time Supabase setup:
+Saves update only the changed columns and use the server-managed row version internally to retry concurrent writes. Profile and application save actions wait for the server. Failed writes clear working state and require reloading the account from the database. Sign-out waits for an in-flight save and then clears account content from memory. Sample messages are still not delivered to other users, but their preview state and career tools are saved privately in the account's `extras` field.
 
-1. Enable Email, email confirmation, LinkedIn (OIDC), and Allow manual linking under Authentication → Sign In / Providers.
-2. Set Site URL to `https://nextwork-jobs.vercel.app`. Add `https://nextwork-jobs.vercel.app/` and `https://nextwork-jobs.vercel.app/?auth=recovery` to the allowed redirect URLs. Local tests need their exact equivalent URLs if using live authentication.
-3. Keep LinkedIn's authorized callback at `https://zkoqafidgromlbvczwzy.supabase.co/auth/v1/callback`.
-4. Run `supabase/migrations/202611140001_accounts.sql` in the project's SQL editor. Run only that migration, **not** the local test bootstrap. This creates `account_workspaces`, owner-only row-level policies, and a private AI quota counter/function. The publishable key cannot apply migrations.
-5. Test with two real accounts: verify email, sign in, save a profile/resume, and open a second browser to confirm sync. Check that neither account can read the other's workspace. Test a real confirmation/reset email and LinkedIn linking. Automated browser tests mock Supabase and cannot establish email deliverability or LinkedIn approval.
+The user card appears before the profile editor. Account connections, password settings, sign-out, and permanent deletion appear below it. Deletion requires typing DELETE and invokes a no-argument `delete_my_account()` function restricted to authenticated callers. The function derives the target from `auth.uid()`, deletes that user, and cascades their workspace and quota records. It never accepts a user ID or exposes an admin key.
 
-Each account gets one private database row with profile fields, saved sample-listing IDs, application-draft snapshots, active resume text, and a server-managed version. This deliberately stores workspace drafts together; live employer listings, submitted applications, and messages will need separate relational tables. Resumes automatically sync for signed-in users. Original uploaded files are parsed locally and not stored. Messages and Premium resume versions remain device-local. Existing guest profiles are imported only with an explicit action; fictional demo data is excluded.
+Public project configuration is in `dist/account.js`. The publishable Supabase key is intentionally public. LinkedIn secrets stay in Supabase; Gemini and Vercel credentials stay server-side. No service-role key is used. AI session tokens are sent only to the canonical Nextwork API.
 
-Workspace caches are isolated per user ID. Offline changes persist locally and sync on reconnect; cross-device version conflicts require choosing the account or device copy. If the migration is missing, sign-in still works but storage shows an explicit setup error and retains changes on the device. No cross-device sync is claimed until storage responds successfully. Signing out with unsynced changes preserves them for that account's next sign-in. This is browser caching, not protection against someone with access to browser developer tools on the same device.
+Supabase setup:
 
-Additional checks:
+1. Enable Email, email confirmation, LinkedIn (OIDC), and Allow manual linking in Authentication → Sign In / Providers.
+2. Set Site URL to `https://nextwork-jobs.vercel.app`. Allow `https://nextwork-jobs.vercel.app/` and `https://nextwork-jobs.vercel.app/?auth=recovery` as redirect URLs.
+3. Keep LinkedIn's callback at `https://zkoqafidgromlbvczwzy.supabase.co/auth/v1/callback`.
+4. Run `supabase/migrations/202611140001_accounts.sql`, then `supabase/migrations/202611140002_account_updates.sql` in Supabase SQL Editor. If the first is already applied, run only the second. Never run test bootstrap files in production. The second migration adds account tool state and self-deletion. The publishable key cannot apply migrations.
+5. Test a real confirmed email login, reset email, LinkedIn linking, account deletion, and a second browser login. Browser integration tests mock Supabase; database tests run the SQL against PostgreSQL.
 
-```sh
-node tests/account.test.js
-# With Playwright installed and dist served on port 3000:
-node tests/account-browser.cjs
-```
-
-GitHub Actions also runs the migration and `tests/database.test.sql` in a fresh PostgreSQL service, testing owner isolation, anonymous denial, validation, versions, and durable quotas. Pushes to `main` deploy only after checks pass. The deploy job verifies that `nextwork-jobs.vercel.app` is assigned to the Vercel project. The migration itself must be applied separately in Supabase; deploying frontend files does not create database tables.
-
-Supabase and Vercel plan limits still apply. No paid plan, billing upgrade, payment processor, or paid AI fallback is enabled by these changes. Production email delivery needs an SMTP provider and its own plan/limits; Supabase's default mail service is limited and is not a production deliverability guarantee.
-
+GitHub checks JavaScript, account access, the recursive Pages mirror, database owner isolation, anonymous denial, quotas, and deletion. Pushes to main deploy through Vercel after checks pass. SQL migrations must be applied separately in Supabase. No billing upgrades, paid AI fallback, or payment processor are enabled. Production email needs an SMTP provider subject to its own plan and limits.
 
 ## Repository-supplied Nextwork identity
 

@@ -80,7 +80,7 @@ function accountPanel() {
     (i) => i.provider === "linkedin_oidc",
   );
   const email = Account.user.email || "LinkedIn member";
-  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
+  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-danger"><div><h3>Delete account</h3><p>Permanently delete your account and all saved profile, resume, project, and application data.</p></div><button class="account-delete-button" data-auth-action="delete-dialog">Delete account</button></div><div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
 }
 function accountFeedback() {
   return `<p id="auth-feedback" role="status" class="${Account.error ? "review-error" : "resume-hint"}">${esc(Account.error || Account.message)}</p>`;
@@ -193,6 +193,7 @@ function bindAccount() {
             await connectWorkspace(Account.user);
             render();
           }
+          if (action === "delete-dialog") openDeleteAccount();
           if (action === "signout") {
             if (Backend.ready && (Backend.pending.size || Backend.task))
               await saveWorkspace();
@@ -391,3 +392,40 @@ function updateAccountChrome(page) {
 
 
 function postLoginRoute(){const next=sessionStorage.getItem('nextwork-auth-intent');sessionStorage.removeItem('nextwork-auth-intent');return next==='organization'?'organization':'profile'}
+function openDeleteAccount() {
+  if (!Account.user) return;
+  const modal = document.querySelector("#modal");
+  modal.hidden = false;
+  modal.innerHTML = `<div class="dialog delete-account-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-account-heading"><button class="close" onclick="closeModal()" aria-label="Close">×</button><span class="account-eyebrow">ACCOUNT SETTINGS</span><h2 id="delete-account-heading">Delete your account?</h2><p>This permanently removes your login, LinkedIn connection, profile, resume, saved projects, and application drafts. This cannot be undone.</p><form id="delete-account-form"><label class="field">Type DELETE to confirm<input id="delete-account-confirm" required autocomplete="off" pattern="DELETE" placeholder="DELETE"></label><p id="delete-account-error" class="review-error" role="alert"></p><div class="dialog-actions"><button type="button" class="account-button" onclick="closeModal()">Keep my account</button><button type="submit" class="account-delete-button">Permanently delete account</button></div></form></div>`;
+  modal.querySelector(".close").focus();
+  document.querySelector("#delete-account-form").onsubmit = async (event) => {
+    event.preventDefault();
+    if (document.querySelector("#delete-account-confirm").value !== "DELETE")
+      return;
+    const button = event.submitter;
+    button.disabled = true;
+    const errorNode = document.querySelector("#delete-account-error");
+    errorNode.textContent = "";
+    try {
+      // Finish outstanding writes so a late request cannot recreate data after deletion.
+      if (Backend.ready && (Backend.pending.size || Backend.task))
+        await saveWorkspace();
+      const result = await Account.client.rpc("delete_my_account");
+      if (result.error) throw result.error;
+      await Account.client.auth.signOut({ scope: "local" });
+      activateWorkspace(null);
+      await connectWorkspace(null);
+      clearLegacyWorkspaceStorage();
+      Account.message = "Your account has been deleted.";
+      Account.error = "";
+      location.hash = "login";
+      closeModal();
+      render();
+    } catch (error) {
+      errorNode.textContent = ["PGRST202", "42883"].includes(error.code)
+        ? "Account deletion is not available yet. Please contact support."
+        : "We couldn’t delete your account. Please check your connection and try again.";
+      button.disabled = false;
+    }
+  };
+}
