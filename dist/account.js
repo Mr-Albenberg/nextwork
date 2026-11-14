@@ -260,7 +260,10 @@ function bindAccount() {
     };
 }
 function activateWorkspace(user) {
-  if (typeof resetOrganizationWorkspace === 'function') resetOrganizationWorkspace();
+  if (typeof resetOrganizationWorkspace === "function")
+    resetOrganizationWorkspace();
+  if (typeof resetOrganizationWorkspace === "function")
+    resetOrganizationWorkspace();
   const owner = user?.id || null,
     changed = workspaceOwner !== owner;
   Account.user = user;
@@ -396,7 +399,7 @@ function openDeleteAccount() {
   if (!Account.user) return;
   const modal = document.querySelector("#modal");
   modal.hidden = false;
-  modal.innerHTML = `<div class="dialog delete-account-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-account-heading"><button class="close" onclick="closeModal()" aria-label="Close">×</button><span class="account-eyebrow">ACCOUNT SETTINGS</span><h2 id="delete-account-heading">Delete your account?</h2><p>This permanently removes your login, LinkedIn connection, profile, resume, saved projects, and application drafts. This cannot be undone.</p><form id="delete-account-form"><label class="field">Type DELETE to confirm<input id="delete-account-confirm" required autocomplete="off" pattern="DELETE" placeholder="DELETE"></label><p id="delete-account-error" class="review-error" role="alert"></p><div class="dialog-actions"><button type="button" class="account-button" onclick="closeModal()">Keep my account</button><button type="submit" class="account-delete-button">Permanently delete account</button></div></form></div>`;
+  modal.innerHTML = `<div class="dialog delete-account-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-account-heading"><button class="close" onclick="closeModal()" aria-label="Close">×</button><span class="account-eyebrow">ACCOUNT SETTINGS</span><h2 id="delete-account-heading">Delete your account?</h2><p>This permanently removes your login, LinkedIn connection, profile, resume, saved projects, and application drafts. If you own an organization, its listings and received applications will also be deleted. This cannot be undone.</p><form id="delete-account-form"><label class="field">Type DELETE to confirm<input id="delete-account-confirm" required autocomplete="off" pattern="DELETE" placeholder="DELETE"></label><p id="delete-account-error" class="review-error" role="alert"></p><div class="dialog-actions"><button type="button" class="account-button" onclick="closeModal()">Keep my account</button><button type="submit" class="account-delete-button">Permanently delete account</button></div></form></div>`;
   modal.querySelector(".close").focus();
   document.querySelector("#delete-account-form").onsubmit = async (event) => {
     event.preventDefault();

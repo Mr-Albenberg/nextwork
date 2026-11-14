@@ -128,7 +128,7 @@ All account content is stored in Supabase. The browser holds only the active pag
 
 Saves update only the changed columns and use the server-managed row version internally to retry concurrent writes. Profile and application save actions wait for the server. Failed writes clear working state and require reloading the account from the database. Sign-out waits for an in-flight save and then clears account content from memory. Sample messages are still not delivered to other users, but their preview state and career tools are saved privately in the account's `extras` field.
 
-The user card appears before the profile editor. Account connections, password settings, sign-out, and permanent deletion appear below it. Deletion requires typing DELETE and invokes a no-argument `delete_my_account()` function restricted to authenticated callers. The function derives the target from `auth.uid()`, deletes that user, and cascades their workspace and quota records. It never accepts a user ID or exposes an admin key.
+The user card appears before the profile editor. Account connections, password settings, sign-out, and permanent deletion appear below it. Deletion requires typing DELETE and invokes a no-argument `delete_my_account()` function restricted to authenticated callers. The function derives the target from `auth.uid()`, deletes that user, and cascades their workspace and quota records. For organization owners it also removes their listings, received applications, and associated messages; the confirmation explains this before deletion. Other accounts and organizations are preserved. It never accepts a user ID or exposes an admin key.
 
 Public project configuration is in `dist/account.js`. The publishable Supabase key is intentionally public. LinkedIn secrets stay in Supabase; Gemini and Vercel credentials stay server-side. No service-role key is used. AI session tokens are sent only to the canonical Nextwork API.
 
@@ -137,7 +137,7 @@ Supabase setup:
 1. Enable Email, email confirmation, LinkedIn (OIDC), and Allow manual linking in Authentication → Sign In / Providers.
 2. Set Site URL to `https://nextwork-jobs.vercel.app`. Allow `https://nextwork-jobs.vercel.app/` and `https://nextwork-jobs.vercel.app/?auth=recovery` as redirect URLs.
 3. Keep LinkedIn's callback at `https://zkoqafidgromlbvczwzy.supabase.co/auth/v1/callback`.
-4. Run `supabase/migrations/202611140001_accounts.sql`, then `supabase/migrations/202611140002_account_updates.sql` in Supabase SQL Editor. If the first is already applied, run only the second. Never run test bootstrap files in production. The second migration adds account tool state and self-deletion. The publishable key cannot apply migrations.
+4. Run `supabase/migrations/202611140001_accounts.sql`, then `supabase/migrations/202611140003_account_updates.sql` in Supabase SQL Editor. If the first is already applied, run only the second. Never run test bootstrap files in production. The second migration adds account tool state and self-deletion. The publishable key cannot apply migrations.
 5. Test a real confirmed email login, reset email, LinkedIn linking, account deletion, and a second browser login. Browser integration tests mock Supabase; database tests run the SQL against PostgreSQL.
 
 GitHub checks JavaScript, account access, the recursive Pages mirror, database owner isolation, anonymous denial, quotas, and deletion. Pushes to main deploy through Vercel after checks pass. SQL migrations must be applied separately in Supabase. No billing upgrades, paid AI fallback, or payment processor are enabled. Production email needs an SMTP provider subject to its own plan and limits.
@@ -231,3 +231,5 @@ Graduate and organization forms share a searchable skill multi-select with autoc
 ## Brand asset layout
 
 Editable/source brand PNGs live in `assets/brand/`. Published assets live in `dist/assets/brand/`, mirrored to `docs/assets/brand/`. Filenames use `nextwork-icon.png`, `nextwork-wordmark-primary.png`, `nextwork-wordmark-reversed.png`, and `nextwork-mark.svg`. The redundant `nextwork-logo.png` icon alias was removed. References, downloadable brand files, favicon metadata, and CI mirror validation use the new paths. There are no image assets in the repository root.
+
+

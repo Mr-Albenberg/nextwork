@@ -92,6 +92,8 @@ function accountConnectionPage() {
   return `<section class="account-panel connection-error"><span class="account-eyebrow">NEXTWORK</span><h1>We couldn’t open your workspace.</h1><p>${esc(Backend.error || "An internet connection is required. Please try again.")}</p><div class="dialog-actions"><button class="auth-submit" data-auth-action="reload">Try again</button><button class="account-button" data-auth-action="signout">Log out</button></div></section>`;
 }
 function failWorkspace() {
+  if (typeof resetOrganizationWorkspace === "function")
+    resetOrganizationWorkspace();
   Backend.ready = false;
   Backend.error =
     "We couldn’t reach your account. Check your connection and try again. Changes that were not saved have been discarded.";

@@ -57,7 +57,7 @@ jobs:
         run: |
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/database-bootstrap.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140001_accounts.sql
-          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140002_account_updates.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140003_account_updates.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/database.test.sql
       - name: Test organization permissions and applicant privacy
         env:

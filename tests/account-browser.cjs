@@ -80,17 +80,20 @@ async function setup(browser) {
         });
       if (url.pathname.endsWith("/recover") || url.pathname.endsWith("/logout"))
         return reply({});
+      if (url.pathname.endsWith("/organization_listings")) return reply([]);
       const bearer = request.headers().authorization || "",
-        subject = bearer.startsWith("Bearer ")
-          ? JSON.parse(
-              Buffer.from(bearer.split(".")[1], "base64url").toString(),
-            ).sub
-          : null;
+        subject =
+          bearer.startsWith("Bearer ") && bearer.split(".").length >= 3
+            ? JSON.parse(
+                Buffer.from(bearer.split(".")[1], "base64url").toString(),
+              ).sub
+            : null;
       const user = Object.values(users).find((u) => u.id === subject);
-      if (url.pathname.endsWith("/user/identities/authorize"))
+      if (url.pathname.endsWith("/user/identities/authorize")) {
         return reply({
           url: "https://www.linkedin.com/oauth/v2/authorization?test-link=true",
         });
+      }
       if (url.pathname.endsWith("/rpc/delete_my_account")) {
         assert(user);
         assert(!body?.user_id);
@@ -352,7 +355,7 @@ async function login(page, email) {
     assert.deepEqual(errors, []);
     await context.close();
     console.log(
-      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, cloud profile/resume restore, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation and signed-in LinkedIn linking passed (mocked Supabase).",
+      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, server profile/resume loading, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation, signed-in LinkedIn linking and account deletion passed (mocked Supabase).",
     );
   } finally {
     await browser.close();
