@@ -82,7 +82,7 @@ function accountPanel() {
     (i) => i.provider === "linkedin_oidc",
   );
   const email = Account.user.email || "LinkedIn member";
-  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>${isOrganizationAccount() ? "Organization account · Hiring workspace" : "Personal account · Candidate workspace"}. Account type cannot be changed.</p><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${!isOrganizationAccount() && typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-danger"><div><h3>Delete account</h3><p>Permanently delete your account and all saved profile, resume, project, and application data.</p></div><button class="account-delete-button" data-auth-action="delete-dialog">Delete account</button></div><div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
+  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>${isOrganizationAccount() ? "Organization account · Hiring workspace" : "Personal account · Candidate workspace"}. Account type cannot be changed.</p><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p>${!linked && typeof photoConsentText === "function" ? `<small class="linkedin-data-consent">${photoConsentText()}</small>` : ""}</div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${!isOrganizationAccount() && typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-danger"><div><h3>Delete account</h3><p>Permanently delete your account and all saved profile, resume, project, and application data.</p></div><button class="account-delete-button" data-auth-action="delete-dialog">Delete account</button></div><div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
 }
 function accountFeedback() {
   return `<p id="auth-feedback" role="status" class="${Account.error ? "review-error" : "resume-hint"}">${esc(Account.error || Account.message)}</p>`;
@@ -112,7 +112,7 @@ function authPage() {
         : "Log in to find your next connection and opportunity.";
   if (password && !Account.user)
     return `<div class="auth-layout"><section class="auth-card"><h1>Reset your password</h1><p>Open the link in your reset email, or request a new one.</p><a class="auth-submit" href="#forgot">Request reset link</a>${accountFeedback()}</section></div>`;
-  return `<div class="auth-layout"><section class="auth-card" aria-labelledby="auth-heading"><a class="auth-brand" href="#home" aria-label="Nextwork home"><img src="assets/brand/nextwork-icon.png" alt=""><span>nextwork</span></a><div class="auth-card-heading"><h1 id="auth-heading">${heading}</h1><p>${description}</p></div>${!password && !forgot ? `<nav class="auth-tabs" aria-label="Account access"><a href="#login" ${!signup ? 'aria-current="page"' : ""}>Log in</a><a href="#signup" ${signup ? 'aria-current="page"' : ""}>Create account</a></nav>${linkedinButton(signup ? "Sign up with LinkedIn" : "Log in with LinkedIn", "oauth")}<div class="auth-divider"><span>${signup ? "or sign up with email" : "or log in with email"}</span></div>` : ""}<form id="auth-form">${signup ? '<div class="auth-field"><label for="auth-name">Full name</label><input id="auth-name" name="name" required maxlength="120" autocomplete="name" placeholder="Your full name"></div>' : ""}${!password ? '<div class="auth-field"><label for="auth-email">Email</label><input id="auth-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@example.com"></div>' : ""}${!forgot ? `<div class="auth-field"><div class="auth-field-heading"><label for="auth-password">${password ? "New password" : "Password"}</label>${!signup && !password ? '<a href="#forgot">Forgot password?</a>' : ""}</div><input id="auth-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="${signup || password ? "new-password" : "current-password"}" placeholder="${signup || password ? "At least 8 characters" : "Enter your password"}"></div>` : ""}${password ? '<div class="auth-field"><label for="auth-confirm">Confirm new password</label><input id="auth-confirm" name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Re-enter your new password"></div>' : ""}<button class="auth-submit" type="submit">${password ? "Save password" : signup ? "Create account" : forgot ? "Send reset link" : "Log in with email"} ${icon("arrow", 17)}</button></form>${accountFeedback()}<div class="auth-bottom">${signup ? 'Already a member? <a href="#login">Log in</a>' : forgot || password ? '<a href="#login">Back to log in</a>' : 'New to Nextwork? <a href="#signup">Create an account</a>'}</div></section><a class="auth-browse" href="#home">Back to homepage ${icon("arrow", 15)}</a></div>`;
+  return `<div class="auth-layout"><section class="auth-card" aria-labelledby="auth-heading"><a class="auth-brand" href="#home" aria-label="Nextwork home"><img src="assets/brand/nextwork-icon.png" alt=""><span>nextwork</span></a><div class="auth-card-heading"><h1 id="auth-heading">${heading}</h1><p>${description}</p></div>${!password && !forgot ? `<nav class="auth-tabs" aria-label="Account access"><a href="#login" ${!signup ? 'aria-current="page"' : ""}>Log in</a><a href="#signup" ${signup ? 'aria-current="page"' : ""}>Create account</a></nav>${linkedinButton(signup ? "Sign up with LinkedIn" : "Log in with LinkedIn", "oauth")}<div class="auth-divider"><span>${signup ? "or sign up with email" : "or log in with email"}</span></div>` : ""}<form id="auth-form">${signup ? '<div class="auth-field"><label for="auth-name">Full name</label><input id="auth-name" name="name" required maxlength="120" autocomplete="name" placeholder="Your full name"></div>' : ""}${!password ? '<div class="auth-field"><label for="auth-email">Email</label><input id="auth-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@example.com"></div>' : ""}${!forgot ? `<div class="auth-field"><div class="auth-field-heading"><label for="auth-password">${password ? "New password" : "Password"}</label>${!signup && !password ? '<a href="#forgot">Forgot password?</a>' : ""}</div><input id="auth-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="${signup || password ? "new-password" : "current-password"}" placeholder="${signup || password ? "At least 8 characters" : "Enter your password"}"></div>` : ""}${password ? '<div class="auth-field"><label for="auth-confirm">Confirm new password</label><input id="auth-confirm" name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Re-enter your new password"></div>' : ""}<button class="auth-submit" type="submit">${password ? "Save password" : signup ? "Create account" : forgot ? "Send reset link" : "Log in with email"} ${icon("arrow", 17)}</button></form>${accountFeedback()}${!password && !forgot ? `<p class="linkedin-data-consent">${typeof photoConsentText === "function" ? photoConsentText() : ""}</p>` : ""}<div class="auth-bottom">${signup ? 'Already a member? <a href="#login">Log in</a>' : forgot || password ? '<a href="#login">Back to log in</a>' : 'New to Nextwork? <a href="#signup">Create an account</a>'}</div></section><a class="auth-browse" href="#home">Back to homepage ${icon("arrow", 15)}</a></div>`;
 }
 function authFeedback(error = "", message = "") {
   Account.error = error;
@@ -163,12 +163,15 @@ function checkAuthResult(result) {
   return result.data;
 }
 function bindAccount() {
+  if (typeof bindProfileMedia === "function") bindProfileMedia();
   document.querySelectorAll("[data-auth-action]").forEach(
     (button) =>
       (button.onclick = () =>
         runAuth(async () => {
           const action = button.dataset.authAction;
           if (action === "oauth") {
+            if (typeof markLinkedInConsent === "function")
+              markLinkedInConsent();
             checkAuthResult(
               await Account.client.auth.signInWithOAuth({
                 provider: "linkedin_oidc",
@@ -180,6 +183,8 @@ function bindAccount() {
             );
           }
           if (action === "link") {
+            if (typeof markLinkedInConsent === "function")
+              markLinkedInConsent();
             if (!Account.user)
               throw Error("Sign in before connecting LinkedIn.");
             checkAuthResult(
@@ -220,6 +225,7 @@ function bindAccount() {
         const email = String(fields.get("email") || "").trim(),
           password = String(fields.get("password") || "");
         if (mode === "signup") {
+          if (typeof markLinkedInConsent === "function") markLinkedInConsent();
           const data = checkAuthResult(
             await Account.client.auth.signUp({
               email,
@@ -256,6 +262,7 @@ function bindAccount() {
           Account.message = "Password saved.";
           location.hash = typeof isOrganizationAccount === "function" && isOrganizationAccount() ? "settings" : "profile";
         } else {
+          if (typeof markLinkedInConsent === "function") markLinkedInConsent();
           const data = checkAuthResult(
             await Account.client.auth.signInWithPassword({ email, password }),
           );
@@ -269,6 +276,7 @@ function bindAccount() {
     };
 }
 function activateWorkspace(user) {
+  if (typeof resetProfileMedia === "function") resetProfileMedia();
   if (typeof resetOrganizationWorkspace === "function")
     resetOrganizationWorkspace();
   if (typeof resetOrganizationWorkspace === "function")
@@ -334,7 +342,14 @@ async function initializeAccount() {
           activateWorkspace(session?.user || null);
           await connectWorkspace(session?.user || null);
           Account.ready = true;
-        } else Account.user = session?.user || null;
+        } else {
+          Account.user = session?.user || null;
+          if (
+            ["SIGNED_IN", "USER_UPDATED"].includes(event) &&
+            typeof fillMissingFromLinkedIn === "function"
+          )
+            fillMissingFromLinkedIn().catch(() => {});
+        }
         if (Account.recovery) location.hash = "password";
         render();
       }, 0);
@@ -466,7 +481,19 @@ function openDeleteAccount() {
       if (Backend.ready && (Backend.pending.size || Backend.task))
         await saveWorkspace();
       if (typeof cleanupMessagingUploads === "function") await cleanupMessagingUploads();
-      const result = await Account.client.rpc("delete_my_account");
+      let result = await Account.client.rpc("delete_my_account");
+      if (result.error?.message?.includes("PHOTO_CLEANUP_REQUIRED")) {
+        if (Account.client.storage)
+          await Account.client.storage
+            .from("profile-photo-staging")
+            .remove([Account.user.id + "/pending"]);
+        result = await Account.client.rpc("delete_my_account");
+        if (result.error?.message?.includes("PHOTO_CLEANUP_REQUIRED")) {
+          if (typeof photoRequest !== "function") throw result.error;
+          await photoRequest("DELETE", null, null, true);
+          result = await Account.client.rpc("delete_my_account");
+        }
+      }
       if (result.error) throw result.error;
       await endAccountSession();
       clearLegacyWorkspaceStorage();

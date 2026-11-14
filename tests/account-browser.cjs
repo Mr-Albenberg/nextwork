@@ -7,6 +7,9 @@ const rows = new Map(),
 let failStorage = false;
 let failLogout = false;
 const deletedUsers = new Set();
+const photos = new Map(),
+  removedPhotos = new Set();
+let photoBytes;
 const users = {};
 for (const [email, id, name] of [
   ["alice@example.com", "00000000-0000-0000-0000-000000000001", "Alice"],
@@ -26,6 +29,27 @@ for (const [email, id, name] of [
       { id, provider: "email", user_id: id, identity_data: { email } },
     ],
   };
+users["bob@example.com"].identities.push({
+  provider: "linkedin_oidc",
+  identity_data: {
+    sub: "bob-linkedin",
+    name: "Bob from LinkedIn",
+    picture: "https://media.licdn.com/dms/image/bob/profile.jpg",
+  },
+});
+function mockPhoto(id, source = "upload") {
+  return {
+    hasPhoto: true,
+    url:
+      "https://zkoqafidgromlbvczwzy.supabase.co/storage/v1/object/sign/profile-photos/" +
+      id +
+      "/photo.jpg?token=test",
+    expiresAt: Date.now() + 300000,
+    source,
+    width: 400,
+    height: 400,
+  };
+}
 function token(user) {
   return [
     Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString(
@@ -47,6 +71,51 @@ async function setup(browser) {
   page.setDefaultTimeout(10000);
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  await context.route("**/api/profile-photo**", async (route) => {
+    const request = route.request(),
+      url = new URL(request.url());
+    const jwt = (request.headers().authorization || "").replace("Bearer ", "");
+    const subject = JSON.parse(
+      Buffer.from(jwt.split(".")[1], "base64url").toString(),
+    ).sub;
+    const user = Object.values(users).find((u) => u.id === subject);
+    assert(user);
+    const body = request.postDataJSON();
+    let data;
+    if (request.method() === "GET")
+      data = photos.get(url.searchParams.get("userId") || subject) || {
+        hasPhoto: false,
+      };
+    if (request.method() === "POST" && body.action === "upload") {
+      assert(/^[a-f0-9]{64}$/.test(body.sha256));
+      photos.set(subject, mockPhoto(subject));
+      removedPhotos.delete(subject);
+      data = photos.get(subject);
+    }
+    if (request.method() === "POST" && body.action === "import") {
+      if (
+        user.identities.some((i) => i.provider === "linkedin_oidc") &&
+        body.consent &&
+        !photos.has(subject) &&
+        !removedPhotos.has(subject)
+      )
+        photos.set(subject, mockPhoto(subject, "linkedin"));
+      data = {
+        ...(photos.get(subject) || { hasPhoto: false }),
+        profile: rows.get(subject)?.profile,
+        version: rows.get(subject)?.version,
+      };
+    }
+    if (request.method() === "DELETE") {
+      photos.delete(subject);
+      removedPhotos.add(subject);
+      data = { hasPhoto: false };
+    }
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify(data || {}),
+    });
+  });
   await context.route(
     "https://zkoqafidgromlbvczwzy.supabase.co/**",
     async (route) => {
@@ -54,13 +123,25 @@ async function setup(browser) {
         url = new URL(request.url()),
         method = request.method();
       requests.push({ path: url.pathname, method });
-      const body = request.postDataJSON();
+      let body;
+      try {
+        body = request.postDataJSON();
+      } catch {
+        body = null;
+      }
+      if (url.pathname.startsWith("/storage/v1/object/sign/profile-photos/"))
+        return route.fulfill({ contentType: "image/jpeg", body: photoBytes });
+
       const reply = (data, status = 200) =>
         route.fulfill({
           status,
           contentType: "application/json",
           body: JSON.stringify(data),
         });
+      if (url.pathname.startsWith("/storage/v1/object/profile-photo-staging/"))
+        return reply({ Key: url.pathname, Id: "staged-photo" });
+      if (url.pathname === "/storage/v1/object/profile-photo-staging")
+        return reply([]);
       if (url.pathname.endsWith("/token")) {
         const user = users[body.email];
         if (
@@ -107,6 +188,8 @@ async function setup(browser) {
       if (url.pathname.endsWith("/rpc/delete_my_account")) {
         assert(user);
         assert(!body?.user_id);
+        if (photos.has(user.id))
+          return reply({ message: "PHOTO_CLEANUP_REQUIRED" }, 400);
         rows.delete(user.id);
         deletedUsers.add(user.id);
         return reply(null);
@@ -172,6 +255,11 @@ async function login(page, email) {
   await page.waitForFunction(() => Account.ready && Backend.ready);
 }
 (async () => {
+  photoBytes = await require("sharp")({
+    create: { width: 400, height: 400, channels: 3, background: "#3a6ab8" },
+  })
+    .jpeg()
+    .toBuffer();
   const browser = await chromium.launch({
     headless: true,
     ...(process.env.CHROMIUM_PATH
@@ -281,6 +369,42 @@ async function login(page, email) {
 
     assert.equal(await page.getByLabel("Full name").inputValue(), "Alice");
     assert(!(await page.locator("main").innerText()).includes("Jordan Rivera"));
+    // Manual uploads are previewed, processed, and used in every account avatar.
+    await page
+      .getByRole("button", { name: "Change photo", exact: true })
+      .click();
+    await page
+      .locator("#photo-file")
+      .setInputFiles({
+        name: "avatar.jpg",
+        mimeType: "image/jpeg",
+        buffer: photoBytes,
+      });
+    await page.waitForFunction(
+      () => !document.querySelector("#photo-save").disabled,
+    );
+    await page.getByRole("button", { name: "Save photo", exact: true }).click();
+    await page.locator("[data-own-photo] img").waitFor();
+    assert(photos.has(users["alice@example.com"].id));
+    await page
+      .getByRole("button", { name: "Change photo", exact: true })
+      .click();
+    await page
+      .locator("#photo-file")
+      .setInputFiles({
+        name: "not-an-image.svg",
+        mimeType: "image/svg+xml",
+        buffer: Buffer.from('<svg onload="alert(1)"/>'),
+      });
+    await page
+      .getByText("Choose a PNG or JPEG file.", { exact: true })
+      .waitFor();
+    assert(
+      await page
+        .getByRole("button", { name: "Save photo", exact: true })
+        .isDisabled(),
+    );
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
     await page.getByLabel("Full name").fill("Alice Updated");
     await page.getByLabel("College or university").fill("Real University");
     await page.getByRole("button", { name: "Save & continue" }).click();
@@ -308,6 +432,8 @@ async function login(page, email) {
     await page.waitForURL("**/#login");
     await login(page, "bob@example.com");
     assert.equal(await page.getByLabel("Full name").inputValue(), "Bob");
+    await page.waitForFunction(() => ownPhoto().hasPhoto);
+    assert.equal(photos.get(users["bob@example.com"].id).source, "linkedin");
     await page.goto(base + "/#resume");
     assert.equal(await page.getByLabel("Resume text").inputValue(), "");
     assert(!rows.get(users["bob@example.com"].id).resume);
@@ -325,6 +451,13 @@ async function login(page, email) {
         "Alice private",
       ),
     );
+    await page.goto(base + "/#profile");
+    await page.locator("[data-own-photo] img").waitFor();
+    await page
+      .getByRole("button", { name: "Remove photo", exact: true })
+      .click();
+    await page.waitForFunction(() => !ownPhoto().hasPhoto);
+    assert(!photos.has(users["alice@example.com"].id));
     // A failed save locks the workspace; no offline profile or resume is retained.
     await page.goto(base + "/#profile");
     failStorage = true;
@@ -542,7 +675,7 @@ async function login(page, email) {
     assert.deepEqual(errors,[]);
     await context.close();
     console.log(
-      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, server profile/resume loading, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation, signed-in LinkedIn linking and account deletion passed (mocked Supabase).",
+      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, server profile/resume loading, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation, signed-in LinkedIn linking photo upload/removal, existing linked-member migration and photo-aware account deletion passed (mocked Supabase).",
     );
   } finally {
     await browser.close();

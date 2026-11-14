@@ -158,6 +158,7 @@ async function connectWorkspace(user) {
     if (generation !== Backend.generation) return;
     hydrateWorkspace(result.data);
     Backend.ready = true;
+    if(typeof initializeProfileMedia==='function')initializeProfileMedia(user);
   } catch {
     if (generation === Backend.generation) {
       Backend.error =
