@@ -19,7 +19,7 @@ node tests/profile-and-criteria.test.js
 
 ## Appearance
 
-Use the Theme selector to choose Light, Dark, or System. System is the default and follows device appearance changes automatically. Your choice is saved in this browser and synced across open tabs. Theme switching also works when browser storage is unavailable.
+Click the theme icon button to cycle through Light (sun), Dark (moon), and System (computer). System is the default and follows device appearance changes automatically. Your choice is saved in this browser and synced across open tabs. Theme switching also works when browser storage is unavailable.
 
 Browser checks: serve `dist/` on port 3000, install Playwright, then run `node tests/theme-browser.cjs` (set `CHROMIUM_PATH` if needed).
 
