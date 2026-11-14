@@ -414,6 +414,7 @@ function publicPage(page) {
 function requireAccount(message = "Log in to access your Nextwork workspace.") {
   if (typeof Account === "undefined" || Account.user) return true;
   Account.message = message;
+  if (location.hash === "#checkout") sessionStorage.setItem("nextwork-auth-intent", "checkout");
   const area = document.querySelector("#app");
   if (area) area.textContent = "";
   document.body.classList.remove("messages-page");
@@ -442,7 +443,7 @@ function postLoginRoute() {
   const next = sessionStorage.getItem("nextwork-auth-intent");
   sessionStorage.removeItem("nextwork-auth-intent");
   if (typeof isOrganizationAccount === 'function' && isOrganizationAccount()) return 'organization';
-  return /^project\/\d+$/.test(next || '') ? next : 'overview';
+  return next === 'checkout' || /^project\/\d+$/.test(next || '') ? next : 'overview';
 }
 
 function openDeleteAccount() {

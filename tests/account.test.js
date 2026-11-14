@@ -105,6 +105,8 @@ console.log(
   "Account content is memory-only, retired device copies are removed, auth sessions remain intact, and private routes require login.",
 );
 
+session.setItem('nextwork-auth-intent','checkout');
+assert.equal(vm.runInContext('postLoginRoute()',ctx),'checkout');
 session.setItem('nextwork-auth-intent','project/7');
 assert.equal(vm.runInContext('postLoginRoute()',ctx),'project/7');
 assert.equal(session.getItem('nextwork-auth-intent'),null);
