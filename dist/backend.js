@@ -50,7 +50,7 @@ function backendStatus() {
 }
 function backendPanel() {
   if (!Account.user) return "";
-  return `<div class="sync-panel"><p id="sync-status" class="resume-hint" role="status">${esc(Backend.error || Backend.status)}</p><div class="dialog-actions"><button class="outline" data-auth-action="sync">Sync now</button>${`<button class="outline" data-auth-action="cloud" ${Backend.conflict ? "" : "hidden"}>Use account copy</button><button class="outline" data-auth-action="device" ${Backend.conflict ? "" : "hidden"}>Replace account copy with this device</button>`}</div></div>`;
+  return `<div class="account-sync"><div class="account-sync-status">${icon("check", 16)}<p id="sync-status" role="status">${esc(Backend.error || Backend.status)}</p></div><button class="account-text-button" data-auth-action="sync">Sync now</button><div class="account-sync-conflict"><button class="account-button" data-auth-action="cloud" ${Backend.conflict ? "" : "hidden"}>Use account copy</button><button class="account-button" data-auth-action="device" ${Backend.conflict ? "" : "hidden"}>Replace account copy with this device</button></div></div>`;
 }
 function workspacePayload() {
   return {

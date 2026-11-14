@@ -48,16 +48,22 @@ function authCallback(recovery = false) {
   if (recovery) url.searchParams.set("auth", "recovery");
   return url.href;
 }
+function linkedinIcon() {
+  return '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.049c.476-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286ZM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124ZM7.119 20.452H3.555V9h3.564v11.452ZM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003Z"/></svg>';
+}
+function linkedinButton(label, action) {
+  return `<button type="button" class="linkedin-button" data-auth-action="${action}">${linkedinIcon()}<span>${label}</span></button>`;
+}
 function accountPanel() {
   if (!Account.ready)
     return '<section class="panel account-panel" role="status">Loading your account…</section>';
-  if (Account.user) {
-    const linked = Account.user.identities?.some(
-      (i) => i.provider === "linkedin_oidc",
-    );
-    return `<section class="panel wide-panel account-panel"><div class="eyebrow">YOUR NEXTWORK ACCOUNT</div><h2>Account & connections</h2><p>Signed in as <b>${esc(Account.user.email || "LinkedIn member")}</b></p><p>${linked ? "LinkedIn connected." : "Connect LinkedIn to this account whenever you’re ready."} LinkedIn sign-in supplies basic profile details; it does not import your full career history.</p><div class="dialog-actions">${linked ? '<span class="tag">LinkedIn connected ✓</span>' : '<button class="outline" data-auth-action="link">Connect LinkedIn</button>'}<a class="outline" href="#password">Change password</a><button class="outline" data-auth-action="signout">Sign out</button></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}${guestProfileAvailable() ? '<p>You have a personal profile saved in the guest workspace on this device.</p><button class="outline" data-auth-action="import">Import guest profile into empty fields</button>' : ""}<p class="resume-hint">Your account is online. Profiles, saved projects, application drafts, and resume text sync to your account when storage is available. Messages and Premium resume versions stay on this device.</p></section>`;
-  }
-  return `<section class="panel wide-panel account-panel"><div class="eyebrow">YOUR NEXTWORK ACCOUNT</div><h2>Keep your next steps together.</h2><p>Create an account with email and password, or continue with LinkedIn. You can connect LinkedIn later.</p><div class="dialog-actions"><a class="primary" href="#signup">Create account</a><a class="outline" href="#login">Sign in</a></div>${accountFeedback()}</section>`;
+  if (!Account.user)
+    return `<section class="account-panel account-guest"><div><span class="account-eyebrow">YOUR NEXTWORK ACCOUNT</span><h2>Your next chapter, all in one place.</h2><p>Save your profile, keep your resume in sync, and make your next connection.</p></div><div class="account-guest-actions">${linkedinButton("Log in with LinkedIn", "oauth")}<a class="account-button" href="#login">Log in with email</a><p>New here? <a href="#signup">Create an account</a></p></div>${accountFeedback()}</section>`;
+  const linked = Account.user.identities?.some(
+    (i) => i.provider === "linkedin_oidc",
+  );
+  const email = Account.user.email || "LinkedIn member";
+  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>Manage how you log in to Nextwork.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-identity"><span class="account-monogram">${profileInitials(graduateProfile().name || email)}</span><div><strong>${esc(graduateProfile().name || "Your Nextwork account")}</strong><span>${esc(email)}</span></div></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}${guestProfileAvailable() ? '<div class="account-import"><p>A profile is saved in the guest workspace on this device.</p><button class="account-text-button" data-auth-action="import">Import guest profile into empty fields</button></div>' : ""}<div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
 }
 function accountFeedback() {
   return `<p id="auth-feedback" role="status" class="${Account.error ? "review-error" : "resume-hint"}">${esc(Account.error || Account.message)}</p>`;
@@ -67,41 +73,27 @@ function authPage() {
   Account.mode =
     { signup: "signup", forgot: "forgot", password: "password" }[route] ||
     "signin";
-  const mode = Account.mode,
-    password = mode === "password",
-    signup = mode === "signup",
-    forgot = mode === "forgot";
+  const password = Account.mode === "password",
+    signup = Account.mode === "signup",
+    forgot = Account.mode === "forgot";
+  if (Account.user && !password) return accountPanel();
+  const heading = password
+    ? "Choose a new password"
+    : signup
+      ? "Your next chapter starts here."
+      : forgot
+        ? "Forgot your password?"
+        : "Welcome back.";
+  const description = password
+    ? "Use a unique password with at least 8 characters."
+    : signup
+      ? "Make connections. Find projects. Build what’s next."
+      : forgot
+        ? "We’ll send you a link to get back into your account."
+        : "Log in to find your next connection and opportunity.";
   if (password && !Account.user)
-    return (
-      title(
-        "Reset your password",
-        "Open the link in your password reset email, or request a new one.",
-      ) +
-      '<a class="primary" href="#forgot">Request reset link</a>' +
-      accountFeedback()
-    );
-  if (Account.user && !password)
-    return (
-      title("Your account", "Manage your account and LinkedIn connection.") +
-      accountPanel()
-    );
-  return (
-    title(
-      password
-        ? "Choose a new password"
-        : signup
-          ? "Your next chapter starts here."
-          : forgot
-            ? "Reset your password"
-            : "Welcome back.",
-      password
-        ? "Use a unique password with at least 8 characters."
-        : forgot
-          ? "We’ll send a link to your email address."
-          : "Sign in to your Nextwork account.",
-    ) +
-    `<section class="panel wide-panel auth-card">${!password && !forgot ? '<button class="outline linkedin-button" data-auth-action="oauth">Continue with LinkedIn</button><p class="auth-divider">or use your email</p>' : ""}<form id="auth-form">${signup ? '<label class="field">Full name<input name="name" required maxlength="120" autocomplete="name"></label>' : ""}${!password ? '<label class="field">Email<input name="email" type="email" required maxlength="254" autocomplete="email"></label>' : ""}${!forgot ? `<label class="field">${password ? "New password" : "Password"}<input name="password" type="password" required minlength="8" maxlength="128" autocomplete="${signup || password ? "new-password" : "current-password"}"></label>` : ""}${password ? '<label class="field">Confirm new password<input name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password"></label>' : ""}<button class="primary" type="submit">${password ? "Save password" : signup ? "Create account" : forgot ? "Send reset link" : "Sign in"}</button></form>${accountFeedback()}<div class="auth-links">${signup ? '<a href="#login">Already have an account? Sign in</a>' : forgot || password ? '<a href="#login">Back to sign in</a>' : '<a href="#signup">Create an account</a><a href="#forgot">Forgot password?</a>'}<a href="#explore">Browse projects</a></div></section>`
-  );
+    return `<div class="auth-layout"><section class="auth-card"><h1>Reset your password</h1><p>Open the link in your reset email, or request a new one.</p><a class="auth-submit" href="#forgot">Request reset link</a>${accountFeedback()}</section></div>`;
+  return `<div class="auth-layout"><section class="auth-card" aria-labelledby="auth-heading"><a class="auth-brand" href="#home" aria-label="Nextwork home"><img src="nextwork-icon.png" alt=""><span>nextwork</span></a><div class="auth-card-heading"><h1 id="auth-heading">${heading}</h1><p>${description}</p></div>${!password && !forgot ? `<nav class="auth-tabs" aria-label="Account access"><a href="#login" ${!signup ? 'aria-current="page"' : ""}>Log in</a><a href="#signup" ${signup ? 'aria-current="page"' : ""}>Create account</a></nav>${linkedinButton(signup ? "Sign up with LinkedIn" : "Log in with LinkedIn", "oauth")}<div class="auth-divider"><span>${signup ? "or sign up with email" : "or log in with email"}</span></div>` : ""}<form id="auth-form">${signup ? '<div class="auth-field"><label for="auth-name">Full name</label><input id="auth-name" name="name" required maxlength="120" autocomplete="name" placeholder="Your full name"></div>' : ""}${!password ? '<div class="auth-field"><label for="auth-email">Email</label><input id="auth-email" name="email" type="email" required maxlength="254" autocomplete="email" placeholder="you@example.com"></div>' : ""}${!forgot ? `<div class="auth-field"><div class="auth-field-heading"><label for="auth-password">${password ? "New password" : "Password"}</label>${!signup && !password ? '<a href="#forgot">Forgot password?</a>' : ""}</div><input id="auth-password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="${signup || password ? "new-password" : "current-password"}" placeholder="${signup || password ? "At least 8 characters" : "Enter your password"}"></div>` : ""}${password ? '<div class="auth-field"><label for="auth-confirm">Confirm new password</label><input id="auth-confirm" name="confirm" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Re-enter your new password"></div>' : ""}<button class="auth-submit" type="submit">${password ? "Save password" : signup ? "Create account" : forgot ? "Send reset link" : "Log in with email"} ${icon("arrow", 17)}</button></form>${accountFeedback()}<div class="auth-bottom">${signup ? 'Already a member? <a href="#login">Log in</a>' : forgot || password ? '<a href="#login">Back to log in</a>' : 'New to Nextwork? <a href="#signup">Create an account</a>'}</div></section><a class="auth-browse" href="#home">Back to homepage ${icon("arrow", 15)}</a></div>`;
 }
 function authFeedback(error = "", message = "") {
   Account.error = error;
@@ -413,3 +405,4 @@ async function initializeAccount() {
     render();
   }
 }
+

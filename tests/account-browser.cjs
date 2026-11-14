@@ -118,7 +118,7 @@ async function login(page, email) {
   await page.goto(base + "/#login");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("valid-password");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Log in with email", exact: true }).click();
   await page.getByRole("heading", { name: "Account & connections" }).waitFor();
   await page
     .getByText(
