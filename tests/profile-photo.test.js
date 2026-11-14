@@ -1,18 +1,7 @@
 const assert = require("node:assert/strict");
 const sharp = require("sharp");
 const { createHash } = require("node:crypto");
-const {
-  normalizePhoto,
-  PhotoError,
-  MAX_BYTES,
-  linkedInData,
-  linkedInPhotoURL,
-  downloadLinkedInPhoto,
-  readImageResponse,
-} = require("../lib/profile-image");
-const { importLinkedIn } = require("../lib/linkedin-import");
-const { handlerFor } = require("../api/profile-photo");
-const { createPhotoStore } = require("../lib/profile-photo-store");
+let normalizePhoto, PhotoError, MAX_BYTES, linkedInData, linkedInPhotoURL, downloadLinkedInPhoto, readImageResponse, importLinkedIn, handlerFor, createPhotoStore;
 const id = "00000000-0000-0000-0000-000000000001";
 const user = {
   id,
@@ -115,6 +104,10 @@ function fakeStore() {
 }
 let jpeg;
 (async () => {
+  ({ normalizePhoto, PhotoError, MAX_BYTES, linkedInData, linkedInPhotoURL, downloadLinkedInPhoto, readImageResponse } = await import("../supabase/functions/_shared/profile-image.mjs"));
+  ({ importLinkedIn } = await import("../supabase/functions/_shared/linkedin-import.mjs"));
+  ({ handlerFor } = await import("../supabase/functions/_shared/profile-photo-handler.mjs"));
+  ({ createPhotoStore } = await import("../supabase/functions/_shared/profile-photo-store.mjs"));
   jpeg = await image(400, 400);
   const png = await image(800, 600, "png");
   const normalized = await normalizePhoto(png, {

@@ -1,10 +1,10 @@
-const {
+import {
   normalizePhoto,
   linkedInData,
   downloadLinkedInPhoto,
   pictureReference,
   PhotoError,
-} = require("./profile-image");
+} from "./profile-image.mjs";
 const IMPORT_VERSION = 1;
 async function importLinkedIn({
   user,
@@ -82,4 +82,4 @@ async function importLinkedIn({
     };
   }
 }
-module.exports = { IMPORT_VERSION, importLinkedIn };
+export { IMPORT_VERSION, importLinkedIn };

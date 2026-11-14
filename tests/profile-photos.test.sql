@@ -88,3 +88,35 @@ do $$ begin
 end $$;
 reset role;
 select 'Photo validation boundary, signed-in visibility, private storage, owner staging, quotas, blank-only backfill and deletion cleanup guard passed' as result;
+
+-- Global capacity gates preserve room within the free storage allowance.
+set role authenticated;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
+do $$ begin
+ begin perform public.reserve_profile_photo(auth.uid());raise exception 'Member bypassed trusted storage reservation';exception when insufficient_privilege then null;end;
+ begin perform * from public.profile_photo_reservations;raise exception 'Private reservations leaked';exception when insufficient_privilege then null;end;
+end $$;
+reset role;
+set role service_role;
+select public.reserve_profile_photo('00000000-0000-0000-0000-000000000001') as lease \gset
+select set_config('nextwork.test_photo_lease',:'lease',false);
+do $$ begin
+ if not exists(select 1 from public.profile_photo_reservations where id=current_setting('nextwork.test_photo_lease')::uuid) then raise exception 'Storage capacity not reserved';end if;
+end $$;
+delete from public.profile_photo_reservations where id=:'lease';
+insert into storage.objects(bucket_id,name) select 'profile-photos','capacity-test/'||n::text||'.jpg' from generate_series(1,512) n;
+do $$ begin
+ begin perform public.reserve_profile_photo('00000000-0000-0000-0000-000000000001');raise exception 'Final storage budget bypassed';
+ exception when raise_exception then if sqlerrm<>'PHOTO_STORAGE_LIMIT' then raise;end if;end;
+end $$;
+delete from storage.objects where name like 'capacity-test/%';
+insert into storage.objects(bucket_id,name) select 'profile-photo-staging','capacity-test/'||n::text from generate_series(1,16) n;
+reset role;
+set role authenticated;
+set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
+do $$ begin
+ if public.photo_staging_has_capacity() then raise exception 'Raw staging storage budget bypassed';end if;
+end $$;
+reset role;
+delete from storage.objects where name like 'capacity-test/%';
+select 'Free storage admission and service-only capacity reservations passed' as result;

@@ -1,8 +1,8 @@
-const { createHash } = require("node:crypto");
-const { authenticate } = require("../lib/account-auth");
-const { PhotoError, normalizePhoto } = require("../lib/profile-image");
-const { createPhotoStore } = require("../lib/profile-photo-store");
-const { importLinkedIn } = require("../lib/linkedin-import");
+import { createHash } from "node:crypto";
+import { authenticate } from "./photo-auth.mjs";
+import { PhotoError, normalizePhoto } from "./profile-image.mjs";
+import { createPhotoStore } from "./profile-photo-store.mjs";
+import { importLinkedIn } from "./linkedin-import.mjs";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function handlerFor({
   auth = authenticate,
@@ -106,5 +106,4 @@ function handlerFor({
     }
   };
 }
-module.exports = handlerFor();
-module.exports.handlerFor = handlerFor;
+export { handlerFor };

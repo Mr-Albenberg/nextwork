@@ -1,0 +1,8 @@
+project_id = "nextwork"
+
+[functions.profile-photo]
+# Verify the bearer token with Supabase Auth inside the function, including account deletion.
+verify_jwt = false
+entrypoint = "./functions/profile-photo/index.ts"
+import_map = "./functions/deno.json"
+static_files = ["./functions/profile-photo/vendor/magick.wasm"]

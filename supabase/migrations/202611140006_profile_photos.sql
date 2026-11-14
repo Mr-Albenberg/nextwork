@@ -44,7 +44,7 @@ language plpgsql security definer set search_path='' as $$
 declare member uuid:=auth.uid(); used integer; maximum integer;
 begin
   if member is null or not public.is_active_photo_member() then return false; end if;
-  maximum:=case action_name when 'staging' then 20 when 'process' then 10 when 'import' then 3 else 0 end;
+  maximum:=case action_name when 'request' then 240 when 'staging' then 20 when 'process' then 10 when 'import' then 3 else 0 end;
   if maximum=0 then return false; end if;
   delete from public.profile_photo_limits where user_id=member and hour_start<date_trunc('hour',now())-interval '1 day';
   insert into public.profile_photo_limits(user_id,hour_start,action,count) values(member,date_trunc('hour',now()),action_name,1)
@@ -121,4 +121,47 @@ begin
 end $$;
 revoke all on function public.delete_my_account() from public,anon;
 grant execute on function public.delete_my_account() to authenticated;
+-- Leave room inside the shared 1 GiB free storage allowance for other app data.
+-- Admission is serialized for the transaction so simultaneous uploads cannot bypass it.
+create or replace function public.photo_staging_has_capacity() returns boolean
+language plpgsql security definer set search_path='' as $$
+declare used bigint;
+begin
+  if not public.is_active_photo_member() then return false;end if;
+  perform pg_advisory_xact_lock(781442005);
+  select coalesce(sum(coalesce(nullif(to_jsonb(o)->'metadata'->>'size','')::bigint,8388608)),0) into used
+    from storage.objects o where bucket_id='profile-photo-staging' and name<>auth.uid()::text||'/pending';
+  return used+8388608<=134217728;
+end $$;
+revoke all on function public.photo_staging_has_capacity() from public,anon;
+grant execute on function public.photo_staging_has_capacity() to authenticated;
+drop policy if exists "Stage own profile image" on storage.objects;
+create policy "Stage own profile image" on storage.objects for insert to authenticated with check(public.is_active_photo_member() and bucket_id='profile-photo-staging' and name=(select auth.uid())::text||'/pending' and public.consume_photo_action('staging') and public.photo_staging_has_capacity());
+drop policy if exists "Replace own staged profile image" on storage.objects;
+create policy "Replace own staged profile image" on storage.objects for update to authenticated using(public.is_active_photo_member() and bucket_id='profile-photo-staging' and name=(select auth.uid())::text||'/pending') with check(public.is_active_photo_member() and bucket_id='profile-photo-staging' and name=(select auth.uid())::text||'/pending' and public.consume_photo_action('staging') and public.photo_staging_has_capacity());
+
+create table if not exists public.profile_photo_reservations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  expires_at timestamptz not null default now()+interval '10 minutes'
+);
+alter table public.profile_photo_reservations enable row level security;
+revoke all on public.profile_photo_reservations from public,anon,authenticated;
+grant all on public.profile_photo_reservations to service_role;
+create or replace function public.reserve_profile_photo(target uuid) returns uuid
+language plpgsql security definer set search_path='' as $$
+declare used bigint; reserved bigint; lease uuid;
+begin
+  if not exists(select 1 from auth.users where id=target) then raise exception 'Account unavailable';end if;
+  perform pg_advisory_xact_lock(781442006);
+  delete from public.profile_photo_reservations where expires_at<now();
+  select coalesce(sum(coalesce(nullif(to_jsonb(o)->'metadata'->>'size','')::bigint,1048576)),0) into used from storage.objects o where bucket_id='profile-photos';
+  select count(*)*1048576 into reserved from public.profile_photo_reservations;
+  if used+reserved+1048576>536870912 then raise exception 'PHOTO_STORAGE_LIMIT';end if;
+  insert into public.profile_photo_reservations(user_id) values(target) returning id into lease;
+  return lease;
+end $$;
+revoke all on function public.reserve_profile_photo(uuid) from public,anon,authenticated;
+grant execute on function public.reserve_profile_photo(uuid) to service_role;
+
 commit;

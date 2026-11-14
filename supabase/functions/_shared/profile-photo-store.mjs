@@ -1,10 +1,11 @@
-const { randomUUID } = require("node:crypto");
-const { PhotoError, readImageResponse } = require("./profile-image");
+import { randomUUID } from "node:crypto";
+import { PhotoError, readImageResponse } from "./profile-image.mjs";
 const PROJECT = "https://zkoqafidgromlbvczwzy.supabase.co";
 const PUBLIC_KEY = "sb_publishable_PdLwKMARqX1Lxxp3XAuhbQ_F0T2-Kye";
 function secretKey() {
   return (
-    process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    globalThis.Deno?.env.get("SUPABASE_SERVICE_ROLE_KEY") ||
+    globalThis.process?.env.SUPABASE_SERVICE_ROLE_KEY
   );
 }
 function createPhotoStore({ fetcher = fetch, key = secretKey() } = {}) {
@@ -33,7 +34,7 @@ function createPhotoStore({ fetcher = fetch, key = secretKey() } = {}) {
       const failure = new PhotoError(
         ["42P01", "PGRST205", "PGRST202"].includes(error.code)
           ? "Profile photos are not available yet."
-          : "The photo service could not complete this request.",
+          : error.message?.includes("PHOTO_STORAGE_LIMIT") ? "Photo storage is currently full. Try again later." : "The photo service could not complete this request.",
         response.status === 404 ? 404 : 503,
       );
       failure.code = error.code;
@@ -79,7 +80,7 @@ function createPhotoStore({ fetcher = fetch, key = secretKey() } = {}) {
       );
     }
   }
-  async function save(id, photo, source, { onlyIfMissing = false } = {}) {
+  async function writePhoto(id, photo, source, { onlyIfMissing = false } = {}) {
     const previous = await get("profile_photos", id);
     if (onlyIfMissing && previous) return previous;
     const path = id + "/" + randomUUID() + ".jpg";
@@ -120,6 +121,11 @@ function createPhotoStore({ fetcher = fetch, key = secretKey() } = {}) {
         return get("profile_photos", id);
       throw error;
     }
+  }
+  async function save(id, photo, source, options) {
+    const lease = await request('/rest/v1/rpc/reserve_profile_photo', {method:'POST',body:{target:id}});
+    try { return await writePhoto(id,photo,source,options); }
+    finally { await request('/rest/v1/profile_photo_reservations?id=eq.'+encodeURIComponent(lease), {method:'DELETE'}).catch(() => {}); }
   }
   async function describe(id) {
     const photo = await get("profile_photos", id);
@@ -205,4 +211,4 @@ function createPhotoStore({ fetcher = fetch, key = secretKey() } = {}) {
       removeObjects("profile-photo-staging", [id + "/pending"]),
   };
 }
-module.exports = { createPhotoStore, secretKey };
+export { createPhotoStore, secretKey };

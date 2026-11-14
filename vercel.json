@@ -16,9 +16,6 @@
     },
     "api/market.js": {
       "maxDuration": 30
-    },
-    "api/profile-photo.js": {
-      "maxDuration": 30
     }
   }
 }

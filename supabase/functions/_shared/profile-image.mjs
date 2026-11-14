@@ -1,12 +1,29 @@
-const sharp = require("sharp");
-const { createHash } = require("node:crypto");
+import { Buffer } from "node:buffer";
+import { initializeImageMagick, MagickImage, MagickFormat, MagickReadSettings,
+  MagickImageInfo, ResourceLimits, MagickGeometry, Gravity, MagickColors, AlphaAction } from "@imagemagick/magick-wasm";
+let decoderReady;
+function initializeDecoder() {
+  return decoderReady ||= (async () => {
+    const wasm = new URL("../profile-photo/vendor/magick.wasm", import.meta.url);
+    const bytes = globalThis.Deno ? await Deno.readFile(wasm) :
+      await (await import("node:fs/promises")).readFile(wasm);
+    await initializeImageMagick(bytes);
+    // No disk spill or unbounded pixel allocations in a 256 MB Edge worker.
+    ResourceLimits.memory = 96n * 1024n * 1024n;
+    ResourceLimits.maxMemoryRequest = 96n * 1024n * 1024n;
+    ResourceLimits.maxProfileSize = 1024n * 1024n;
+    ResourceLimits.disk = 0n;
+    ResourceLimits.width = 7680n;
+    ResourceLimits.height = 7680n;
+    ResourceLimits.listLength = 8n;
+  })();
+}
+import { createHash } from "node:crypto";
 const MAX_BYTES = 8 * 1024 * 1024;
 const MAX_WIDTH = 7680,
   MAX_HEIGHT = 4320,
   MAX_PIXELS = MAX_WIDTH * MAX_HEIGHT;
 const LINKEDIN_HOSTS = new Set(["media.licdn.com", "media.licdn-ei.com"]);
-sharp.cache({ memory: 32, files: 0, items: 20 });
-sharp.concurrency(1);
 class PhotoError extends Error {
   constructor(message, status = 400) {
     super(message);
@@ -85,14 +102,9 @@ async function normalizePhoto(
   }
   if (format === "png") checkPNG(bytes);
   try {
-    const image = sharp(bytes, {
-      failOn: "warning",
-      limitInputPixels: MAX_PIXELS,
-      animated: false,
-    });
-    const info = await image.metadata();
-    if (info.format !== format || (info.pages || 1) > 1)
-      throw new PhotoError("Use a single PNG or JPEG image.");
+    await initializeDecoder();
+    const settings = new MagickReadSettings({ format: format === "png" ? MagickFormat.Png : MagickFormat.Jpeg });
+    const info = MagickImageInfo.create(bytes, settings);
     const rotated = [5, 6, 7, 8].includes(info.orientation),
       width = rotated ? info.height : info.width,
       height = rotated ? info.width : info.height;
@@ -110,33 +122,33 @@ async function normalizePhoto(
           ? "The LinkedIn photo has unsupported dimensions."
           : "Use an image at least 400 × 400 and no larger than 7680 × 4320 pixels.",
       );
-    // A new JPEG removes metadata, embedded thumbnails, animation, and any appended payload.
-    const output = await image
-      .rotate()
-      .resize({
-        width: 512,
-        height: 512,
-        fit: "cover",
-        position: "centre",
-        withoutEnlargement: true,
-      })
-      .flatten({ background: "#ffffff" })
-      .jpeg({ quality: 85, mozjpeg: false })
-      .toBuffer({ resolveWithObject: true });
-    if (output.data.length > 1024 * 1024)
-      throw new PhotoError("This image could not be safely processed.");
-    return {
-      bytes: output.data,
-      width: output.info.width,
-      height: output.info.height,
-      sourceWidth: width,
-      sourceHeight: height,
-      mime: "image/jpeg",
-    };
+    // JPEG IDCT scaling reduces large source photos before allocating full pixels.
+    settings.setDefine(MagickFormat.Jpeg, "size", "1024x1024");
+    const target = Math.min(512, width, height);
+    const image = MagickImage.create();
+    try {
+      let warning = false;
+      image.onWarning = () => { warning = true; return 0; };
+      image.read(bytes, settings);
+      image.autoOrient();
+      image.thumbnail(new MagickGeometry(`${target}x${target}^`));
+      image.crop(target, target, Gravity.Center);
+      image.backgroundColor = MagickColors.White;
+      image.alpha(AlphaAction.Remove);
+      image.strip();
+      image.quality = 85;
+      if (warning) throw new PhotoError("This image is damaged.");
+      return image.write(MagickFormat.Jpeg, output => {
+        if (warning || output.length > 1024 * 1024)
+          throw new PhotoError("This image could not be safely processed.");
+        return { bytes: Buffer.from(output), width: image.width, height: image.height,
+          sourceWidth: width, sourceHeight: height, mime: "image/jpeg" };
+      });
+    } finally { image.dispose(); }
   } catch (error) {
     if (error instanceof PhotoError) throw error;
     throw new PhotoError(
-      "This image is damaged, unsupported, or exceeds the pixel limit.",
+      "This image is damaged or too complex to process. Choose a smaller PNG or JPEG.",
     );
   }
 }
@@ -231,7 +243,7 @@ async function downloadLinkedInPhoto(value, fetcher = fetch) {
 function pictureReference(value) {
   return value ? createHash("sha256").update(value).digest("hex") : null;
 }
-module.exports = {
+export {
   PhotoError,
   MAX_BYTES,
   normalizePhoto,
