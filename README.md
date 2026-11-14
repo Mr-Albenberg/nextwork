@@ -21,7 +21,7 @@ node tests/profile-and-criteria.test.js
 
 The three-step setup collects name, email, education, target field/role, engagement preferences, availability, skills, portfolio, and introduction. Drafts save between steps. Completion and sidebar identity use actual saved information.
 
-Email/password and LinkedIn accounts use Supabase Auth. Signed-in profiles, saved projects, application drafts, and resume text sync to a private account workspace after the database migration is applied. Guest profiles stay on the device. No employer-facing submissions are enabled. Self-reported profile skills are not counted as verified resume evidence. Guest resume text stays in the tab session. Signed-in resume text is automatically synced; Clear resume data clears the active resume, while prior application snapshots are retained.
+Email/password and LinkedIn accounts use Supabase Auth. Signed-in profiles, saved projects, application drafts, and resume text sync to a private account workspace after the database migration is applied. Profiles are available only after sign-in. Personal guest profiles saved by older versions stay on the device until explicitly imported by their owner. No employer-facing submissions are enabled. Self-reported profile skills are not counted as verified resume evidence. Logged-out visitors cannot access resume tools. Signed-in resume text is automatically synced; Clear resume data clears the active resume, while prior application snapshots are retained.
 
 ## Listing and field compatibility
 
@@ -78,11 +78,11 @@ Free AI does not guarantee unlimited free infrastructure. Vercel and GitHub host
 
 Current opportunities are samples. Applications, profiles, and messages are browser-local and are not transmitted to employers. A live marketplace still needs employer-owned listing management, shared application submission and conversations, and real employer-approved project briefs. Account-workspace RLS does not implement those marketplace features. Setting a database connection alone does not implement those features. The public Vercel URL works without a custom domain.
 
-## Main demo and expanded marketplace
+## Sample marketplace catalog
 
 The marketplace contains 14 clearly labeled sample paid projects. Each has its own brief, budget, duration, deliverables, impact, skills, and two project-specific matching criteria, plus its field foundation rubric. The additional catalog is shared by the browser and server through `dist/extra-jobs.js`.
 
-New visitors with no existing profile or resume start with **Jordan Rivera**, a fictional graduate with a complete profile, realistic sample resume, and saved opportunities. Existing visitors can choose **Load demo profile** in the toolbar. Their prior profile and resume are backed up in the tab session and restored by **Exit demo**. A default demo can be exited to start a personal profile; it does not automatically reload after dismissal. Reset demo restores its original sample data. Demo data is local and is not a real authenticated account or a real applicant. All demo achievements and contact details are illustrative.
+New visitors see the public homepage without a profile, resume, bookmarks, or application records. There is no automatic or manually loadable demo account. All workspace routes require a signed-in Supabase account. The homepage, pricing, and account/recovery screens remain public. Signing out hides workspace navigation and redirects private routes to login. Existing personal guest data from older versions is preserved; fictional guest data is never imported into an account.
 
 The owner confirmed Free Tier setup for this deployment. Actions records that confirmation in its deployment environment; set the workflow value `GEMINI_FREE_TIER_CONFIRMED` to `false` to disable remote AI. This remains an owner attestation, not a billing-status check.
 
@@ -92,7 +92,7 @@ Each project tile uses a native title link stretched across its surface. Save, m
 
 **See my highlighted resume** opens a document-and-criteria view. Green highlights direct listing skill/deliverable terms; yellow highlights supporting field terms. Missing criteria appear in red in the adjacent checklist, since nonexistent resume text cannot be highlighted. Labels accompany colors, and all resume text is escaped before markup is added. This is an instant text evidence view, not a new AI assessment or verification of proficiency.
 
-Applications are prefilled from the active graduate profile. The review shows identity, education, availability, location, skills, portfolio, and introduction; a current resume snapshot can be attached. Missing name/email routes the applicant through profile setup and back to the selected opportunity. Saving persists an immutable application snapshot (profile, introduction, optional resume, listing ID, timestamp) locally and shows the applicant in My work. It does not submit to an employer; sign-in is handled separately through Supabase. Demo switches back up and restore application records as well as profile data.
+Applications are prefilled from the active graduate profile. The review shows identity, education, availability, location, skills, portfolio, and introduction; a current resume snapshot can be attached. Missing name/email routes the applicant through profile setup and back to the selected opportunity. Saving persists an immutable application snapshot (profile, introduction, optional resume, listing ID, timestamp) locally and shows the applicant in My work. It does not submit to an employer; sign-in is handled separately through Supabase.
 
 ## Clearer workspace and conversations
 
@@ -100,11 +100,11 @@ The primary navigation now focuses on Find work, Applications, Messages, My prof
 
 Messages supports creator conversations from project details, a searchable people directory (14 creators and 3 graduates), profile previews, related-project panels, searchable inboxes, saved/archived threads, unread markers, outgoing-message deletion, quick introduction prompts, Enter/Shift+Enter composition, and linked project sharing. Threads persist on this device. Existing messages are not forwarded to any external service, and no live presence or delivery receipts are simulated.
 
-Repeated prototype notices are removed from the main journey. Workspace settings contains the single explanation of local storage, simulated communications, sample-profile controls, and free AI behavior. Messaging remains a browser-local prototype; account profiles, bookmarks, application drafts, and resumes can sync separately.
+Workspace settings explains storage, simulated communications, and free AI behavior. No sample-profile controls are exposed. Messaging remains a browser-local prototype; account profiles, bookmarks, application drafts, and resumes can sync separately.
 
 ## Public homepage and proposed plans
 
-The root URL now opens a public homepage (`#home`) with the “Turn your degree into proof” hook, an explanation of the project journey, an actual catalog spotlight, evidence-matching example, pricing, FAQs, and free-start calls to action. `#pricing` opens the same page at pricing. The workspace remains at `#explore`, with an Overview link back to the homepage.
+The root URL now opens a public homepage (`#home`) with the “Turn your degree into proof” hook, an explanation of the project journey, an actual catalog spotlight, evidence-matching example, pricing, FAQs, and free-start calls to action. `#pricing` opens the same page at pricing. The workspace remains at `#explore` and requires sign-in, with an Overview link back to the homepage.
 
 Proposed graduate plans:
 
@@ -182,3 +182,10 @@ The Premium route now opens a working workspace prototype. Career toolkit keeps 
 - Insights: actual user-record counts. Employer views, email opens, delivery receipts, and response-time metrics are not fabricated and still require live integrations.
 
 Premium records use the existing per-account workspaceLocal cache under nextwork-growth. They are device-local and are not included in the Supabase cloud-sync schema. Contact examples, review requests, priority previews, and metrics are distinguished from live employer services. Existing tools stay Free, and no paid AI is introduced.
+
+
+## Account UI and visitor access
+
+Login and registration use a responsive account card with a LinkedIn-blue (#0A66C2) button, the LinkedIn icon, a clear email divider, and labeled email/password inputs. Connected-account settings separate the LinkedIn status, password action, sync status, and sign-out control. Public visitors see marketing navigation rather than a fictional workspace sidebar or avatar.
+
+The public route allowlist is `home`, `pricing`, `login`, `signup`, `forgot`, and `password` (the last shows recovery instructions when signed out). Every other route, including unknown hashes and project details, requires login. Workspace mutations also check the current account; Postgres RLS and the server's verified-session check remain the security boundary for stored data and remote resume analysis. The static sample catalog and public marketing examples are not confidential account data.

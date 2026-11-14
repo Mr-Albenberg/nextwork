@@ -326,7 +326,6 @@ function activateWorkspace(user) {
         JSON.stringify(p),
       );
   } else {
-    initializeDemoProfile();
     saved = JSON.parse(workspaceLocal.getItem("lp-saved") || "[]");
     applications = JSON.parse(workspaceLocal.getItem("lp-apps") || "[]");
   }
@@ -406,3 +405,27 @@ async function initializeAccount() {
   }
 }
 
+function publicPage(page) {
+  return ["home", "pricing", "login", "signup", "forgot", "password"].includes(
+    page,
+  );
+}
+function requireAccount(message = "Log in to access your Nextwork workspace.") {
+  if (typeof Account === "undefined" || Account.user) return true;
+  Account.message = message;
+  const area = document.querySelector('#app');
+  if (area) area.textContent = '';
+  document.body.classList.remove('messages-page');
+  closeModal();
+  location.hash = "login";
+  return false;
+}
+function updateAccountChrome(page) {
+  document.body.dataset.auth = Account.user ? "member" : "guest";
+  document.body.dataset.page = page;
+  const crumb = document.querySelector(".header-breadcrumb");
+  if (crumb)
+    crumb.innerHTML = Account.user
+      ? "Workspace <span>/</span> Your next chapter"
+      : '<a class="guest-brand" href="#home"><img src="nextwork-icon.png" alt=""><span>nextwork</span></a>';
+}
