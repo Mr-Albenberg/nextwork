@@ -90,6 +90,7 @@ async function setup(browser) {
             : null;
       const user = Object.values(users).find((u) => u.id === subject);
       if (url.pathname.endsWith("/user/identities/authorize")) {
+        assert.equal(url.searchParams.get("enable_extended_login"), "true");
         return reply({
           url: "https://www.linkedin.com/oauth/v2/authorization?test-link=true",
         });

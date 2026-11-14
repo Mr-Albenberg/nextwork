@@ -171,7 +171,7 @@ function bindAccount() {
                 provider: "linkedin_oidc",
                 options: {
                   redirectTo: authCallback(),
-                  scopes: "openid profile email",
+                  queryParams: { enable_extended_login: "true" },
                 },
               }),
             );
@@ -184,7 +184,7 @@ function bindAccount() {
                 provider: "linkedin_oidc",
                 options: {
                   redirectTo: authCallback(),
-                  scopes: "openid profile email",
+                  queryParams: { enable_extended_login: "true" },
                 },
               }),
             );

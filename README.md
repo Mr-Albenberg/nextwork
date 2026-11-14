@@ -233,3 +233,6 @@ Graduate and organization forms share a searchable skill multi-select with autoc
 Editable/source brand PNGs live in `assets/brand/`. Published assets live in `dist/assets/brand/`, mirrored to `docs/assets/brand/`. Filenames use `nextwork-icon.png`, `nextwork-wordmark-primary.png`, `nextwork-wordmark-reversed.png`, and `nextwork-mark.svg`. The redundant `nextwork-logo.png` icon alias was removed. References, downloadable brand files, favicon metadata, and CI mirror validation use the new paths. There are no image assets in the repository root.
 
 
+## LinkedIn login convenience
+
+Both login and linking pass `enable_extended_login=true` so LinkedIn can offer its supported Google, Apple, and passkey login options. Nextwork retains and refreshes its Supabase session instead of sending returning users through LinkedIn on each visit. LinkedIn can reuse an existing browser session and prior consent; it still controls authentication, consent, and reauthorization. The flag changes login options, not API permissions. Standard OIDC access supplies basic identity data, not full career history. Supabase session refresh is separate from refreshing LinkedIn provider access tokens.
