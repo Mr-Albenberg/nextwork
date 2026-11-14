@@ -4,6 +4,7 @@ for(const file of ['option-catalogs.js','search-select.js'])vm.runInContext(fs.r
 const catalog=context.window.NextworkCatalogs;
 assert(catalog.skills.length>8000);assert(catalog.industries.length>1000);assert(catalog.roles.length>1000);
 const rank=(options,query)=>Array.from(context.searchRank(options,query));
+assert.equal(rank(['Git','Go','Rust'],'gti')[0],'Git');
 assert.equal(rank(['React','Ruby','Reactor','React Native'],'reaact')[0],'React');
 assert.equal(rank(['React','JavaScript','TypeScript'],'js')[0],'JavaScript');
 assert.equal(rank(['Part-time job','Full-time job','Contract project'],'full time')[0],'Full-time job');

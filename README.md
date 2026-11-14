@@ -271,7 +271,7 @@ Open `/#checkout` while signed into a personal account. Every account starts wit
 
 ### GitHub Pages and organization setup (2026-11-14)
 
-GitHub Pages is the web deployment target: https://mr-albenberg.github.io/nextwork/. The root `index.html` loads the app modules from `docs/` so the main link serves the app even with the current Pages source set to the repository root. Run `node .github/scripts/pages-entry.cjs` after editing `dist/index.html`; CI checks this entry and the `dist`/`docs` mirror. Automatic Vercel deployments have been removed from the validation workflow. Existing API hosting is unchanged; Supabase continues to provide authentication and private data storage.
+GitHub Pages publishes `docs/` at https://mr-albenberg.github.io/nextwork/. Keep `dist` and `docs` mirrored; CI checks this. Automatic Vercel deployments have been removed from the validation workflow. Existing API hosting is unchanged; Supabase continues to provide authentication and private data storage.
 
 Organization signup asks only for organization name, work email, and password. Industry, website, company story, team size, and hiring preferences are optional and can be edited in the portal. A first authenticated visit provisions a minimal organization profile from the signup name, under the existing organization-only database policy. Existing personal accounts still cannot convert.
 

@@ -20,7 +20,7 @@ function searchRank(options, query, limit=30) {
   const q=searchNormalize(query), aliases={js:'javascript',ts:'typescript',nodejs:'node js',reactjs:'react',ai:'artificial intelligence',ml:'machine learning',fintech:'financial technology',saas:'saas',dev:'development',fulltime:'full time',parttime:'part time'};
   const term=aliases[q]||q, parts=term.split(' ').filter(Boolean);
   if(!term)return options.slice(0,limit);
-  const threshold=term.length<4?0:term.length<8?2:3;
+  const threshold=term.length<3?0:term.length<5?1:term.length<8?2:3;
   return options.map((value,index)=>{
     let label=searchCatalogCache.get(value);if(label===undefined){label=searchNormalize(value);searchCatalogCache.set(value,label)}
     let score=Infinity;

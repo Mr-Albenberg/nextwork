@@ -93,8 +93,6 @@ jobs:
         run: |
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140004_account_types.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/account-types.test.sql
-      - name: Check GitHub Pages root entry
-        run: node .github/scripts/pages-entry.cjs --check
       - name: Verify GitHub Pages mirror
         run: |
           diff -qr --exclude=.nojekyll dist docs
