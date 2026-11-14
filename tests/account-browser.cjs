@@ -162,6 +162,9 @@ async function login(page, email) {
   await page
     .getByRole("button", { name: "Log in with email", exact: true })
     .click();
+  await page.waitForURL("**/#overview");
+  await page.waitForFunction(() => Account.ready && Backend.ready);
+  await page.goto(base + "/#profile");
   await page.getByRole("heading", { name: "Account & connections" }).waitFor();
   await page.waitForFunction(() => Account.ready && Backend.ready);
 }
@@ -193,6 +196,7 @@ async function login(page, email) {
     assert.equal(await page.locator("body > aside").isVisible(), false);
     assert(!(await page.locator("body").innerText()).includes("Jordan Rivera"));
     for (const path of [
+      "overview",
       "explore",
       "project/7",
       "projects",
@@ -237,6 +241,11 @@ async function login(page, email) {
       )
       .waitFor();
     await login(page, "alice@example.com");
+    await page.goto(base + "/#overview");
+    await page.getByRole("heading", { name: "Your next steps" }).waitFor();
+    assert.equal(await page.locator("#landing").count(), 0);
+    await page.goto(base + "/#profile");
+
     assert.equal(await page.getByLabel("Full name").inputValue(), "Alice");
     assert(!(await page.locator("main").innerText()).includes("Jordan Rivera"));
     await page.getByLabel("Full name").fill("Alice Updated");

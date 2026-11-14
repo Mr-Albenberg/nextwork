@@ -423,7 +423,7 @@ function updateAccountChrome(page) {
 function postLoginRoute() {
   const next = sessionStorage.getItem("nextwork-auth-intent");
   sessionStorage.removeItem("nextwork-auth-intent");
-  return next === "organization" ? "organization" : "profile";
+  return next === "organization" ? "organization" : "overview";
 }
 function openDeleteAccount() {
   if (!Account.user) return;
