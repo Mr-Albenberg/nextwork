@@ -65,6 +65,7 @@ body.messages-page{height:100dvh;overflow:hidden}
 .messages-page .inbox-heading h2{flex:1;white-space:nowrap}
 .inbox-toggle{flex-shrink:0;width:36px;height:36px}
 .inbox-toggle svg{transition:transform 280ms cubic-bezier(.22,1,.36,1)}
+.inbox-collapsed .inbox-toggle{order:-1}
 .inbox-collapsed .inbox-toggle svg{transform:rotate(180deg)}
 .inbox-content{display:flex;flex-direction:column;flex:1;min-height:0;min-width:calc(var(--inbox-expanded) - 20px);transition:opacity 180ms ease,visibility 180ms ease}
 .inbox-heading h2,.inbox-heading .new-conversation{transition:opacity 180ms ease,visibility 180ms ease}

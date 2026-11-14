@@ -34,7 +34,7 @@ vm.runInContext('toggleMessagesSidebar()',ctx);
 assert.equal(element('#messages-inbox-content').inert,true);
 assert.equal(element('.new-conversation').inert,true);
 assert.equal(sidebarToggle['aria-expanded'],'false');
-assert.equal(sidebarToggle['aria-label'],'Show conversations');
+assert.equal(sidebarToggle['aria-label'],'Expand conversations sidebar');
 assert.equal(element('#conversation-input').value,'Keep this draft while browsing');
 const collapsedMarkup=vm.runInContext('messages()',ctx);
 assert(collapsedMarkup.indexOf('inbox-toggle')<collapsedMarkup.indexOf('conversation-main'));
