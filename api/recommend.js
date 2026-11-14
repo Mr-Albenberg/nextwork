@@ -38,8 +38,8 @@ async function customFlow(res, identity, resume, role, hours) {
       system: Engine.aiInstruction,
       user: Engine.aiPayload(resume, role, profile, analysis, hours),
       schema: Engine.aiSchema,
-      maxTokens: 4000,
-      timeoutMs: 30000
+      maxTokens: 7000,
+      timeoutMs: 38000
     });
     const projects = Engine.validateAI(out, profile, resume, { hoursPerWeek: hours });
     return res.status(200).json({ source: "ai", provider: "gemini-free-tier", custom: true, market: profile, projects: withDemand(projects, profile) });
@@ -95,7 +95,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: Engine.aiInstruction + " Return only JSON matching this schema: " + JSON.stringify(Engine.aiSchema) }] },
         contents: [{ role: "user", parts: [{ text: JSON.stringify(Engine.aiPayload(resume, role, profile, analysis, hours)) }] }],
-        generationConfig: { temperature: 0.5, responseMimeType: "application/json", maxOutputTokens: 4000 }
+        generationConfig: { temperature: 0.5, responseMimeType: "application/json", maxOutputTokens: 7000 }
       }),
       signal: AbortSignal.timeout(50000)
     });

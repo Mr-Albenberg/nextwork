@@ -350,13 +350,32 @@ const netFetch = async (url) => {
     boardJobs = 10;
   }
 
+  // ---------- In-depth AI project fields are validated ----------
+  {
+    const prof = { skills: [{ skill: "SolidWorks", pct: 100 }, { skill: "FEA", pct: 50 }] };
+    const base = { title: "Bracket study", pitch: "Redesign a part.", why: "Fits you.", build: ["a", "b"], deliverables: ["Report"], skills: ["SolidWorks"], weeks: 3 };
+    const rich = Engine.validateAI({ projects: [{ ...base, overview: "Model a bracket, test it, and write up the changes.", difficulty: "advanced", plan: [{ phase: "Model", details: "Build the part in CAD." }, { phase: "Bad", details: "Used by 80% of companies" }, { phase: "", details: "no phase" }], tools: ["SolidWorks", "Excel"], stretch: ["Try a second material", "Fits 40 postings"], showcase: "Put the report in your portfolio." }] }, prof, "resume text", { hoursPerWeek: 8 })[0];
+    assert.equal(rich.difficulty, "advanced");
+    assert.equal(rich.overview, "Model a bracket, test it, and write up the changes.");
+    assert.deepEqual(rich.plan, [{ phase: "Model", details: "Build the part in CAD." }], "plan steps with statistics or missing parts are dropped");
+    assert.deepEqual(rich.tools, ["SolidWorks", "Excel"]);
+    assert.deepEqual(rich.stretch, ["Try a second material"], "stretch goals that state counts are dropped");
+    const bare = Engine.validateAI({ projects: [base] }, prof, "resume text", { hoursPerWeek: 8 })[0];
+    assert.equal(bare.difficulty, "intermediate");
+    assert.deepEqual(bare.plan, []);
+    assert.equal(bare.overview, "");
+  }
+
   // ---------- Page behavior (client code in a stubbed browser context) ----------
   const elements = {};
-  const element = (s) => elements[s] || (elements[s] = { querySelector() { return { textContent: "", focus() {} }; }, querySelectorAll() { return []; }, focus() {}, value: "", style: {}, innerHTML: "", textContent: "", hidden: true, checked: false, disabled: false, classList: { add() {}, remove() {} }, scrollIntoView() {} });
+  const element = (s) => elements[s] || (elements[s] = { querySelector() { return { textContent: "", focus() {} }; }, querySelectorAll() { return []; }, focus() {}, value: "", style: {}, innerHTML: "", textContent: "", hidden: true, checked: false, disabled: false, open: false, classList: { add() {}, remove() {}, toggle() {} }, addEventListener() {}, setAttribute() {}, scrollIntoView() {} });
   const data = {};
   const storage = { getItem: (k) => data[k] || null, setItem: (k, v) => (data[k] = String(v)), removeItem: (k) => delete data[k] };
   let clipboard = "";
-  let marketResponse;
+  let apiMode = "ok";
+  const requests = [];
+  const marketBody = { service: "nextwork-market", source: "live", postings: 18, fetchedAt: "2026-11-14T00:00:00Z", family: { id: "frontend", label: "Frontend / web development" }, sources: [{ name: "Greenhouse", count: 18 }], skills: [{ skill: "React", pct: 100 }, { skill: "TypeScript", pct: 50 }, { skill: "Accessibility", pct: 30 }, { skill: "Testing", pct: 20 }] };
+  const aiProject = { title: "Accessible habit tracker", pitch: "A small app.", overview: "Build a habit tracker that works with a keyboard and screen reader, then deploy it.", why: "Shows accessibility and testing.", difficulty: "intermediate", build: ["Scaffold", "Test"], plan: [{ phase: "Set up", details: "Create the app and CI." }, { phase: "Build", details: "Add habits with keyboard support." }], tools: ["React", "Vitest"], deliverables: ["Live demo", "Repository"], stretch: ["Add offline mode"], showcase: "Link it from your resume.", skills: ["React", "Accessibility"], weeks: 4 };
   const ctx = {
     document: { documentElement: { dataset: {} }, getElementById: element, querySelector: element, querySelectorAll() { return []; }, addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} } } },
     localStorage: storage, workspaceLocal: storage, workspaceSession: storage, sessionStorage: storage,
@@ -364,10 +383,17 @@ const netFetch = async (url) => {
     window: { matchMedia() { return { matches: false, addEventListener() {} }; }, addEventListener() {}, scrollTo() {} },
     navigator: { clipboard: { writeText: async (t) => { clipboard = t; } } },
     setTimeout() {}, authPage() { return "Sign in"; }, FormData, AbortSignal,
-    fetch: async (url) => {
-      if (!url.includes("/api/market")) throw new Error("unexpected request " + url);
-      if (marketResponse instanceof Error) throw marketResponse;
-      return { ok: true, json: async () => marketResponse };
+    fetch: async (url, options) => {
+      requests.push({ url, body: options && options.body ? JSON.parse(options.body) : null });
+      if (apiMode === "offline") throw new TypeError("offline");
+      if (url.includes("/api/market")) return { ok: true, json: async () => marketBody };
+      if (url.endsWith("/api/recommend")) {
+        if (apiMode === "fail") return { ok: false, json: async () => ({ error: "The AI could not design projects this time." }) };
+        const sent = JSON.parse(options.body);
+        if (sent.custom) return { ok: true, json: async () => ({ source: "ai", custom: true, market: { source: "ai-estimate", postings: 0, family: { id: "custom", label: sent.role }, note: "AI estimate, not measured.", skills: [{ skill: "Field sampling", tier: "core" }, { skill: "Statistics", tier: "common" }, { skill: "R", tier: "common" }, { skill: "Scuba certification", tier: "emerging" }] }, projects: [{ ...aiProject, title: "Reef survey dataset", skills: ["Statistics", "R"] }] }) };
+        return { ok: true, json: async () => ({ source: "ai", projects: [aiProject, { ...aiProject, title: "Second idea" }, { ...aiProject, title: "Third idea" }] }) };
+      }
+      throw new Error("unexpected request " + url);
     }
   };
   vm.createContext(ctx);
@@ -382,39 +408,67 @@ const netFetch = async (url) => {
     if (f === "recommend-engine.js") ctx.RecommendEngine = ctx.window.RecommendEngine;
   }
   vm.runInContext("render()", ctx);
-  const html = element("#app").innerHTML;
-  assert(html.includes("Where are you headed?") && html.includes("Project recommendations."));
+  let html = element("#app").innerHTML;
+  assert(html.includes("Build the project that gets you hired.") && html.includes("Find my projects"));
+  assert(html.includes('id="reco-role"') && html.includes('id="reco-resume"') && html.includes('id="reco-file"'));
+  for (const gone of ["reco-method", "reco-family", "reco-hours", "reco-consent", "Time you can give", "Recommendation method"]) assert(!html.includes(gone), "removed option is gone: " + gone);
+  assert(html.includes("sent to Google Gemini"), "AI use is disclosed next to the button");
   assert(element("#nav").innerHTML.includes("Project ideas"));
-  assert(html.includes("id=\"reco-role\"") && html.includes("Free-tier AI"));
-  assert(element("#reco-results").innerHTML === "" || true);
 
+  // The results page is its own route, and shows a clear empty state before anything has been run.
+  ctx.location.hash = "#recommend/results";
+  vm.runInContext("render()", ctx);
+  assert(element("#app").innerHTML.includes("No project plan yet"));
+  assert(element("#nav").innerHTML.includes('class="active"'), "Project ideas stays highlighted on the results page");
+
+  // From here the client needs a signed-in account; render is wrapped so the real router runs without account chrome.
+  ctx.Account = { user: { id: 1 }, client: { auth: { getSession: async () => ({ data: { session: { access_token: "t" } } }) } } };
+  const realRender = ctx.render;
+  ctx.render = () => {
+    const saved = ctx.Account;
+    delete ctx.Account;
+    try { realRender(); } finally { ctx.Account = saved; }
+  };
   const submit = async (values) => {
+    ctx.location.hash = "#recommend";
     Object.assign(element("#reco-resume"), { value: values.resume });
     Object.assign(element("#reco-role"), { value: values.role });
-    Object.assign(element("#reco-hours"), { value: "8" });
-    Object.assign(element("#reco-method"), { value: "local" });
-    Object.assign(element("#reco-family"), { value: values.family || "" });
     element("#reco-error").textContent = "";
+    requests.length = 0;
     await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
   };
-  marketResponse = { service: "nextwork-market", source: "live", postings: 18, fetchedAt: "2026-11-14T00:00:00Z", family: { id: "frontend", label: "Frontend / web development" }, sources: [{ name: "Greenhouse", count: 18 }], skills: [{ skill: "React", pct: 100, count: 18 }, { skill: "TypeScript", pct: 80, count: 14 }, { skill: "Accessibility", pct: 40, count: 7 }, { skill: "<img src=x onerror=alert(1)>", pct: 30, count: 5 }], samples: [{ title: "Frontend Engineer", company: "acme", source: "Greenhouse", url: "https://boards.greenhouse.io/acme/jobs/1" }, { title: "Evil", company: "x", source: "Greenhouse", url: "javascript:alert(1)" }] };
+
+  // Validation happens before any request.
+  await submit({ resume: "too short", role: "Frontend developer" });
+  assert(element("#reco-error").textContent.includes("Add your resume"));
+  await submit({ resume, role: "x" });
+  assert(element("#reco-error").textContent.includes("what job"));
+  assert.equal(requests.length, 0);
+
+  // A built-in field: live market data from the public endpoint, projects always from the AI.
   await submit({ resume, role: "Frontend developer" });
-  let out = element("#reco-results").innerHTML;
-  assert.equal(element("#reco-error").textContent, "");
-  assert(out.includes("Live postings") && out.includes("18</b> live postings from Greenhouse (18)"));
-  assert(out.includes("100%") && out.includes("In demand, not yet evidenced"));
-  assert(out.includes("Accessibility"));
-  assert((out.match(/class="panel wide-panel reco-project"/g) || []).length === 3);
-  assert(!out.includes("<img src=x"), "market data is escaped");
-  assert(!out.includes("javascript:"), "non-https sample links are dropped");
-  assert(out.includes("https://boards.greenhouse.io/acme/jobs/1") && out.includes("noopener noreferrer"));
-  assert(out.includes("Free recommendations"));
-  assert(out.includes('href="#project/'), "related marketplace listings are linked");
+  assert.equal(ctx.location.hash, "#recommend/results", "submitting opens the results page");
+  assert(requests.some((r) => r.url.includes("/api/market")));
+  const aiRequest = requests.find((r) => r.url.endsWith("/api/recommend"));
+  assert(aiRequest, "projects are always requested from the AI");
+  assert.equal(aiRequest.body.familyId, "frontend");
+  assert.equal(aiRequest.body.hoursPerWeek, 8);
+  assert(!aiRequest.body.custom);
+  let out = element("#app").innerHTML;
+  assert(out.includes("Accessible habit tracker") && out.includes("Your plan") && out.includes("Create the app and CI."));
+  assert(out.includes("Live postings") && out.includes("What employers are asking for") && out.includes("100%"));
+  assert(out.includes("Tools to use") && out.includes("Vitest") && out.includes("How to show it off") && out.includes("Add offline mode"));
+  assert((out.match(/class="rp-project"/g) || []).length === 3);
+  assert(out.includes("Intermediate") && out.includes("About 32 hours"));
+  assert(!out.includes("javascript:") && !out.includes("<img src=x"));
   assert.equal(data["nw-reco-role"], "Frontend developer");
   assert.equal(data["proof-resume"], resume);
 
+  // Save, un-save, remove and copy.
   vm.runInContext("saveIdea(0)", ctx);
-  assert.equal(JSON.parse(data["nw-saved-ideas"]).length, 1);
+  let saved = JSON.parse(data["nw-saved-ideas"]);
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].plan.length, 2, "the whole plan is saved");
   assert(element("#reco-results").innerHTML.includes("Saved ✓"));
   vm.runInContext("saveIdea(0)", ctx);
   assert.equal(JSON.parse(data["nw-saved-ideas"]).length, 0);
@@ -423,51 +477,47 @@ const netFetch = async (url) => {
   assert.equal(JSON.parse(data["nw-saved-ideas"]).length, 0);
   vm.runInContext("copyIdea(0)", ctx);
   await Promise.resolve();
-  assert(clipboard.startsWith("# ") && clipboard.includes("Target role: Frontend developer"));
+  assert(clipboard.startsWith("# Accessible habit tracker") && clipboard.includes("1. Set up: Create the app and CI.") && clipboard.includes("Target role: Frontend developer"));
 
-  // Network failure falls back to the authored baseline, labeled as such.
-  marketResponse = new Error("offline");
+  // Saved projects appear on the Applications page with a remove button.
+  vm.runInContext("saveIdea(0)", ctx);
+  ctx.location.hash = "#projects";
+  vm.runInContext("render()", ctx);
+  out = element("#app").innerHTML;
+  assert(out.includes("Saved project ideas · 1") && out.includes("Accessible habit tracker") && out.includes("See the plan") && out.includes("removeIdea(0)"));
+  vm.runInContext("removeIdea(0)", ctx);
+  assert(element("#app").innerHTML.includes("Saved project ideas · 0"));
+
+  // The result survives a refresh (restored from the session).
+  ctx.location.hash = "#recommend/results";
+  vm.runInContext("recoState = { status: 'idle', step: '', error: '', result: null, busy: false }", ctx);
+  vm.runInContext("render()", ctx);
+  assert(element("#app").innerHTML.includes("Accessible habit tracker"));
+
+  // A career outside the built-in fields uses the custom AI path.
+  await submit({ resume, role: "Marine biologist" });
+  const customRequest = requests.find((r) => r.url.endsWith("/api/recommend"));
+  assert.equal(customRequest.body.custom, true);
+  assert(!requests.some((r) => r.url.includes("/api/market")), "custom roles skip the public market endpoint");
+  out = element("#app").innerHTML;
+  assert(out.includes("AI estimate") && out.includes("Reef survey dataset") && out.includes("Scuba certification"));
+
+  // Failures are shown plainly with a way back.
+  apiMode = "fail";
+  await submit({ resume, role: "Marine biologist" });
+  out = element("#app").innerHTML;
+  assert(out.includes("We could not finish that") && out.includes("The AI could not design projects this time.") && out.includes('href="#recommend"'));
+  apiMode = "fail";
+  await submit({ resume, role: "Frontend developer" });
+  assert(element("#app").innerHTML.includes("We could not finish that"));
+
+  // If the AI is unreachable for a built-in field, template projects are shown and labeled.
+  apiMode = "offline";
   await submit({ resume, role: "Robotics engineer" });
-  out = element("#reco-results").innerHTML;
-  assert(out.includes("Baseline estimate") && out.includes("authored baseline"));
-  assert(out.includes("Embedded systems and robotics"));
-  // Short inputs are rejected before any request.
-  await submit({ resume: "too short", role: "Frontend developer" });
-  assert(element("#reco-error").textContent.includes("100 characters"));
-  await submit({ resume, role: "x" });
-  assert(element("#reco-error").textContent.includes("what role"));
-  // AI mode requires consent.
-  Object.assign(element("#reco-method"), { value: "ai" });
-  Object.assign(element("#reco-consent"), { checked: false });
-  Object.assign(element("#reco-resume"), { value: resume });
-  Object.assign(element("#reco-role"), { value: "Frontend developer" });
-  await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
-  assert(element("#reco-error").textContent.includes("consent"));
-
-  // A career outside the built-in fields uses the free-tier AI and shows what it returns.
-  const customRole = "Marine biologist";
-  Object.assign(element("#reco-method"), { value: "local" });
-  Object.assign(element("#reco-consent"), { checked: false });
-  Object.assign(element("#reco-resume"), { value: resume });
-  Object.assign(element("#reco-role"), { value: customRole });
-  Object.assign(element("#reco-family"), { value: "" });
-  await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
-  assert(element("#reco-error").textContent.includes("not one of our built-in fields"), "unmatched roles ask for AI consent instead of faking a field");
-  assert.equal(element("#reco-method").value, "ai");
-  let sentBody = null;
-  vm.runInContext('var Account={user:{id:1},client:{auth:{getSession:async()=>({data:{session:{access_token:"t"}}})}}}', ctx);
-  ctx.fetch = async (url, options) => {
-    assert(url.endsWith("/api/recommend"), "custom roles skip the public market endpoint");
-    sentBody = JSON.parse(options.body);
-    return { ok: true, json: async () => ({ source: "ai", custom: true, market: { source: "ai-estimate", postings: 0, family: { id: "custom", label: customRole }, note: "AI estimate, not measured.", skills: [{ skill: "Field sampling", tier: "core" }, { skill: "Statistics", tier: "common" }, { skill: "R", tier: "common" }, { skill: "Scuba certification", tier: "emerging" }] }, projects: [{ title: "Reef survey dataset", pitch: "Analyse public survey data.", why: "Shows statistics.", build: ["Clean data", "Model it"], deliverables: ["Report"], skills: ["Statistics", "R"], weeks: 3 }] }) };
-  };
-  Object.assign(element("#reco-consent"), { checked: true });
-  await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
-  assert.equal(element("#reco-error").textContent, "");
-  assert.equal(sentBody.custom, true);
-  assert.equal(sentBody.role, customRole);
-  out = element("#reco-results").innerHTML;
-  assert(out.includes("AI estimate") && out.includes("Marine biologist") && out.includes("Reef survey dataset"));
+  out = element("#app").innerHTML;
+  assert(out.includes("template projects are shown instead") && out.includes("Baseline estimate"));
+  assert((out.match(/class="rp-project"/g) || []).length === 3);
+  apiMode = "ok";
 
   console.log("Project recommendation engine, live and baseline market data, AI validation, quota gate, API auth and page behavior checks passed.");
 })().catch((e) => {
