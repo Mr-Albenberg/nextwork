@@ -57,3 +57,16 @@ This URL only works after Pages is enabled and its deployment finishes. GitHub P
 ### Backend readiness
 
 `GET /api/resume` returns a non-sensitive readiness check with `aiConfigured`. This confirms whether a server key is set, not whether the provider account has credit. The client checks this endpoint and enables the AI review selector when configured. Actual resumes are accepted only via POST. Vercel functions are configured with a 60-second maximum duration to accommodate review generation.
+
+## Match a marketplace opportunity
+
+Select **Check my fit** on any project card, or **Match my resume to this project** on its details page. Resume Studio opens with that listing's published skills, brief, deliverables, budget, and duration. Alternatively choose a listing in the review form or paste an external job description. Review feedback links back to the listing and its application flow. Resume matching is optional and does not block applications. All current listings are samples, and applications still save locally.
+
+## What is needed before a real marketplace launch
+
+- **AI reviews:** In Vercel, select this project → Settings → Environment Variables → add `OPENAI_API_KEY` for Production, then redeploy. Create the key at https://platform.openai.com/api-keys and enable API billing. ChatGPT subscriptions do not include API usage. Never commit or paste the key into chat. Confirm `/api/resume` reports `aiConfigured: true` and test one review with consent. The existing endpoint handles resume analysis; it does not provide accounts or employer records.
+- **Accounts and shared data:** Connect a database/auth provider (for example Supabase), then implement graduate/employer accounts, listing ownership, applications, conversations, and access policies. This is additional backend work; setting a connection string alone does not enable these features. Existing profiles, applications, and conversations use local browser storage.
+- **Real opportunities:** Supply employer-approved paid briefs with budget, deliverables, duration, location restrictions, and an actual hiring contact. Replace sample content before inviting applicants to submit real applications.
+- **Account administration:** GitHub code writes and Vercel auto-deploy already work. To let the assistant manage Vercel settings, install/connect the Vercel integration for the account/team that owns this project. Repository settings and domain changes need separate administration permission; code access alone does not grant it. Custom domains are optional because the public `.vercel.app` URL already works.
+
+Checks: `node tests/resume.test.js` and `node tests/listing-match.test.js`.
