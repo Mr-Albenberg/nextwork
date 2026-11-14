@@ -169,6 +169,9 @@ jobs:
         if: steps.setup.outputs.configured == 'true'
         with:
           version: 2.122.1
+      - name: Confirm Docker bundling is available
+        if: steps.setup.outputs.configured == 'true'
+        run: docker info > /dev/null
       - name: Deploy validated photo function
         if: steps.setup.outputs.configured == 'true'
-        run: supabase functions deploy profile-photo --project-ref zkoqafidgromlbvczwzy --use-api
+        run: supabase functions deploy profile-photo --project-ref zkoqafidgromlbvczwzy --use-docker

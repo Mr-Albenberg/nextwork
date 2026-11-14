@@ -315,13 +315,15 @@ Signup, linking and subsequent verified login of already-linked personal account
 3. Run **Check Nextwork (GitHub Pages)** from Actions, or push to `main`. After checks pass, the `deploy-photos` job deploys `profile-photo` to project `zkoqafidgromlbvczwzy`. Without the access-token secret the job reports that deployment was skipped; it does not pretend the backend is live. The frontend calls `https://zkoqafidgromlbvczwzy.supabase.co/functions/v1/profile-photo` directly.
 4. Test real LinkedIn signup, connection from an email account, and a returning linked member. Confirm existing photos survive, removal persists, and deleting an account removes stored photos. Local automated tests cover the browser workflow with mocked Supabase; decoder and SQL permission tests run against real libraries/PostgreSQL. Live provider deployment testing still requires the above setup.
 
-Manual deployment alternative (Supabase CLI 2.122.1, authenticated with your access token):
+Manual deployment alternative (Supabase CLI 2.122.1, Docker running, and authenticated with your access token):
 
 ```sh
 npm ci
 npm run prepare:photos
-supabase functions deploy profile-photo --project-ref zkoqafidgromlbvczwzy --use-api
+supabase functions deploy profile-photo --project-ref zkoqafidgromlbvczwzy --use-docker
 ```
+
+Deployment must use Docker/local bundling (`--use-docker`), which supports 20 MB functions and bundled static files. Do not use `--use-api`: server-side bundling has a 5 MB limit, smaller than the image decoder. GitHub Actions checks Docker availability and explicitly selects Docker so it cannot silently fall back to API bundling. This deployment limit applies independently of the Free/Pro plan; no upgrade is required.
 
 The pinned WASM decoder is prepared during deployment and bundled as a function static file, outside `dist/` and `docs/`. It is never downloaded at request time. Browser origins are restricted to `https://mr-albenberg.github.io` and `https://nextwork-jobs.vercel.app`. Local function development can opt into localhost origins with the server-only `PHOTO_ALLOW_LOCALHOST=true`; production does not enable that switch. JWT gateway verification is disabled because the handler validates every bearer token with Supabase Auth, including current account existence. CORS does not replace authentication.
 
