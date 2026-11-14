@@ -1,90 +1,70 @@
 # Prooflane
 
-[Open Prooflane](https://symmetrical-waffle-coral.vercel.app/) · [Resume Studio](https://symmetrical-waffle-coral.vercel.app/#resume)
+[Find paid projects](https://symmetrical-waffle-coral.vercel.app/) · [Set up your profile](https://symmetrical-waffle-coral.vercel.app/#profile) · [Resume Studio](https://symmetrical-waffle-coral.vercel.app/#resume)
 
-Real work. Real proof. Your next role.
+A graduate marketplace for paid, scoped startup projects. Browse and filter opportunities, compare resume evidence with a listing, save opportunities, and prepare an application.
 
-A responsive graduate project marketplace with paid startup opportunities, saved projects, local demo applications, resume-based practice quizzes, career gap comparisons, messaging, and profiles.
+## Run and test
 
-## Run locally
-
-No dependencies or build step required:
+No frontend dependencies or build step:
 
 ```sh
 python3 -m http.server 3000 --directory dist
+node tests/resume.test.js
+node tests/listing-match.test.js
+node tests/profile-and-criteria.test.js
 ```
 
-Open http://localhost:3000.
+`dist/` is the static application. `docs/` mirrors it for GitHub Pages. `api/resume.js` is the Vercel Node function. Static files changed in `dist/` must be copied into `docs/` too; CI verifies this.
 
-## Deploy to Vercel
+## Graduate profile
 
-Import this repository in Vercel. The included `vercel.json` serves `dist` with no build step or framework. Vercel assigns a `.vercel.app` domain after deployment. Custom domains can be added in the project's domain settings.
+The three-step setup collects name, email, education, target field/role, engagement preferences, availability, skills, portfolio, and introduction. Drafts save between steps. Completion and sidebar identity use actual saved information.
 
-## Files
+Profiles are stored on the current device in localStorage. This is not authentication or a shared employer-facing account. Self-reported profile skills are not counted as verified resume evidence. Resume text stays in sessionStorage for the tab session and is removed by Resume Studio's Clear my data action.
 
-- `dist/index.html`: application shell
-- `dist/style.css`: responsive styles
-- `dist/app.js`: page routing and interactive demo
-- `dist/logo.svg`: Prooflane vector logo and favicon
+## Listing and field compatibility
 
-## Demo limitations
+`dist/criteria.js` defines the six sample listings' individual criteria and field foundations. The marketplace calculates a quick local evidence score from resume text:
 
-Listings and profile matches are illustrative. Resume analysis uses local keyword matching rather than an AI service. Career comparisons use supplied job requirements or example checklists, not live labor-market data. Applications, profiles, and messages are stored in browser localStorage and are not transmitted to employers. Production use needs authentication, a backend, real employer records, messaging, AI integration, and a job-data source.
+- **75% listing criteria:** requested skills have weight 2 each; listing-specific deliverable evidence has weight 1 each.
+- **25% field foundations:** a transparent, authored four-criterion rubric for Development, Design, Data & Analytics, Marketing, or Business.
 
-## Resume Studio
+Field foundations are Prooflane coaching suggestions, not employer requirements or claims about live market demand. Missing resume evidence is not proof of missing ability. Scores do not certify proficiency or predict hiring.
 
-Open `#resume` for two review modes: general resume health and job-description alignment. Upload PDF/DOCX/TXT (5 MB max) or paste text, review extraction, run a review, revise, and download feedback. PDF and Word parsers load pinned third-party JavaScript libraries; document parsing runs in the browser. Scanned PDFs need OCR and should be pasted as text.
+Cards show overall score, both component scores, and expandable evidence. Default ordering is highest compatibility, with stable listing order for ties. No resume means no fabricated score. Users may switch to highest pay; editing their resume restores compatibility ordering.
 
-Local review checks section headings, accomplishment statements, numeric evidence, length, and recognized skills. It labels keyword coverage explicitly and never treats missing keywords as proof of missing ability. Scores are coaching signals, not ATS results or hiring predictions.
+Select Check my fit or choose a listing in Resume Studio. The listing's skills, brief, deliverables, and field rubric are used for the detailed review. Users can still paste an external description, and resume matching never blocks an application.
 
-### Enable contextual AI review
+## Resume Studio and AI review
 
-1. Import this repository into Vercel. Keep Output Directory `dist`; Vercel also deploys `api/resume.js` as a serverless function.
-2. Set `OPENAI_API_KEY` in Vercel project environment variables. Never put it in client code or GitHub. Optional: `OPENAI_MODEL` (default `gpt-4.1-mini`) and `ALLOWED_ORIGIN` (default `https://mr-albenberg.github.io`).
-3. Redeploy after setting variables.
-4. In Resume Studio, select **AI review**. On GitHub Pages or Sites, enter the deployed Vercel origin and consent to transmitting the text. On the Vercel site itself, leave the server URL blank.
+Upload PDF, DOCX, or TXT (5 MB max), or paste text. Pinned PDF.js and Mammoth parsers load from a CDN and extract text in the browser. Scanned PDFs need OCR; users can paste their text instead. Review extracted text before sending it.
 
-The endpoint rejects oversized requests, uses a timeout, and applies a best-effort per-instance request limit. Before wider production use, add authenticated access and durable rate limiting. No AI request is made without selecting AI review and providing consent. Resume text is held in sessionStorage for the tab session; **Clear my data** removes it and the report. Reports stay in memory unless downloaded.
+Quick review runs on the device. Contextual AI review requires explicit consent and sends resume/job text to the configured Vercel server and OpenAI. The server uses structured JSON output and evaluates the listing rubric and field foundations separately. Each credited criterion must cite a contiguous resume excerpt. The server verifies citations, computes weighted scores, and drops rewrites whose original quote is absent. AI evidence can recognize transferable work more effectively than the quick keyword check, so its detailed scores can differ from marketplace cards.
 
-### GitHub Pages
+The API has input limits, a timeout, no-store response headers, and a best-effort per-instance rate limit. Public scale still needs authentication and durable rate limits. There is no server-side resume database in this implementation.
 
-The `docs/` folder mirrors the static site. Open repository **Settings → Pages**, choose **Deploy from a branch**, select **main**, choose **/docs**, and save. The intended URL is:
+### Environment variables
 
-https://mr-albenberg.github.io/symmetrical-waffle/
+- `OPENAI_API_KEY`: server-side OpenAI key with API billing enabled.
+- `OPENAI_MODEL`: optional; defaults to `gpt-4.1-mini`.
+- `ALLOWED_ORIGIN`: optional CORS origin; defaults to `https://mr-albenberg.github.io`. Same-origin Vercel requests also work.
 
-This URL only works after Pages is enabled and its deployment finishes. GitHub Pages serves the static client; live AI calls use your configured Vercel endpoint. When editing static files, update `docs/` alongside `dist/`.
+`GET /api/resume` returns only readiness information, including `aiConfigured`. It does not test billing or validate the key. `POST /api/resume` accepts `resume`, optional `job`, optional `listingId`, and `field`. Listing IDs select server-owned rubric definitions. Responses include coaching feedback and evidence-specific improvements. End-to-end provider verification should use synthetic resume data and requires API billing.
 
-### Backend readiness
+## GitHub Actions and deployment
 
-`GET /api/resume` returns a non-sensitive readiness check with `aiConfigured`. This confirms whether a server key is set, not whether the provider account has credit. The client checks this endpoint and enables the AI review selector when configured. Actual resumes are accepted only via POST. Vercel functions are configured with a 60-second maximum duration to accommodate review generation.
+The workflow checks syntax, tests analysis/matching/profile behavior, and verifies the Pages mirror. On a push to main, or a manual run with deployment selected, it deploys the verified Vercel project after checks.
 
-## Match a marketplace opportunity
+Encrypted repository Actions secrets:
 
-Select **Check my fit** on any project card, or **Match my resume to this project** on its details page. Resume Studio opens with that listing's published skills, brief, deliverables, budget, and duration. Alternatively choose a listing in the review form or paste an external job description. Review feedback links back to the listing and its application flow. Resume matching is optional and does not block applications. All current listings are samples, and applications still save locally.
+- `VERCEL_TOKEN`: deployment access for the owning team.
+- `OPENAI_API_KEY`: when set, Actions securely copies it to Vercel's production environment before deployment.
 
-## What is needed before a real marketplace launch
+The verified team and project IDs are configured in the workflow; they are not secret credentials. No credentials belong in source code, chat, logs, artifacts, or client scripts. GitHub Actions stores deployment secrets, not end-user login records. The workflow links the Vercel project, sets the AI environment variable from stdin, and deploys with the configured token. The existing Vercel Git integration can also deploy each push; the Actions deployment ensures the runtime secret is applied.
 
-- **AI reviews:** In Vercel, select this project → Settings → Environment Variables → add `OPENAI_API_KEY` for Production, then redeploy. Create the key at https://platform.openai.com/api-keys and enable API billing. ChatGPT subscriptions do not include API usage. Never commit or paste the key into chat. Confirm `/api/resume` reports `aiConfigured: true` and test one review with consent. The existing endpoint handles resume analysis; it does not provide accounts or employer records.
-- **Accounts and shared data:** Connect a database/auth provider (for example Supabase), then implement graduate/employer accounts, listing ownership, applications, conversations, and access policies. This is additional backend work; setting a connection string alone does not enable these features. Existing profiles, applications, and conversations use local browser storage.
-- **Real opportunities:** Supply employer-approved paid briefs with budget, deliverables, duration, location restrictions, and an actual hiring contact. Replace sample content before inviting applicants to submit real applications.
-- **Account administration:** GitHub code writes and Vercel auto-deploy already work. To let the assistant manage Vercel settings, install/connect the Vercel integration for the account/team that owns this project. Repository settings and domain changes need separate administration permission; code access alone does not grant it. Custom domains are optional because the public `.vercel.app` URL already works.
+Repository secret administration is not available to the current coding connection. Owners can manage secrets at https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions. To set the AI key directly, use Vercel project Settings → Environment Variables → Production, then redeploy.
 
-Checks: `node tests/resume.test.js` and `node tests/listing-match.test.js`.
+## Remaining production work
 
-## Automatic listing compatibility
-
-The marketplace reads the resume entered or uploaded in Resume Studio for the current tab session. Each card shows the percentage of its listed skill tags found in that text, a progress bar, and an expandable explanation of matched and missing terms. Synonyms cover common label variants. Listings default to highest compatibility, with stable listing order for ties. No resume means no invented score. Users can explicitly choose highest pay; editing the resume restores compatibility sorting. This local calculation runs without an AI key or transmitting resume text. It measures requested-skill keyword coverage, not verified proficiency. Detailed contextual AI review remains a separate, consented request.
-
-## GitHub Actions and credentials
-
-`.github/workflows/quality-and-deploy.yml` checks JavaScript, tests resume analysis and compatibility ranking, and verifies the GitHub Pages mirror on pushes and pull requests. It can also deploy production on a manual workflow run.
-
-**Deployment credentials** belong in GitHub encrypted Actions secrets. **End-user passwords, resumes, sessions, and accounts do not belong in GitHub Actions, repository files, workflow logs, or artifacts.** Use a runtime authentication service and database for those. Actions is a CI/deployment system, not an authentication backend.
-
-To enable manual Actions deployment:
-
-1. Open https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions and add the repository secret `VERCEL_TOKEN`. The verified team and project IDs are already configured in the workflow.
-2. Create a Vercel access token in https://vercel.com/account/settings/tokens for the team that owns this project. The workflow targets the verified `symmetrical-waffle` project and owning team. Do not share the token in chat or code.
-3. Open repository Actions → **Check Prooflane and deploy** → **Run workflow**, enable the deployment checkbox, and run it on `main`.
-
-Checks run without secrets. Existing Vercel Git integration continues automatic deployment on push; manual Actions deployment is optional and uses the same configured Vercel project. Keep `OPENAI_API_KEY` in Vercel runtime environment variables. This connection currently lacks repository Actions/Secrets administration permission, so the owner must add secrets or grant that permission through the GitHub app configuration.
+Current opportunities are samples. Applications, profiles, and messages are browser-local and are not transmitted to employers. A real marketplace needs a connected authentication/database provider, graduate and employer access policies, employer-owned listing management, shared applications and conversations, and real employer-approved project briefs. Setting a database connection alone does not implement those features. The public Vercel URL works without a custom domain.
