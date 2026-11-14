@@ -80,6 +80,7 @@ for (const route of [
   "signup",
   "forgot",
   "password",
+  "organization",
 ])
   assert(vm.runInContext(`publicPage('${route}')`, ctx));
 for (const route of [

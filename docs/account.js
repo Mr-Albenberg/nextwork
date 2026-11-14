@@ -224,7 +224,7 @@ function bindAccount() {
               ? "Account created."
               : "Check your email to confirm your account, then sign in.",
           );
-          if (data.session) location.hash = "profile";
+          if (data.session) location.hash = postLoginRoute();
         } else if (mode === "forgot") {
           checkAuthResult(
             await Account.client.auth.resetPasswordForEmail(email, {
@@ -246,7 +246,7 @@ function bindAccount() {
           checkAuthResult(
             await Account.client.auth.signInWithPassword({ email, password }),
           );
-          location.hash = "profile";
+          location.hash = postLoginRoute();
         }
       });
     };
@@ -390,7 +390,7 @@ async function initializeAccount() {
       url.hash = Account.recovery
         ? "password"
         : Account.user
-          ? "profile"
+          ? postLoginRoute()
           : "login";
       history.replaceState(null, "", url);
     } else if (params.has("error")) {
@@ -407,7 +407,7 @@ async function initializeAccount() {
 }
 
 function publicPage(page) {
-  return ["home", "pricing", "login", "signup", "forgot", "password"].includes(
+  return ["home", "pricing", "login", "signup", "forgot", "password", "organization"].includes(
     page,
   );
 }
@@ -430,3 +430,5 @@ function updateAccountChrome(page) {
       ? "Workspace <span>/</span> Your next chapter"
       : '<a class="guest-brand" href="#home"><img src="nextwork-icon.png" alt=""><span>nextwork</span></a>';
 }
+
+function postLoginRoute(){const next=sessionStorage.getItem('nextwork-auth-intent');sessionStorage.removeItem('nextwork-auth-intent');return next==='organization'?'organization':'profile'}
