@@ -616,7 +616,8 @@ async function login(page, email) {
     if(await bookmark.getAttribute('aria-pressed')!=='true')await bookmark.click();
     await page.waitForFunction(()=>document.querySelector('.job .bookmark')?.getAttribute('aria-pressed')==='true');
     assert.equal(await page.locator('.job .bookmark').first().locator('svg').getAttribute('fill'),'currentColor');
-    assert.equal(await page.locator('.job .bookmark').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),38);
+    // Auth callbacks can replace the page between a locator resolving and layout being measured.
+    await page.waitForFunction(()=>Math.round(document.querySelector('.job .bookmark')?.getBoundingClientRect().width||0)===38);
     await page.locator('.job').first().screenshot({path:'test-artifacts/saved-listing.png'});
     await page.goto(base + '/#profile');
     await page.evaluate(()=>{profileStep=2;render()});
