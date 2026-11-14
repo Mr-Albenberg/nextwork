@@ -1,6 +1,6 @@
 # Nextwork
 
-[Find paid projects](https://symmetrical-waffle-coral.vercel.app/) · [Set up your profile](https://symmetrical-waffle-coral.vercel.app/#profile) · [Resume Studio](https://symmetrical-waffle-coral.vercel.app/#resume)
+[Find paid projects](https://nextwork-jobs.vercel.app/) · [Set up your profile](https://nextwork-jobs.vercel.app/#profile) · [Resume Studio](https://nextwork-jobs.vercel.app/#resume)
 
 A graduate marketplace for paid, scoped startup projects. Browse and filter opportunities, compare resume evidence with a listing, save opportunities, and prepare an application.
 
@@ -21,7 +21,7 @@ node tests/profile-and-criteria.test.js
 
 The three-step setup collects name, email, education, target field/role, engagement preferences, availability, skills, portfolio, and introduction. Drafts save between steps. Completion and sidebar identity use actual saved information.
 
-Profiles are stored on the current device in localStorage. This is not authentication or a shared employer-facing account. Self-reported profile skills are not counted as verified resume evidence. Resume text stays in sessionStorage for the tab session and is removed by Resume Studio's Clear my data action.
+Email/password and LinkedIn accounts use Supabase Auth. Signed-in profiles, saved projects, application drafts, and resume text sync to a private account workspace after the database migration is applied. Guest profiles stay on the device. No employer-facing submissions are enabled. Self-reported profile skills are not counted as verified resume evidence. Guest resume text stays in the tab session. Signed-in resume text is automatically synced; Clear resume data clears the active resume, while prior application snapshots are retained.
 
 ## Listing and field compatibility
 
@@ -42,7 +42,7 @@ Upload PDF, DOCX, or TXT (5 MB max), or paste text. Pinned PDF.js and Mammoth pa
 
 Quick review runs on the device. Optional free-tier Gemini review requires explicit consent and sends resume/job text to the configured Vercel server and Google. Free-tier content may be used to improve Google products; remove sensitive personal information before sending it. The server uses structured JSON output and evaluates the listing rubric and field foundations separately. Each credited criterion must cite a contiguous resume excerpt. The server verifies citations, computes weighted scores, and drops rewrites whose original quote is absent. AI evidence can recognize transferable work more effectively than the quick keyword check, so its detailed scores can differ from marketplace cards.
 
-The API has input limits, a timeout, no-store response headers, and a best-effort per-instance rate limit. Public scale still needs authentication and durable rate limits. There is no server-side resume database in this implementation.
+The API validates the Supabase session for every POST and rejects logged-out or anonymous users. It has input limits, a timeout, and no-store headers. A Postgres function atomically limits each user to 10 remote AI review attempts per UTC hour. If quota storage is unavailable, no Gemini request is made. Resume text is stored in the private account workspace.
 
 ### Free-only AI policy and setup
 
@@ -66,7 +66,7 @@ Official references: https://ai.google.dev/gemini-api/docs/pricing and https://a
 
 Actions checks syntax, tests analysis/matching/profile behavior, verifies the Pages mirror, and deploys the checked commit through the Vercel project API on pushes to main (or manual deployment).
 
-Encrypted Actions secrets: `VERCEL_TOKEN` for deployment and optional `GEMINI_API_KEY` for free-tier AI. The free-tier confirmation is a repository Actions variable, not a secret. Verified team/project IDs are in the workflow. The workflow copies the Gemini key without logging it, applies the confirmation flag, and removes unused OpenAI runtime settings. Profiles and end-user login records do not belong in Actions; they need a runtime authentication/database service.
+Encrypted Actions secrets: `VERCEL_TOKEN` for deployment and optional `GEMINI_API_KEY` for free-tier AI. The free-tier confirmation is a repository Actions variable, not a secret. Verified team/project IDs are in the workflow. The workflow copies the Gemini key without logging it, applies the confirmation flag, and removes unused OpenAI runtime settings. Supabase provides runtime authentication and private account storage; user records do not belong in Actions.
 
 Secret settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions
 
@@ -76,7 +76,7 @@ Free AI does not guarantee unlimited free infrastructure. Vercel and GitHub host
 
 ## Remaining production work
 
-Current opportunities are samples. Applications, profiles, and messages are browser-local and are not transmitted to employers. A real marketplace needs a connected authentication/database provider, graduate and employer access policies, employer-owned listing management, shared applications and conversations, and real employer-approved project briefs. Setting a database connection alone does not implement those features. The public Vercel URL works without a custom domain.
+Current opportunities are samples. Applications, profiles, and messages are browser-local and are not transmitted to employers. A live marketplace still needs employer-owned listing management, shared application submission and conversations, and real employer-approved project briefs. Account-workspace RLS does not implement those marketplace features. Setting a database connection alone does not implement those features. The public Vercel URL works without a custom domain.
 
 ## Main demo and expanded marketplace
 
@@ -92,7 +92,7 @@ Each project tile uses a native title link stretched across its surface. Save, m
 
 **See my highlighted resume** opens a document-and-criteria view. Green highlights direct listing skill/deliverable terms; yellow highlights supporting field terms. Missing criteria appear in red in the adjacent checklist, since nonexistent resume text cannot be highlighted. Labels accompany colors, and all resume text is escaped before markup is added. This is an instant text evidence view, not a new AI assessment or verification of proficiency.
 
-Applications are prefilled from the active graduate profile. The review shows identity, education, availability, location, skills, portfolio, and introduction; a current resume snapshot can be attached. Missing name/email routes the applicant through profile setup and back to the selected opportunity. Saving persists an immutable application snapshot (profile, introduction, optional resume, listing ID, timestamp) locally and shows the applicant in My work. It does not submit to an employer or create an authenticated account. Demo switches back up and restore application records as well as profile data.
+Applications are prefilled from the active graduate profile. The review shows identity, education, availability, location, skills, portfolio, and introduction; a current resume snapshot can be attached. Missing name/email routes the applicant through profile setup and back to the selected opportunity. Saving persists an immutable application snapshot (profile, introduction, optional resume, listing ID, timestamp) locally and shows the applicant in My work. It does not submit to an employer; sign-in is handled separately through Supabase. Demo switches back up and restore application records as well as profile data.
 
 ## Clearer workspace and conversations
 
@@ -100,7 +100,7 @@ The primary navigation now focuses on Find work, Applications, Messages, My prof
 
 Messages supports creator conversations from project details, a searchable people directory (14 creators and 3 graduates), profile previews, related-project panels, searchable inboxes, saved/archived threads, unread markers, outgoing-message deletion, quick introduction prompts, Enter/Shift+Enter composition, and linked project sharing. Threads persist on this device. Existing messages are not forwarded to any external service, and no live presence or delivery receipts are simulated.
 
-Repeated prototype notices are removed from the main journey. Workspace settings contains the single explanation of local storage, simulated communications, sample-profile controls, and free AI behavior. This remains a browser-local prototype rather than a multi-user messaging backend.
+Repeated prototype notices are removed from the main journey. Workspace settings contains the single explanation of local storage, simulated communications, sample-profile controls, and free AI behavior. Messaging remains a browser-local prototype; account profiles, bookmarks, application drafts, and resumes can sync separately.
 
 ## Public homepage and proposed plans
 
@@ -117,7 +117,39 @@ The working `#premium` preview includes named resume versions (maximum 10), side
 
 ## Nextwork brand
 
-The public product is named Nextwork. The single-color geometric N mark is provided as `dist/logo.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and hosting hostname are retained for compatibility with existing user data and integrations.
+The public product is named Nextwork. The single-color geometric N mark is provided as `dist/logo.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and service identifiers are retained for compatibility. The canonical deployment is https://nextwork-jobs.vercel.app.
+
+
+## Accounts and private workspace storage
+
+Supported flows: email/password registration, confirmation, sign-in, password recovery, password changes, LinkedIn sign-in, and connecting LinkedIn to an existing signed-in account. The LinkedIn OAuth product supplies basic identity fields, not a complete career history. Sign-in and linking use distinct Supabase APIs. Resume Studio and skill analysis require sign-in; the server validates the bearer token with Supabase before processing any analysis POST.
+
+Supabase project: `https://zkoqafidgromlbvczwzy.supabase.co`. The publishable key in `dist/account.js` is public browser configuration, not a privileged credential. The pinned Supabase JS SDK (2.89.0, MIT license) is served locally. LinkedIn's Client Secret belongs only in the Supabase provider configuration. Gemini and Vercel tokens stay in server/Actions secrets. No service-role key is required by this app. AI review only sends sessions to the canonical Nextwork API, never a configurable third-party server.
+
+One-time Supabase setup:
+
+1. Enable Email, email confirmation, LinkedIn (OIDC), and Allow manual linking under Authentication → Sign In / Providers.
+2. Set Site URL to `https://nextwork-jobs.vercel.app`. Add `https://nextwork-jobs.vercel.app/` and `https://nextwork-jobs.vercel.app/?auth=recovery` to the allowed redirect URLs. Local tests need their exact equivalent URLs if using live authentication.
+3. Keep LinkedIn's authorized callback at `https://zkoqafidgromlbvczwzy.supabase.co/auth/v1/callback`.
+4. Run `supabase/migrations/202611140001_accounts.sql` in the project's SQL editor. Run only that migration, **not** the local test bootstrap. This creates `account_workspaces`, owner-only row-level policies, and a private AI quota counter/function. The publishable key cannot apply migrations.
+5. Test with two real accounts: verify email, sign in, save a profile/resume, and open a second browser to confirm sync. Check that neither account can read the other's workspace. Test a real confirmation/reset email and LinkedIn linking. Automated browser tests mock Supabase and cannot establish email deliverability or LinkedIn approval.
+
+Each account gets one private database row with profile fields, saved sample-listing IDs, application-draft snapshots, active resume text, and a server-managed version. This deliberately stores workspace drafts together; live employer listings, submitted applications, and messages will need separate relational tables. Resumes automatically sync for signed-in users. Original uploaded files are parsed locally and not stored. Messages and Premium resume versions remain device-local. Existing guest profiles are imported only with an explicit action; fictional demo data is excluded.
+
+Workspace caches are isolated per user ID. Offline changes persist locally and sync on reconnect; cross-device version conflicts require choosing the account or device copy. If the migration is missing, sign-in still works but storage shows an explicit setup error and retains changes on the device. No cross-device sync is claimed until storage responds successfully. Signing out with unsynced changes preserves them for that account's next sign-in. This is browser caching, not protection against someone with access to browser developer tools on the same device.
+
+Additional checks:
+
+```sh
+node tests/account.test.js
+# With Playwright installed and dist served on port 3000:
+node tests/account-browser.cjs
+```
+
+GitHub Actions also runs the migration and `tests/database.test.sql` in a fresh PostgreSQL service, testing owner isolation, anonymous denial, validation, versions, and durable quotas. Pushes to `main` deploy only after checks pass. The deploy job verifies that `nextwork-jobs.vercel.app` is assigned to the Vercel project. The migration itself must be applied separately in Supabase; deploying frontend files does not create database tables.
+
+Supabase and Vercel plan limits still apply. No paid plan, billing upgrade, payment processor, or paid AI fallback is enabled by these changes. Production email delivery needs an SMTP provider and its own plan/limits; Supabase's default mail service is limited and is not a production deliverability guarantee.
+
 
 ## Repository-supplied Nextwork identity
 

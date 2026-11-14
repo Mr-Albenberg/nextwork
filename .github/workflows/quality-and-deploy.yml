@@ -22,6 +22,19 @@ concurrency:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: local-ci-only
+          POSTGRES_DB: nextwork_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,13 +42,22 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
-          for file in dist/*.js api/*.js; do node --check "$file"; done
+          for file in dist/*.js api/*.js lib/*.js; do node --check "$file"; done
       - name: Test resume analysis and backend
         run: node tests/resume.test.js
       - name: Test compatibility ranking and marketplace flow
         run: node tests/listing-match.test.js
       - name: Test profile setup, field criteria and grounded AI evidence
         run: node tests/profile-and-criteria.test.js
+      - name: Test account isolation and sync
+        run: node tests/account.test.js
+      - name: Test database access policies and AI quotas
+        env:
+          PGPASSWORD: local-ci-only
+        run: |
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/database-bootstrap.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140001_accounts.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/database.test.sql
       - name: Verify GitHub Pages mirror
         run: |
           for file in dist/*; do cmp "$file" "docs/$(basename "$file")"; done
