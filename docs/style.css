@@ -64,3 +64,14 @@ body.messages-page{height:100dvh;overflow:hidden}
 @media(max-width:1250px){.messages-page .messenger{grid-template-columns:240px minmax(0,1fr)}.messages-page .messenger.inbox-collapsed{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:1000px){.messages-page .messenger{grid-template-columns:205px minmax(0,1fr)}}
 @media(max-width:760px){body.messages-page{display:flex;flex-direction:column}.messages-page>aside{flex-shrink:0}.messages-page .shell{height:auto;flex:1}.messages-page .messenger{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.messages-page .messenger.inbox-collapsed{grid-template-rows:minmax(0,1fr)}.messages-page .conversation-main{height:auto;min-height:0}.messages-page .inbox{min-height:0;padding:10px 15px}.messages-page .inbox-search{margin:8px 0}.messages-page .inbox #conversation-list{max-height:72px}.messages-page .conversation-header{padding:10px 15px}.messages-page .conversation-composer{padding:10px 14px}.messages-page .message-prompts{margin-bottom:6px}}
+
+/* Independent sidebar controls beside Save and Archive. */
+.messages-page .messenger{position:relative;--inbox-width:260px;--bio-width:235px;grid-template-columns:var(--inbox-width) minmax(0,1fr) var(--bio-width)}
+.messages-page .messenger.inbox-collapsed{--inbox-width:0px;grid-template-columns:minmax(0,1fr) var(--bio-width)}
+.messages-page .messenger.bio-collapsed{--bio-width:0px;grid-template-columns:var(--inbox-width) minmax(0,1fr)}
+.messages-page .messenger.inbox-collapsed.bio-collapsed{grid-template-columns:minmax(0,1fr)}
+.messenger>.contact-panel[hidden]{display:none}
+.conversation-header>div{flex-shrink:0}
+@media(max-width:1250px){.messages-page .messenger{--inbox-width:240px;grid-template-columns:var(--inbox-width) minmax(0,1fr)}.messages-page .messenger.inbox-collapsed{grid-template-columns:minmax(0,1fr)}.messenger>.contact-panel:not([hidden]){display:block;position:absolute;right:0;top:76px;bottom:0;width:min(280px,100%);z-index:3;box-shadow:-8px 0 24px #12224a14}}
+@media(max-width:1000px){.messages-page .messenger{--inbox-width:205px}}
+@media(max-width:760px){.messages-page .messenger,.messages-page .messenger.bio-collapsed{grid-template-columns:minmax(0,1fr)}.conversation-header{flex-wrap:wrap}.conversation-header>.person-heading{min-width:120px}.conversation-header>div{margin-left:auto;gap:5px}.messenger>.contact-panel:not([hidden]){top:70px}}
