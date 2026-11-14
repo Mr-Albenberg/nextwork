@@ -398,6 +398,8 @@ function publicPage(page) {
     "forgot",
     "password",
     "organization",
+    "organization-login",
+    "organization-signup",
   ].includes(page);
 }
 function requireAccount(message = "Log in to access your Nextwork workspace.") {

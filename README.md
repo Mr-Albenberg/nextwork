@@ -241,3 +241,14 @@ Both login and linking pass `enable_extended_login=true` so LinkedIn can offer i
 ## Signed-in overview and public homepage
 
 `#overview` is the private dashboard: profile completion, saved project count, application drafts, next steps, and saved opportunities use actual account data. Signed-in root visits and standard logins open Overview; organization-intent logins still open the organization portal. `#home` remains the public marketing page. When signed in, its top navigation shows the member's account and an Open app link; signup calls to action switch to opening the workspace. Logged-out visitors see login/registration controls and cannot open Overview.
+
+
+## Dedicated organization access and hiring overview
+
+Organization account creation now opens its own organization-signup route, separate from graduate signup, with an organization-login route for returning hiring users. Both use the existing Supabase identity system, so an existing graduate account can also own an organization without duplicate credentials.
+
+The two-step organization sign-up asks for contact name, work email/password, company name/website/industry, team size, hiring engagement, primary field, starting compensation, start window, work arrangement, and hiring location. Passwords remain in transient form memory only and are cleared after signup or leaving the flow. Company/hiring answers are stored in the authenticated user's private organization_setup metadata; that metadata is not an authorization role and does not change database permissions.
+
+Organization profile setup includes public company details and clearly separated private hiring defaults. Defaults prefill new listings while every listing remains editable. This uses existing tables and auth metadata; no additional migration is required.
+
+The organization portal now defaults to Overview, with public company description, private industry/team/hiring summaries, published/pending/shortlist counts, setup steps, recent applications, a project-brief checklist, and an explanation of the review workflow. The applicant inbox also supports status filtering. Applicants still cannot access other candidates' documents, and existing organization ownership controls are unchanged.
