@@ -165,6 +165,13 @@ let jpeg;
     user.identities[0].identity_data.picture,
   );
   assert.equal(linkedInData({ ...user, identities: [] }), null);
+  const enriched = {...user, identities:[{provider:'linkedin_oidc',identity_data:{headline:'Developer',summary:'Building accessible tools'}}]};
+  assert.equal(linkedInData(enriched).tagline,'Developer');
+  assert.equal(linkedInData(enriched).bio,'Building accessible tools');
+  assert.equal(linkedInData(user).tagline,'');
+  const fieldsStore = fakeStore();
+  fieldsStore.fill = async (id,fields) => {assert.equal(fields.tagline,'Developer');assert.equal(fields.bio,'Building accessible tools');return {profile:fields};};
+  await importLinkedIn({user:enriched,consent:true,authorization:'Bearer member',store:fieldsStore});
   for (const value of [
     "http://media.licdn.com/dms/image/x",
     "https://media.licdn.com.evil.example/dms/image/x",

@@ -27,6 +27,8 @@ async function importLinkedIn({
   const fields = await store.fill(user.id, {
     name: details.name,
     email: details.email,
+    tagline: details.tagline,
+    bio: details.bio,
   });
   const result = { connected: true, needsConsent: false, ...fields };
   if (photo || state?.photo_removed) {

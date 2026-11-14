@@ -334,3 +334,11 @@ References: [Supabase pricing](https://supabase.com/pricing), [function limits](
 ### Account creation next steps
 
 Choose the personal or organization signup flow first, since account type is immutable. For personal LinkedIn signup, prefill available name, email and photo and show an editable review card; then ask about target work, availability, education and a resume. Collect a missing email explicitly. Locale could suggest interface language, but should not be guessed into a location/time zone. Standard LinkedIn OIDC does not provide full employment history, education, skills, headline or a guaranteed public profile URL; those need user-supplied data or separately approved LinkedIn access.
+
+### Saved account resumes
+
+Apply `supabase/migrations/202611140007_account_resumes.sql` after migration 006 (or run `docs/account-resumes-setup.sql` in the Supabase SQL editor). This creates the private `account-resumes` bucket with owner-only personal-account access and a 5 MB limit. Deploy the updated `profile-photo` function to import available LinkedIn headline/summary fields. LinkedIn OIDC normally supplies only identity details; unavailable headline/About fields stay blank for a resume or manual entry.
+
+PDF, DOCX and TXT uploads in Profile or Resume Studio save the original file, extracted text, and a local review to the account immediately. Upload processing does not send text to external AI; optional AI review still requires explicit consent. Scanned PDFs need text pasted manually. A replacement keeps one active file; the saved original can be downloaded and removed with “Clear resume data.” Account deletion also cleans up interrupted resume uploads.
+
+Tagline and description fill independently from the first available source. Resume extraction uses the headline near the top and a labeled Summary/Profile/About/Objective section, without inventing content. Existing values remain until manually edited.

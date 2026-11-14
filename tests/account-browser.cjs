@@ -139,6 +139,9 @@ async function setup(browser) {
           contentType: "application/json",
           body: JSON.stringify(data),
         });
+      if (url.pathname === "/storage/v1/object/list/account-resumes") return reply([]);
+      if (url.pathname.startsWith("/storage/v1/object/account-resumes/")) return reply({Key:url.pathname,Id:'resume-file'});
+      if (url.pathname === "/storage/v1/object/account-resumes") return reply([]);
       if (url.pathname.startsWith("/storage/v1/object/profile-photo-staging/"))
         return reply({ Key: url.pathname, Id: "staged-photo" });
       if (url.pathname === "/storage/v1/object/profile-photo-staging")
@@ -417,6 +420,12 @@ async function login(page, email) {
       "Alice Updated",
     );
     await page.goto(base + "/#resume");
+    await page.locator('#resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.')});
+    await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
+    assert.equal(rows.get(users['alice@example.com'].id).profile.tagline,'Frontend Developer');
+    assert(rows.get(users['alice@example.com'].id).extras['proof-resume-report']);
+    await page.reload();
+    await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
     await page
       .getByLabel("Resume text")
       .fill(

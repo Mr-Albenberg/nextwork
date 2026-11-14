@@ -28,7 +28,7 @@ function hasLinkedInConsent() {
   return at > 0 && Date.now() - at < 3600000;
 }
 function photoConsentText() {
-  return "By continuing, you allow Nextwork to store your LinkedIn name, email and profile photo and fill missing profile details if LinkedIn is connected. Your photo is visible to signed-in Nextwork members. You can edit or remove these details.";
+  return "By continuing, you allow Nextwork to store your LinkedIn name, email, available headline and description, and profile photo and fill missing profile details if LinkedIn is connected. Your photo is visible to signed-in Nextwork members. You can edit or remove these details.";
 }
 async function photoRequest(
   method = "GET",
@@ -176,7 +176,7 @@ function applyImportedFields(data) {
   if (!data.profile) return;
   const current = graduateProfile();
   let changed = false;
-  for (const key of ["name", "email"])
+  for (const key of ["name", "email", "tagline", "bio"])
     if (!String(current[key] || "").trim() && data.profile[key]) {
       current[key] = data.profile[key];
       changed = true;
