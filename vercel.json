@@ -1,1 +1,24 @@
-{"version":2,"git":{"deploymentEnabled":false},"framework":null,"buildCommand":null,"outputDirectory":"dist","cleanUrls":true,"functions":{"api/resume.js":{"maxDuration":60},"api/recommend.js":{"maxDuration":60},"api/market.js":{"maxDuration":30}}}
+{
+  "version": 2,
+  "git": {
+    "deploymentEnabled": false
+  },
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "functions": {
+    "api/resume.js": {
+      "maxDuration": 60
+    },
+    "api/recommend.js": {
+      "maxDuration": 60
+    },
+    "api/market.js": {
+      "maxDuration": 30
+    },
+    "api/profile-photo.js": {
+      "maxDuration": 30
+    }
+  }
+}

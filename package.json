@@ -1,0 +1,8 @@
+{
+  "name": "nextwork",
+  "private": true,
+  "version": "1.0.0",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node tests/account.test.js && node tests/resume.test.js && node tests/listing-match.test.js && node tests/profile-and-criteria.test.js && node tests/profile-photo.test.js" },
+  "dependencies": { "sharp": "0.35.5" }
+}

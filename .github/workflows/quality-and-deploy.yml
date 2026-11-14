@@ -40,6 +40,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install API image decoder
+        run: npm ci --include=optional
       - name: Check JavaScript syntax
         run: |
           for file in dist/*.js api/*.js lib/*.js; do node --check "$file"; done
@@ -51,6 +53,8 @@ jobs:
         run: node tests/profile-and-criteria.test.js
       - name: Test project recommendations, market data and API
         run: node tests/recommend.test.js
+      - name: Test profile photo validation and import
+        run: node tests/profile-photo.test.js
       - name: Test account isolation and sync
         run: node tests/account.test.js
       - name: Test searchable catalogs
@@ -109,6 +113,13 @@ jobs:
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f tests/messaging-storage-bootstrap.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611140005_messaging.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f tests/messaging.test.sql
+      - name: Test private profile photos
+        env:
+          PGPASSWORD: local-ci-only
+        run: |
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/storage-bootstrap.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140004_profile_photos.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/profile-photos.test.sql
       - name: Verify GitHub Pages mirror
         run: |
           diff -qr --exclude=.nojekyll dist docs
