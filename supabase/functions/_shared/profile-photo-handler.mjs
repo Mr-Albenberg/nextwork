@@ -61,6 +61,7 @@ function handlerFor({
               user,
               authorization: identity.authorization,
               consent: body.consent === true,
+              retry: body.retry === true,
               store,
               fetcher,
             }),

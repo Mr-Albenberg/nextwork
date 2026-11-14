@@ -5,6 +5,7 @@ const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 const rows = new Map(),
   requests = [];
 let failStorage = false;
+let failPhotoImport = false;
 let failLogout = false;
 const deletedUsers = new Set();
 const photos = new Map(),
@@ -93,6 +94,7 @@ async function setup(browser) {
       data = photos.get(subject);
     }
     if (request.method() === "POST" && body.action === "import") {
+      if (failPhotoImport) return route.fulfill({contentType:"application/json",body:JSON.stringify({hasPhoto:false,needsConsent:false,photoError:"LinkedIn photo import failed. Please retry."})});
       if (
         user.identities.some((i) => i.provider === "linkedin_oidc") &&
         body.consent &&
@@ -459,8 +461,14 @@ async function login(page, email) {
     await page.goto(base + "/#profile");
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await page.waitForURL("**/#login");
+    failPhotoImport = true;
     await login(page, "bob@example.com");
     assert.equal(await page.getByLabel("Full name").inputValue(), "Bob");
+    await page.locator('[data-photo-status]').filter({hasText:'LinkedIn photo import failed. Please retry.'}).waitFor();
+    await page.evaluate(() => loadProfilePhoto());
+    assert.match(await page.locator('[data-photo-status]').innerText(), /import failed/);
+    failPhotoImport = false;
+    await page.getByRole('button',{name:'Retry LinkedIn import',exact:true}).click();
     await page.waitForFunction(() => ownPhoto().hasPhoto);
     assert.equal(photos.get(users["bob@example.com"].id).source, "linkedin");
     await page.goto(base + "/#resume");
@@ -627,7 +635,8 @@ async function login(page, email) {
     if(await bookmark.getAttribute('aria-pressed')!=='true')await bookmark.click();
     await page.waitForFunction(()=>document.querySelector('.job .bookmark')?.getAttribute('aria-pressed')==='true');
     assert.equal(await page.locator('.job .bookmark').first().locator('svg').getAttribute('fill'),'currentColor');
-    assert.equal(await page.locator('.job .bookmark').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),38);
+    // Auth callbacks can replace the page between a locator resolving and layout being measured.
+    await page.waitForFunction(()=>Math.round(document.querySelector('.job .bookmark')?.getBoundingClientRect().width||0)===38);
     await page.locator('.job').first().screenshot({path:'test-artifacts/saved-listing.png'});
     await page.goto(base + '/#profile');
     await page.evaluate(()=>{profileStep=2;render()});

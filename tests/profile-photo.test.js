@@ -289,6 +289,28 @@ let jpeg;
   assert(result.photoError);
   assert.equal(store.profile.name, "LinkedIn Member");
   assert.equal(store.writes, 0);
+  // PostgREST return=minimal upserts succeed with HTTP 201 and an empty body.
+  const minimal = createPhotoStore({ key: "test-only", fetcher: async (_url, options) => {
+    assert.equal(options.method, "POST");
+    assert(options.headers.Prefer.includes("return=minimal"));
+    return new Response(null, { status: 201 });
+  } });
+  assert.equal(await minimal.state(id, { consented_at: new Date().toISOString() }), null);
+  // A failed attempt from the broken importer must not suppress the repaired release.
+  store = fakeStore();
+  store.setState({ consented_at: new Date().toISOString(), attempted_at: new Date().toISOString(), picture_ref: createHash("sha256").update(user.identities[0].identity_data.picture).digest("hex"), import_version: 0 });
+  result = await importLinkedIn({user,authorization:"Bearer member",store,fetcher});
+  assert(result.hasPhoto);
+  store = fakeStore();
+  result = await importLinkedIn({user,authorization:"Bearer member",consent:true,store,fetcher:async()=>new Response(null,{status:403})});
+  const beforeRetry = downloads;
+  result = await importLinkedIn({user,authorization:"Bearer member",store,fetcher});
+  assert(result.photoError);assert.equal(downloads,beforeRetry);
+  result = await importLinkedIn({user,authorization:"Bearer member",retry:true,store,fetcher});
+  assert(result.hasPhoto);assert.equal(downloads,beforeRetry+1);
+  const noPicture = structuredClone(user);delete noPicture.identities[0].identity_data.picture;
+  result = await importLinkedIn({user:noPicture,authorization:"Bearer member",consent:true,store:fakeStore(),fetcher});
+  assert.match(result.photoError,/did not provide a photo/);
   const auth = async () => ({ user, authorization: "Bearer member" });
   let res = response();
   await handlerFor({

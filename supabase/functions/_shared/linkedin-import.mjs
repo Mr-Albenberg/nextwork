@@ -5,11 +5,12 @@ import {
   pictureReference,
   PhotoError,
 } from "./profile-image.mjs";
-const IMPORT_VERSION = 1;
+const IMPORT_VERSION = 2;
 async function importLinkedIn({
   user,
   authorization,
   consent = false,
+  retry = false,
   store,
   fetcher = fetch,
 }) {
@@ -43,17 +44,18 @@ async function importLinkedIn({
       import_version: IMPORT_VERSION,
       completed_at: new Date().toISOString(),
     });
-    return { ...result, hasPhoto: false };
+    return { ...result, hasPhoto: false, photoError: "LinkedIn did not provide a photo. Log in with LinkedIn again to refresh its details, or upload a photo." };
   }
   const reference = pictureReference(details.picture),
     recent =
       state?.attempted_at &&
       Date.now() - Date.parse(state.attempted_at) < 86400000;
-  if (recent && state.picture_ref === reference)
-    return { ...result, hasPhoto: false };
+  if (!retry && recent && state.picture_ref === reference && state.import_version >= IMPORT_VERSION)
+    return { ...result, hasPhoto: false, photoError: "The last LinkedIn photo import did not finish. You can retry the import or upload a photo." };
   await store.consume(authorization, "import");
   await store.state(user.id, {
     attempted_at: new Date().toISOString(),
+    import_version: IMPORT_VERSION,
     picture_ref: reference,
   });
   try {
