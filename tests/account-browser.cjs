@@ -118,7 +118,9 @@ async function login(page, email) {
   await page.goto(base + "/#login");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("valid-password");
-  await page.getByRole("button", { name: "Log in with email", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Log in with email", exact: true })
+    .click();
   await page.getByRole("heading", { name: "Account & connections" }).waitFor();
   await page
     .getByText(
@@ -143,6 +145,41 @@ async function login(page, email) {
         .getByText("Sign in to analyze your resume and skills.")
         .isVisible(),
     );
+    // No fictional identity is created, and all workspace URLs require authentication.
+    assert.equal(
+      await page.evaluate(() => localStorage.getItem("proof-profile")),
+      null,
+    );
+    assert.equal(
+      await page.evaluate(() => sessionStorage.getItem("proof-resume")),
+      null,
+    );
+    assert.equal(await page.locator("body > aside").isVisible(), false);
+    assert(!(await page.locator("body").innerText()).includes("Jordan Rivera"));
+    for (const path of [
+      "explore",
+      "project/7",
+      "projects",
+      "messages",
+      "profile",
+      "settings",
+      "premium",
+      "tools",
+      "career",
+      "skills",
+      "unknown",
+    ]) {
+      await page.goto(base + "/#" + path);
+      await page.waitForURL("**/#login");
+      await page
+        .getByRole("button", { name: "Log in with email", exact: true })
+        .waitFor();
+    }
+    for (const path of ["home", "pricing"]) {
+      await page.goto(base + "/#" + path);
+      assert.equal(new URL(page.url()).hash, "#" + path);
+      assert.equal(await page.locator("body > aside").isVisible(), false);
+    }
     await page.goto(base + "/#signup");
     await page.getByLabel("Full name").fill("New User");
     await page.getByLabel("Email", { exact: true }).fill("new@example.com");
@@ -270,7 +307,7 @@ async function login(page, email) {
     assert.deepEqual(errors, []);
     await context.close();
     console.log(
-      "Browser: guest analyzer gate, signup confirmation, reset request, email login, cloud profile/resume restore, two-user isolation, offline recovery, explicit conflict resolution, password validation and signed-in LinkedIn linking passed (mocked Supabase).",
+      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, cloud profile/resume restore, two-user isolation, offline recovery, explicit conflict resolution, password validation and signed-in LinkedIn linking passed (mocked Supabase).",
     );
   } finally {
     await browser.close();

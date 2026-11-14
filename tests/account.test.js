@@ -72,3 +72,29 @@ assert(
 console.log(
   "Per-account workspace isolation, guest preservation, resume cache, sync tracking and callback URLs passed.",
 );
+
+for (const route of [
+  "home",
+  "pricing",
+  "login",
+  "signup",
+  "forgot",
+  "password",
+])
+  assert(vm.runInContext(`publicPage('${route}')`, ctx));
+for (const route of [
+  "explore",
+  "project/7",
+  "projects",
+  "messages",
+  "profile",
+  "settings",
+  "premium",
+  "tools",
+  "resume",
+  "skills",
+  "career",
+  "unknown",
+])
+  assert.equal(vm.runInContext(`publicPage('${route}')`, ctx), false);
+console.log("Public route allowlist excludes every private workspace route.");
