@@ -1,4 +1,4 @@
-# Prooflane
+# Nextwork
 
 [Find paid projects](https://symmetrical-waffle-coral.vercel.app/) · [Set up your profile](https://symmetrical-waffle-coral.vercel.app/#profile) · [Resume Studio](https://symmetrical-waffle-coral.vercel.app/#resume)
 
@@ -30,7 +30,7 @@ Profiles are stored on the current device in localStorage. This is not authentic
 - **75% listing criteria:** requested skills have weight 2 each; listing-specific deliverable evidence has weight 1 each.
 - **25% field foundations:** a transparent, authored four-criterion rubric for Development, Design, Data & Analytics, Marketing, or Business.
 
-Field foundations are Prooflane coaching suggestions, not employer requirements or claims about live market demand. Missing resume evidence is not proof of missing ability. Scores do not certify proficiency or predict hiring.
+Field foundations are Nextwork coaching suggestions, not employer requirements or claims about live market demand. Missing resume evidence is not proof of missing ability. Scores do not certify proficiency or predict hiring.
 
 Cards show overall score, both component scores, and expandable evidence. Default ordering is highest compatibility, with stable listing order for ties. No resume means no fabricated score. Users may switch to highest pay; editing their resume restores compatibility ordering.
 
@@ -114,3 +114,7 @@ Proposed graduate plans:
 These are proposed prices, not live subscriptions. No checkout, card collection, payment processor, charges, subscription entitlements, or cancellation system is connected. The price switch and Premium preview are interactive, but do not enroll the user in a paid plan.
 
 The working `#premium` preview includes named resume versions (maximum 10), side-by-side text/skill-term comparison, loading a version into matching, a Markdown case-study draft download, and a personal application overview/next action. Data is stored on the device and preview tools are open for evaluation. Saved-search alerts, milestone workspaces, and deeper role-specific roadmaps are explicitly labeled Planned. Premium does not introduce paid AI APIs or guarantee unlimited free-provider capacity.
+
+## Nextwork brand
+
+The public product is named Nextwork. The single-color geometric N mark is provided as `dist/logo.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and hosting hostname are retained for compatibility with existing user data and integrations.

@@ -1,4 +1,4 @@
-name: Check Prooflane and deploy
+name: Check Nextwork and deploy
 
 on:
   push:
