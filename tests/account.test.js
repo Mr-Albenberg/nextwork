@@ -102,3 +102,12 @@ for (const route of [
 console.log(
   "Account content is memory-only, retired device copies are removed, auth sessions remain intact, and private routes require login.",
 );
+
+session.setItem('nextwork-auth-intent','project/7');
+assert.equal(vm.runInContext('postLoginRoute()',ctx),'project/7');
+assert.equal(session.getItem('nextwork-auth-intent'),null);
+session.setItem('nextwork-auth-intent','https://example.com/');
+assert.equal(vm.runInContext('postLoginRoute()',ctx),'overview');
+session.setItem('nextwork-auth-intent','organization');
+assert.equal(vm.runInContext('postLoginRoute()',ctx),'organization');
+console.log('Shared listing login destinations are preserved with internal route validation.');

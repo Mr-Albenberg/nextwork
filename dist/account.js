@@ -115,6 +115,7 @@ function authPage() {
 }
 function authFeedback(error = "", message = "") {
   Account.error = error;
+  if (/^#project\/\d+$/.test(location.hash)) sessionStorage.setItem('nextwork-auth-intent', location.hash.slice(1));
   Account.message = message;
   const node = document.querySelector("#auth-feedback");
   if (node) {
@@ -425,7 +426,7 @@ function updateAccountChrome(page) {
 function postLoginRoute() {
   const next = sessionStorage.getItem("nextwork-auth-intent");
   sessionStorage.removeItem("nextwork-auth-intent");
-  return next === "organization" ? "organization" : "overview";
+  return /^project\/\d+$/.test(next || "") ? next : next === "organization" ? "organization" : "overview";
 }
 function openDeleteAccount() {
   if (!Account.user) return;
