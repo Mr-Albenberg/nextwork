@@ -17,6 +17,7 @@ const extraKeys = [
   "proof-conversations",
   "lp-score",
   "nextwork-growth",
+  "nw-saved-ideas",
 ];
 const accountColumns = {
   "proof-profile": "profile",
