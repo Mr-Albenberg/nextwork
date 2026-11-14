@@ -221,6 +221,19 @@ async function login(page, email) {
       assert.equal(new URL(page.url()).hash, "#" + path);
       assert.equal(await page.locator("body > aside").isVisible(), false);
     }
+    await page.goto(base + '/#organization');
+    await page.getByRole('heading',{name:/Find the people/}).waitFor();
+    await page.goto(base + '/#organization-signup');
+    await page.getByRole('heading',{name:'Start with the essentials.'}).waitFor();
+    assert.equal(await page.locator('.employer-auth-tabs').count(),0);
+    assert.equal(await page.locator('#organization-auth-form input:visible').count(),3);
+    assert.equal(await page.locator('#organization-auth-form input[required]').count(),3);
+    require('node:fs').mkdirSync('test-artifacts',{recursive:true});
+    await page.screenshot({path:'test-artifacts/organization-signup.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:'test-artifacts/organization-signup-mobile.png',fullPage:true});
+    await page.setViewportSize({width:1280,height:900});
     await page.goto(base + "/#signup");
     await page.getByLabel("Full name").fill("New User");
     await page.getByLabel("Email", { exact: true }).fill("new@example.com");
@@ -443,6 +456,20 @@ async function login(page, email) {
     // Separate hiring login and role-specific navigation, with no candidate workspace created.
     ({ context, page, errors } = await setup(browser));
     await login(page, "alice@example.com");
+    await page.goto(base + '/#explore');
+    // Every select has a text search control, including marketplace sort.
+    assert.equal(await page.locator('select:not([hidden])').count(),0);
+    const bookmark=page.locator('.job .bookmark').first();
+    if(await bookmark.getAttribute('aria-pressed')!=='true')await bookmark.click();
+    await page.waitForFunction(()=>document.querySelector('.job .bookmark')?.getAttribute('aria-pressed')==='true');
+    assert.equal(await page.locator('.job .bookmark').first().locator('svg').getAttribute('fill'),'currentColor');
+    assert.equal(await page.locator('.job .bookmark').first().evaluate(el=>Math.round(el.getBoundingClientRect().width)),38);
+    await page.locator('.job').first().screenshot({path:'test-artifacts/saved-listing.png'});
+    await page.goto(base + '/#profile');
+    await page.evaluate(()=>{profileStep=2;render()});
+    await page.locator('#profile-skills-input').fill('pythn');
+    await page.locator('#profile-skills-options').getByRole('option',{name:'Python',exact:true}).click();
+    assert((await page.locator('#profile-skills-value').inputValue()).includes('Python'));
     await page.goto(base + "/#checkout");
     await page.getByRole('heading',{name:'Your test checkout',exact:true}).waitFor();
     await page.getByRole('button',{name:'Fill test details',exact:true}).click();
@@ -490,6 +517,19 @@ async function login(page, email) {
     await page.getByRole('button', {name:'Log in to hiring portal →', exact:true}).click();
     await page.waitForURL('**/#organization');
     await page.locator('#organization-profile').waitFor();
+    assert.equal(await page.locator('#organization-profile select[required]').count(),0);
+    assert.equal(await page.locator('#organization-profile textarea[required]').count(),0);
+    const industry=page.getByRole('combobox',{name:'Industry',exact:true});
+    await industry.fill('sofware technolgy');
+    await page.getByRole('option',{name:'Software & technology',exact:true}).click();
+    assert.equal(await page.locator('select[name="industry"]').inputValue(),'Software & technology');
+    assert.equal(await industry.inputValue(),'Software & technology');
+    const type=page.getByRole('combobox',{name:'Default hiring type',exact:true});
+    await type.fill('full time');await type.press('Enter');
+    assert.equal(await page.locator('select[name="hiring_kind"]').inputValue(),'Full-time job');
+    await industry.focus();await industry.fill('nonsensezzzz');await industry.press('Escape');
+    assert.equal(await industry.inputValue(),'Software & technology');
+    await page.screenshot({path:'test-artifacts/organization-profile.png',fullPage:true});
     assert.equal(await page.locator('#nav a[href="#resume"]').count(),0);
     assert.equal(await page.locator('#nav a[href="#explore"]').count(),0);
     assert(!requests.slice(beforeHiring).some(r=>r.path.endsWith('/account_workspaces')));

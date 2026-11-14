@@ -117,7 +117,7 @@ assert.equal(vm.runInContext('postLoginRoute()',ctx),'overview');
 console.log('Shared listing login destinations are preserved with internal route validation.');
 vm.runInContext("Account.user={id:'candidate',user_metadata:{account_kind:'organization'},app_metadata:{nextwork_account_type:'personal'}}",ctx);
 assert.equal(vm.runInContext('isOrganizationAccount()',ctx),false);
-assert.equal(vm.runInContext("accountRouteAllowed('organization')",ctx),false);
+assert.equal(vm.runInContext("accountRouteAllowed('organization')",ctx),true);
 assert.equal(vm.runInContext("postLoginRoute()",ctx),'overview');
 vm.runInContext("Account.user={id:'hiring',app_metadata:{nextwork_account_type:'organization'}}",ctx);
 assert.equal(vm.runInContext('isOrganizationAccount()',ctx),true);

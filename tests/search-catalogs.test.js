@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const context={window:{}};vm.createContext(context);
+for(const file of ['option-catalogs.js','search-select.js'])vm.runInContext(fs.readFileSync('dist/'+file,'utf8'),context);
+const catalog=context.window.NextworkCatalogs;
+assert(catalog.skills.length>8000);assert(catalog.industries.length>1000);assert(catalog.roles.length>1000);
+const rank=(options,query)=>Array.from(context.searchRank(options,query));
+assert.equal(rank(['React','Ruby','Reactor','React Native'],'reaact')[0],'React');
+assert.equal(rank(['React','JavaScript','TypeScript'],'js')[0],'JavaScript');
+assert.equal(rank(['Part-time job','Full-time job','Contract project'],'full time')[0],'Full-time job');
+assert.equal(rank(catalog.industries,'sofware technolgy')[0],'Software & technology');
+assert(rank(catalog.skills,'pythn').includes('Python'));
+assert(rank(catalog.skills,'kubernets').includes('Kubernetes'));
+assert(rank(catalog.roles,'software developrs').some(s=>s==='Software Developers'));
+assert.equal(rank(['Remote','Hybrid','On-site'],'nonsensezzzz').length,0);
+assert.equal(new Set(catalog.skills).size,catalog.skills.length);
+assert(catalog.skills.every(s=>!s.includes(',')),'Skill tags must round-trip through canonical comma-separated profile storage');
+assert(rank(catalog.skills,'').length<=30);
+console.log(`Search catalogs: ${catalog.skills.length} skills, ${catalog.industries.length} industries, ${catalog.roles.length} roles; typos, aliases, ranking, result bounds and canonical storage passed.`);

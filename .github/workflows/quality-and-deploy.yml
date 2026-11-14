@@ -1,4 +1,4 @@
-name: Check Nextwork and deploy
+name: Check Nextwork (GitHub Pages)
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      deploy:
-        description: Deploy to Vercel production after checks
-        required: true
-        default: false
+      checks:
+        description: Run validation (GitHub Pages deploys on push)
+        required: false
+        default: true
         type: boolean
 
 permissions:
@@ -53,6 +53,8 @@ jobs:
         run: node tests/recommend.test.js
       - name: Test account isolation and sync
         run: node tests/account.test.js
+      - name: Test searchable catalogs
+        run: node tests/search-catalogs.test.js
       - name: Test paper-money checkout
         run: node tests/paper-checkout.test.js
       - name: Test account workflows in Chrome
@@ -64,6 +66,12 @@ jobs:
           curl --retry-connrefused --retry 5 --retry-delay 1 --fail --silent http://localhost:3000/ > /dev/null
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/account-browser.cjs
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/theme-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nextwork-ui-checks
+          path: test-artifacts/
+          if-no-files-found: ignore
       - name: Test database access policies and AI quotas
         env:
           PGPASSWORD: local-ci-only
@@ -85,38 +93,8 @@ jobs:
         run: |
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140004_account_types.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/account-types.test.sql
+      - name: Check GitHub Pages root entry
+        run: node .github/scripts/pages-entry.cjs --check
       - name: Verify GitHub Pages mirror
         run: |
           diff -qr --exclude=.nojekyll dist docs
-
-  deploy:
-    # Temporarily paused to conserve Vercel quota. Restore the condition below to resume.
-    # if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
-    if: ${{ false }}
-    needs: checks
-    runs-on: ubuntu-latest
-    environment: production
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: team_IS0AaE5WZru2JKzDG5Riv3Gf
-      VERCEL_PROJECT_ID: prj_XC0qJ2DbXKTw94LAlqo5P7KUKhuz
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Confirm deployment credentials exist
-        shell: bash
-        run: |
-          if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
-            echo 'Add VERCEL_TOKEN in repository Actions secrets before requesting deployment.'
-            exit 1
-          fi
-      - name: Configure AI runtime and deploy through the Vercel project API
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
-          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
-          # Owner explicitly confirmed completion of unbilled Free Tier setup in this session.
-          GEMINI_FREE_TIER_CONFIRMED: 'true'
-        run: node .github/scripts/vercel-deploy.cjs
