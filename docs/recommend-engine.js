@@ -68,7 +68,7 @@
     "Marketing Automation": ["marketing automation", "drip campaign", "lifecycle email"],
     "Product Management": ["product management", "product manager", "product owner", "product roadmap", "product strategy"],
     Roadmapping: ["roadmap", "roadmaps", "roadmapping", "prioritization", "prioritized"],
-    "Stakeholder Management": ["stakeholder", "stakeholders", "cross-functional"],
+    "Stakeholder Management": ["stakeholder", "stakeholders"],
     Agile: ["agile", "scrum", "sprint", "sprints", "kanban"],
     Jira: ["jira", "asana", "trello", "confluence"],
     Strategy: ["strategy", "strategic", "go-to-market", "market analysis"],
@@ -137,6 +137,7 @@
     return String(t || "").toLowerCase().replace(/\(.*?\)|[-–,|].*$/g, "").replace(/\s+/g, " ").trim();
   }
 
+  const PRODUCT_ONLY = new Set(["Stakeholder Management", "Strategy", "Roadmapping", "Agile", "Jira", "Product Management"]);
   // postings: [{title,text}] -> counted skill demand from real posting text.
   function aggregate(postings, family) {
     const list = Array.isArray(postings) ? postings : [];
@@ -156,7 +157,7 @@
     const skills = [...counts.entries()]
       .map(([skill, count]) => ({ skill, count, pct: n ? Math.round((count / n) * 100) : 0 }))
       // Keep the role family's skills, plus any other skill that appears often enough to matter.
-      .filter((s) => familySkills.has(s.skill) || s.pct >= 25)
+      .filter((s) => familySkills.has(s.skill) || (s.pct >= 25 && !PRODUCT_ONLY.has(s.skill)))
       .sort((a, b) => b.count - a.count || a.skill.localeCompare(b.skill))
       .slice(0, 16);
     const topTitles = [...titles.entries()]
