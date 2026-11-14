@@ -56,3 +56,50 @@ console.log('Conversation rail preserves drafts, controls keyboard access, and k
 assert.deepEqual(Array.from(vm.runInContext("canonicalSkills('react, JS, typescript, React')",ctx)),['React','JavaScript','TypeScript']);vm.runInContext("bindSkillSelect('test-skills','React');selectSkill('test-skills','TypeScript');selectSkill('test-skills','Reacct')",ctx);assert.equal(element('#test-skills-value').value,'React, TypeScript');assert(element('#test-skills-tags').innerHTML.includes('Remove TypeScript'));vm.runInContext('profileStep=2',ctx);ctx.location.hash='#profile';vm.runInContext('render()',ctx);assert(element('#app').innerHTML.includes('profile-resume-file'));assert(element('#app').innerHTML.includes('profile-skills-input'));assert(element('#app').innerHTML.includes('Resume text'));const live=vm.runInContext("liveJob({id:1001,organization_id:'org-one',title:'Real project',field:'Development',kind:'Contract project',skills:['React'],requirements:['Build tested components'],description:'A real organization brief',deliverables:'A useful dashboard',budget:1200,duration:'2 weeks',location:'Remote',status:'published',organizations:{name:'Startup',owner_id:'owner-one'}})",ctx);assert.equal(live.organizationId,'org-one');assert.equal(live.pay,1200);assert.equal(live.tags[0],'React');assert(vm.runInContext('orgGate()',ctx).includes('Create organization account'));ctx.Account={user:{id:'owner-one'}};vm.runInContext("Organization.owner='old-owner';Organization.profile={name:'Private old org'};Organization.loaded=true;organizationPage()",ctx);assert.equal(vm.runInContext('Organization.profile',ctx),null);console.log('Profile resume upload, canonical skill selection, organization mapping and owner-switch isolation passed.');
 
 ctx.Account={ready:true,user:null,client:{auth:{}}};ctx.accountFeedback=()=>'';ctx.linkedinButton=()=>'<button>LinkedIn</button>';ctx.location.hash='#organization-signup';const orgSignupMarkup=vm.runInContext('organizationAuthPage()',ctx);assert(orgSignupMarkup.includes('Account & company'));assert(orgSignupMarkup.includes('Organization name'));assert(!orgSignupMarkup.includes('Your next chapter starts here.'));ctx.location.hash='#organization-login';assert(vm.runInContext('organizationAuthPage()',ctx).includes('Log in to hiring portal'));ctx.location.hash='#organization-signup';ctx.render=()=>{};ctx.FormData=class{constructor(form){this.form=form}*[Symbol.iterator](){yield* Object.entries(this.form.values||{})}};ctx.runAuth=async fn=>fn();ctx.authCallback=()=> 'https://nextwork-jobs.vercel.app/';ctx.checkAuthResult=r=>{if(r.error)throw r.error;return r.data};let organizationSignupRequest;ctx.Account.client.auth.signUp=async request=>{organizationSignupRequest=request;return {data:{session:null},error:null}};element('#organization-auth-form').values={full_name:'Casey Founder',organization_name:'Harbor Studio',email:'casey@example.com',password:'synthetic-test-password',website:'https://example.com',industry:'Software & technology'};vm.runInContext('bindOrganizationAuth()',ctx);element('#organization-auth-form').onsubmit({preventDefault(){}});assert.equal(vm.runInContext('organizationAuthStep',ctx),1);element('#organization-auth-form').values={team_size:'2–10 people',hiring_kind:'Contract project',focus_field:'Development',budget:'1500',start_window:'Within a month',work_style:'Remote',location:'Pacific Time'};vm.runInContext('bindOrganizationAuth()',ctx);Promise.resolve(element('#organization-auth-form').onsubmit({preventDefault(){}})).then(()=>{assert.equal(organizationSignupRequest.options.data.account_kind,'organization');assert.equal(organizationSignupRequest.options.data.organization_setup.budget,1500);assert(!('password' in organizationSignupRequest.options.data.organization_setup));assert.equal(vm.runInContext('Object.keys(organizationSignupDraft).length',ctx),0);assert.equal(ctx.location.hash,'organization-login');ctx.Account.user={id:'hiring-user',user_metadata:{organization_setup:organizationSignupRequest.options.data.organization_setup}};vm.runInContext("Organization.profile={name:'Harbor Studio',description:'Useful community products'};Organization.listings=[];Organization.applications=[];startOrganizationListing()",ctx);assert.equal(vm.runInContext('Organization.edit.budget',ctx),1500);assert.equal(vm.runInContext('Organization.edit.field',ctx),'Development');assert(vm.runInContext('organizationOverview()',ctx).includes('Your next hiring steps'));assert(vm.runInContext('organizationOverview()',ctx).includes('What makes a good brief?'));assert(vm.runInContext('organizationDetailsForm()',ctx).includes('Your hiring preferences'));console.log('Dedicated organization access, relevant signup questions, credential handling, preference defaults and hiring overview passed.');}).catch(error=>{console.error(error);process.exitCode=1});
+// Isolate messaging checks from the asynchronous organization signup flow above.
+const messageTestStorage=new Map();
+const messageCtx=vm.createContext({...ctx,Account:{user:{id:'attachment-test'}},requireAccount:()=>true,render(){},workspacePayload:()=>({extras:{}}),workspaceLocal:{getItem:key=>messageTestStorage.get(key)||null,setItem:(key,value)=>messageTestStorage.set(key,String(value))}});
+vm.runInContext(fs.readFileSync('dist/messaging.js','utf8'),messageCtx);
+// Project sharing stays compact until the user searches the complete catalog.
+vm.runInContext('shareProject()',messageCtx);
+assert.equal((element('#modal').innerHTML.match(/class="project-share-option"/g)||[]).length,3);
+assert(element('#modal').innerHTML.includes('share-project-search'));
+vm.runInContext("searchShareProjects('Patchwork React')",messageCtx);
+assert(element('#share-project-results').innerHTML.includes('accessible booking flow'));
+vm.runInContext("searchShareProjects('no-matching-project-123')",messageCtx);
+assert(element('#share-project-results').innerHTML.includes('No projects found'));
+vm.runInContext("searchShareProjects('')",messageCtx);
+assert.equal(element('#share-project-results').innerHTML,'');
+
+(async()=>{
+  messageCtx.TextEncoder=TextEncoder;
+  messageCtx.FileReader=class{
+    readAsDataURL(file){
+      if(file.fail){this.onerror();return;}
+      this.result='data:text/plain;base64,aGVsbG8=';this.onload();
+    }
+  };
+  await vm.runInContext("attachMessageFiles([{name:'notes.txt',size:5}])",messageCtx);
+  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),1);
+  assert.equal(vm.runInContext('attachmentDraft().loading',messageCtx),false);
+  element('#conversation-input').value='';
+  vm.runInContext('updateMessageSendState()',messageCtx);
+  assert.equal(element('#send-message').disabled,false);
+  vm.runInContext('sendMessage()',messageCtx);
+  const fileMessage=vm.runInContext('thread(activePerson).messages.at(-1)',messageCtx);
+  assert.equal(fileMessage.attachments[0].name,'notes.txt');
+  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),0);
+  const download=vm.runInContext('messageAttachmentLink(thread(activePerson).messages.at(-1).attachments[0])',messageCtx);
+  assert(download.includes('download="notes.txt"'));
+  assert(download.includes('data:application/octet-stream;base64,'));
+  assert.equal(vm.runInContext("messageAttachmentLink({name:'bad',data:'javascript:alert(1)'})",messageCtx),'');
+  await vm.runInContext("attachMessageFiles([{name:'too-big.txt',size:1048577}])",messageCtx);
+  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),0);
+  await vm.runInContext("attachMessageFiles([{name:'unreadable.txt',size:5,fail:true}])",messageCtx);
+  assert.equal(vm.runInContext('attachmentDraft().loading',messageCtx),false);
+  await vm.runInContext("attachMessageFiles([{name:'remove.txt',size:5}])",messageCtx);
+  vm.runInContext('removePendingAttachment(attachmentDraft().files[0].id)',messageCtx);
+  assert.equal(vm.runInContext('attachmentDraft().files.length',messageCtx),0);
+  assert.equal(vm.runInContext("attachmentsFitWorkspace(activePerson,{messages:[{text:'x'.repeat(1800001)}]})",messageCtx),false);
+  console.log('Project recommendations/search and file selection, removal, attachment-only sending, downloads, read errors and storage limits passed.');
+})().catch(error=>{console.error(error);process.exitCode=1});
