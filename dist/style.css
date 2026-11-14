@@ -133,3 +133,20 @@ body[data-auth="guest"]>aside,body[data-auth="loading"]>aside{display:none}body[
 .project-share-dialog .project-share-results:empty{display:none}
 .project-share-recommendations{flex:0 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
 @media(max-width:450px),(max-height:540px){.project-share-dialog{padding:18px}.project-share-dialog>h2{font-size:19px}.project-share-dialog>p{font-size:11px;line-height:1.5}.project-share-dialog .project-share-option{padding:7px 10px}}
+
+/* Shared toolbar: one account entry, with clear and consistent action targets. */
+.shell>header{height:76px;gap:20px}
+.header-breadcrumb{font-weight:600;color:var(--muted)}
+.header-right,body[data-auth="guest"] .header-right{gap:10px;flex-wrap:nowrap}
+.header-right .theme-control{order:0}
+.header-right .bell{order:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 13px;font-size:12px;font-weight:600;color:var(--ink);background:var(--theme-surface,#fff);border:1px solid var(--line);border-radius:9px}
+.header-account{order:2;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:4px 10px 4px 5px;border:1px solid var(--line);border-radius:9px;background:var(--theme-subtle,#f4f6fc);color:var(--ink);font-size:12px;font-weight:600;white-space:nowrap}
+.header-account .avatar{width:29px;height:29px;font-size:10px}
+.header-account>svg{color:var(--muted);margin-left:3px}
+.header-right .bell:hover,.header-account:hover,.header-right .header-profile-link:hover{background:var(--theme-raised,#e8edfc);border-color:var(--theme-accent,#9cace4)}
+.header-right a:focus-visible,.header-right button:focus-visible{outline:2px solid var(--theme-accent,#1d3be0);outline-offset:3px}
+body[data-auth="member"] .header-profile-link{display:none}
+body[data-auth="guest"] .header-account,body[data-auth="loading"] .header-account{display:none}
+body[data-auth="guest"] .header-profile-link{align-items:center;justify-content:center;min-height:40px;padding:0 13px;border:1px solid var(--line);border-radius:9px;color:var(--ink);font-weight:600}
+@media(max-width:760px){.shell>header{padding:0 20px;gap:12px}.header-message-label{display:none}.header-right .bell{width:40px;padding:0}.header-account{gap:7px}.header-right,body[data-auth="guest"] .header-right{gap:8px}}
+@media(max-width:480px){.shell>header{height:auto;min-height:72px;padding:12px 16px;gap:8px}.header-breadcrumb{font-size:11px}.header-account{padding-right:8px}.header-account>svg{display:none}.header-right,body[data-auth="guest"] .header-right{gap:6px}body[data-auth="guest"] .header-profile-link{padding:0 10px}.public-signup{padding:10px}}

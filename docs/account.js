@@ -426,17 +426,19 @@ function updateAccountChrome(page) {
   document.body.dataset.page = page;
   const hiring = isOrganizationAccount();
   document.body.dataset.accountType = hiring ? "organization" : "personal";
-  document.querySelectorAll('a.account, header a.avatar').forEach(link => link.href = hiring ? '#settings' : '#profile');
+  document.querySelectorAll('a.account, header .header-account').forEach(link => link.href = hiring ? '#settings' : '#profile');
   const brand = document.querySelector('aside .brand');
   if (brand) brand.href = hiring ? '#organization' : '#overview';
   const nextStep = document.querySelector('.sidebar-next-step');
   if (nextStep) { nextStep.href = hiring ? '#organization' : '#resume'; nextStep.innerHTML = hiring ? '<span>YOUR HIRING WORKSPACE</span><b>Build your next team</b><small>Review listings & applicants →</small>' : '<span>YOUR NEXT STEP</span><b>Find your strongest match</b><small>Review your resume →</small>'; }
   const bell = document.querySelector('.bell');
   if (bell) { bell.setAttribute('aria-label', hiring ? 'View applicants' : 'View messages'); bell.onclick = () => { if(hiring) Organization.tab='applicants'; location.hash=hiring?'organization':'messages'; render(); }; }
+  const messageLabel = document.querySelector('.header-message-label');
+  if (messageLabel) messageLabel.textContent = hiring ? 'Applicants' : 'Messages';
   const crumb = document.querySelector(".header-breadcrumb");
   if (crumb)
     crumb.innerHTML = Account.user
-      ? "Workspace <span>/</span> Your next chapter"
+      ? "Workspace"
       : '<a class="guest-brand" href="#home"><img src="assets/brand/nextwork-icon.png" alt=""><span>nextwork</span></a>';
 }
 
