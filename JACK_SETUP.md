@@ -58,6 +58,7 @@ Use two real accounts in separate browser profiles, with recognizable profile na
 
 - [ ] Account A finds account B through **Messages → New conversation**.
 - [ ] A sends a message; B sees it and replies without refreshing.
+- [ ] While B is on another page, an incoming message opens the bottom-right widget. B can reply, minimize/close it, and open the full Messages tab; the floating widget is hidden on that tab.
 - [ ] Both accounts still see their messages after reloading.
 - [ ] A shares a listing; B can open it.
 - [ ] A attaches a file; B can download it.
