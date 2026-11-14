@@ -70,3 +70,21 @@ Select **Check my fit** on any project card, or **Match my resume to this projec
 - **Account administration:** GitHub code writes and Vercel auto-deploy already work. To let the assistant manage Vercel settings, install/connect the Vercel integration for the account/team that owns this project. Repository settings and domain changes need separate administration permission; code access alone does not grant it. Custom domains are optional because the public `.vercel.app` URL already works.
 
 Checks: `node tests/resume.test.js` and `node tests/listing-match.test.js`.
+
+## Automatic listing compatibility
+
+The marketplace reads the resume entered or uploaded in Resume Studio for the current tab session. Each card shows the percentage of its listed skill tags found in that text, a progress bar, and an expandable explanation of matched and missing terms. Synonyms cover common label variants. Listings default to highest compatibility, with stable listing order for ties. No resume means no invented score. Users can explicitly choose highest pay; editing the resume restores compatibility sorting. This local calculation runs without an AI key or transmitting resume text. It measures requested-skill keyword coverage, not verified proficiency. Detailed contextual AI review remains a separate, consented request.
+
+## GitHub Actions and credentials
+
+`.github/workflows/quality-and-deploy.yml` checks JavaScript, tests resume analysis and compatibility ranking, and verifies the GitHub Pages mirror on pushes and pull requests. It can also deploy production on a manual workflow run.
+
+**Deployment credentials** belong in GitHub encrypted Actions secrets. **End-user passwords, resumes, sessions, and accounts do not belong in GitHub Actions, repository files, workflow logs, or artifacts.** Use a runtime authentication service and database for those. Actions is a CI/deployment system, not an authentication backend.
+
+To enable manual Actions deployment:
+
+1. Open https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions and add repository secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
+2. Create a Vercel access token in https://vercel.com/account/settings/tokens for the team that owns this project. Obtain the Team ID (`VERCEL_ORG_ID`) from Vercel team settings and Project ID (`VERCEL_PROJECT_ID`) from the project settings. Do not share the token in chat or code.
+3. Open repository Actions → **Check Prooflane and deploy** → **Run workflow**, enable the deployment checkbox, and run it on `main`.
+
+Checks run without secrets. Existing Vercel Git integration continues automatic deployment on push; manual Actions deployment is optional and uses the same configured Vercel project. Keep `OPENAI_API_KEY` in Vercel runtime environment variables. This connection currently lacks repository Actions/Secrets administration permission, so the owner must add secrets or grant that permission through the GitHub app configuration.

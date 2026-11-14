@@ -15,5 +15,12 @@ const requirements=phrases.map(text=>{const named=skills.filter(s=>has(text,s));
 const rewrites=weak.slice(0,2).map(before=>({before,after:before.replace(/^[•*\-–]\s*/,'').replace(/responsible for|helped with|worked on|assisted with/i,'Contributed to')+'; specify your action, scope, and verified outcome.',note:'Editing scaffold only. Replace the guidance with facts you can support.'}));
 return{source:'local',summary:'A transparent, text-based review of your resume. Use this feedback to strengthen the evidence in your application; it does not measure your ability or predict hiring outcomes.',score:Math.round(metrics.reduce((n,m)=>n+m.score,0)/metrics.length),metrics,strengths,improvements,match:job?{score:required.length?Math.round(matched.length/required.length*100):null,summary:required.length?`${matched.length} of ${required.length} recognized skill terms from this description appear in your resume. This is keyword coverage, not an ATS or qualification score.`:'No recognized skill terms found. Review the requirements manually or use a more detailed job description.',matched,missing,requirements}:null,rewrites};
 }
-const api={review,has,skills};if(typeof module!=='undefined')module.exports=api;else root.ResumeEngine=api;
+function compatibility(resume,listing){
+const requested=[...new Set(listing.tags||[])];
+if(!resume||resume.trim().length<100||!requested.length)return {score:null,matched:[],missing:requested,total:requested.length};
+const synonyms={'UI/UX Design':['ui/ux design','ui design','ux design','user interface','user experience'],'Social Media':['social media','social campaigns'],'Copywriting':['copywriting','copywriter'],'UX Writing':['ux writing','microcopy'],'Interviews':['interviews','interviewing'],'Data Analysis':['data analysis','data analytics'],'Data Visualization':['data visualization','data visualisation'],'Strategy':['strategy','strategic']};
+const matched=requested.filter(skill=>(synonyms[skill]||[skill]).some(term=>has(resume,term)));
+return {score:Math.round(matched.length/requested.length*100),matched,missing:requested.filter(s=>!matched.includes(s)),total:requested.length};
+}
+const api={review,has,skills,compatibility};if(typeof module!=='undefined')module.exports=api;else root.ResumeEngine=api;
 })(typeof window!=='undefined'?window:globalThis);
