@@ -1,5 +1,7 @@
 # Nextwork
 
+> **Jack: messaging needs Supabase activation.** Follow [JACK_SETUP.md](JACK_SETUP.md) to enable it in the existing project. No second Supabase project is needed.
+
 [Find paid projects](https://mr-albenberg.github.io/nextwork/) · [Set up your profile](https://mr-albenberg.github.io/nextwork/#profile) · [Resume Studio](https://mr-albenberg.github.io/nextwork/#resume)
 
 A graduate marketplace for paid, scoped startup projects. Browse and filter opportunities, compare resume evidence with a listing, save opportunities, and prepare an application.
