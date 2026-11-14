@@ -1,0 +1,38 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const data = new Map();
+const context = {crypto:require('node:crypto').webcrypto,workspaceLocal:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)}};
+vm.createContext(context);
+for(const file of ['growth.js','paper-checkout.js'])vm.runInContext(fs.readFileSync('dist/'+file,'utf8'),context);
+const run=code=>vm.runInContext(code,context);
+const valid={name:'Alex Test',email:'alex@example.com',card:'4242 4242 4242 4242',expiry:'12/39',cvc:'123',postal:'10001'};
+function check(values){context.testValues=values;return run("validatePaperPayment(testValues,new Date('2026-11-14'))")}
+assert.equal(check(valid),'');
+assert.match(check({...valid,card:'4000000000000002'}),/declined/);
+assert.match(check({...valid,card:'5555555555554444'}),/Real card details are not accepted/);
+assert.match(check({...valid,expiry:'10/26'}),/future expiry/);
+assert.match(check({...valid,expiry:'13/29'}),/future expiry/);
+assert.match(check({...valid,expiry:'11/26'}),/^$/);
+assert.match(check({...valid,cvc:'987'}),/123/);
+assert.match(check({...valid,email:'invalid'}),/email/);
+assert.match(check({...valid,name:' '}),/name/);
+assert.match(check({...valid,postal:' '}),/postal/);
+assert.equal(run('paperAccount().balance'),50000);
+run('var purchase=makePaperPurchase(paperAccount(),false);var state=growthState();state.paperBilling=purchase;saveGrowth(state)');
+assert.equal(run('paperActive()'),true);
+assert.equal(run('paperAccount().balance'),49100);
+assert.equal(run('paperAccount().receipts[0].amount'),900);
+assert.equal(run('paperAccount().receipts[0].mode'),'paper');
+assert.throws(()=>run('makePaperPurchase(paperAccount(),true)'),/already active/);
+run("state=growthState();state.paperBilling.subscription.status='cancelled';saveGrowth(state);purchase=makePaperPurchase(paperAccount(),true);state.paperBilling=purchase;saveGrowth(state)");
+assert.equal(run('paperAccount().balance'),41900);
+assert.equal(run('paperAccount().receipts.length'),2);
+assert.equal(run('paperAccount().subscription.cycle'),'yearly');
+assert.throws(()=>run("makePaperPurchase({balance:0,receipts:[]},true)"),/Not enough/);
+const stored=data.get('nextwork-growth');
+for(const field of ['4242424242424242','4000000000000002','cvc','expiry','alex@example.com'])assert(!stored.includes(field));
+assert.deepEqual(Object.keys(JSON.parse(stored).paperBilling.receipts[0]).sort(),['id','mode','amount','cycle','paidAt','last4'].sort());
+// A second account with an empty workspace receives its own balance and no plan.
+data.clear();assert.equal(run('paperActive()'),false);assert.equal(run('paperAccount().balance'),50000);
+console.log('Paper checkout: monthly/yearly virtual charges, duplicate protection, declined/invalid cards, expiry, insufficient funds, safe receipts, and account isolation passed.');

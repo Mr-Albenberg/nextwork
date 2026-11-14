@@ -98,6 +98,7 @@ for (const route of [
   "skills",
   "career",
   "unknown",
+  "checkout",
 ])
   assert.equal(vm.runInContext(`publicPage('${route}')`, ctx), false);
 console.log(

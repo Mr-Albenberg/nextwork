@@ -53,6 +53,8 @@ jobs:
         run: node tests/recommend.test.js
       - name: Test account isolation and sync
         run: node tests/account.test.js
+      - name: Test paper-money checkout
+        run: node tests/paper-checkout.test.js
       - name: Test account workflows in Chrome
         run: |
           npm install --prefix "$RUNNER_TEMP/nextwork-browser" --no-save --no-package-lock playwright@1.62.1

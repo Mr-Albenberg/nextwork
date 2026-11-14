@@ -443,6 +443,36 @@ async function login(page, email) {
     // Separate hiring login and role-specific navigation, with no candidate workspace created.
     ({ context, page, errors } = await setup(browser));
     await login(page, "alice@example.com");
+    await page.goto(base + "/#checkout");
+    await page.getByRole('heading',{name:'Your test checkout',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Fill test details',exact:true}).click();
+    await page.locator('#paper-consent').check();
+    await page.getByRole('button',{name:'Pay $9.00 in test money →',exact:true}).click();
+    await page.getByRole('heading',{name:'Test Premium is active',exact:true}).waitFor();
+    assert.equal(await page.locator('.paper-balance b').textContent(),'$491.00');
+    const paidRow=rows.get(users['alice@example.com'].id);
+    assert(!JSON.stringify(paidRow).includes('4242424242424242'));
+    assert(!JSON.stringify(paidRow).includes('12/'));
+    await page.reload();
+    await page.getByRole('heading',{name:'Test Premium is active',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Cancel test plan',exact:true}).click();
+    await page.getByRole('heading',{name:'Your test checkout',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Yearly · $72',exact:true}).click();
+    await page.getByRole('button',{name:'Fill test details',exact:true}).click();
+    await page.locator('#paper-card').fill('4000 0000 0000 0002');
+    await page.locator('#paper-consent').check();
+    await page.getByRole('button',{name:'Pay $72.00 in test money →',exact:true}).click();
+    await page.locator('#paper-checkout-error').filter({hasText:'Test payment declined'}).waitFor();
+    assert.equal(await page.locator('.paper-balance b').textContent(),'$491.00');
+    assert.equal(await page.locator('#paper-card').inputValue(),'');
+    assert.equal(await page.locator('#paper-cvc').inputValue(),'');
+    await page.getByRole('button',{name:'Fill test details',exact:true}).click();
+    await page.getByRole('button',{name:'Pay $72.00 in test money →',exact:true}).click();
+    await page.getByRole('heading',{name:'Test Premium is active',exact:true}).waitFor();
+    assert.equal(await page.locator('.paper-balance b').textContent(),'$419.00');
+    await page.getByRole('button',{name:'Reset paper account to $500',exact:true}).click();
+    await page.getByRole('heading',{name:'Your test checkout',exact:true}).waitFor();
+    assert.equal(await page.locator('.paper-balance b').textContent(),'$500.00');
     await page.goto(base + "/#organization");
     await page.getByRole('heading', {name:'A separate organization account is required.'}).waitFor();
     assert.equal(await page.locator('#organization-profile').count(), 0);
@@ -466,7 +496,7 @@ async function login(page, email) {
     await page.goto(base + '/#profile');
     await page.waitForURL('**/#organization');
     await page.goto(base + '/#settings');
-    await page.getByRole('heading',{name:'Organization account',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'Organization account settings',exact:true}).waitFor();
     assert.deepEqual(errors,[]);
     await context.close();
     console.log(
