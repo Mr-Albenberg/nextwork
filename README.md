@@ -170,3 +170,15 @@ Planned Premium benefits:
 - Instant project-match alerts and application-view/outreach insights.
 
 These are proposed plan features only. Verification, employer inbox ranking, email directory, email sending, subscriptions, and payments are not connected. Free-tier-only AI remains the policy for both plans.
+
+## Premium workspace prototype
+
+The Premium route now opens a working workspace prototype. Career toolkit keeps all previously implemented tools Free. No subscription, checkout, charge, or paid entitlement enforcement is active.
+
+- Contacts & drafts: choose a listing and edit a profile-based cold introduction. Placeholder contacts use the reserved .example domain and are explicitly non-deliverable. Live contact cards require employer-provided business records. Copying or saving never sends an email.
+- Outreach tracker: drafts, subject/body, follow-up dates, and manually recorded Draft/Sent externally/Replied/Closed statuses, with due follow-ups highlighted.
+- Badge & priority: profile review can be requested after essential information is added. Requests remain pending; no verified badge is granted automatically. A separate synthetic employer queue previews labeled priority placement without changing actual applications, profile verification, or resume scores.
+- Project alerts: save field/keyword searches and view current matches. Background push/email delivery is not connected.
+- Insights: actual user-record counts. Employer views, email opens, delivery receipts, and response-time metrics are not fabricated and still require live integrations.
+
+Premium records use the existing per-account workspaceLocal cache under nextwork-growth. They are device-local and are not included in the Supabase cloud-sync schema. Contact examples, review requests, priority previews, and metrics are distinguished from live employer services. Existing tools stay Free, and no paid AI is introduced.
