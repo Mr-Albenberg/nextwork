@@ -292,10 +292,10 @@ const netFetch = async (url) => {
   let clipboard = "";
   let marketResponse;
   const ctx = {
-    document: { getElementById: element, querySelector: element, querySelectorAll() { return []; }, addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} } } },
+    document: { documentElement: { dataset: {} }, getElementById: element, querySelector: element, querySelectorAll() { return []; }, addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} } } },
     localStorage: storage, workspaceLocal: storage, workspaceSession: storage, sessionStorage: storage,
     location: { hash: "#recommend", hostname: "nextwork-jobs.vercel.app" },
-    window: { addEventListener() {}, scrollTo() {} },
+    window: { matchMedia() { return { matches: false, addEventListener() {} }; }, addEventListener() {}, scrollTo() {} },
     navigator: { clipboard: { writeText: async (t) => { clipboard = t; } } },
     setTimeout() {}, authPage() { return "Sign in"; }, FormData, AbortSignal,
     fetch: async (url) => {

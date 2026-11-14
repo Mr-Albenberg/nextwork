@@ -17,6 +17,12 @@ node tests/profile-and-criteria.test.js
 
 `dist/` is the static application. `docs/` mirrors it for GitHub Pages. `api/resume.js` is the Vercel Node function. Static files changed in `dist/` must be copied into `docs/` too; CI verifies this.
 
+## Appearance
+
+Use the Theme selector to choose Light, Dark, or System. System is the default and follows device appearance changes automatically. Your choice is saved in this browser and synced across open tabs. Theme switching also works when browser storage is unavailable.
+
+Browser checks: serve `dist/` on port 3000, install Playwright, then run `node tests/theme-browser.cjs` (set `CHROMIUM_PATH` if needed).
+
 ## Graduate profile
 
 The three-step setup collects name, email, education, target field/role, engagement preferences, availability, skills, portfolio, and introduction. Drafts save between steps. Completion and sidebar identity use actual saved information.
