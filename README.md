@@ -75,11 +75,12 @@ Official references: https://ai.google.dev/gemini-api/docs/pricing and https://a
 GitHub Actions checks syntax, app behavior, database permissions, Chrome workflows, and the recursive Pages mirror. GitHub Pages publishes `docs/` on pushes to `main`. Automatic Vercel deployments are disabled; no Vercel deployment secret is needed for publishing.
 
 Supabase continues to provide authentication, shared messages, private file storage, and account data. SQL migrations and Storage bucket configuration must be applied separately by an authorized member of the existing project. The `api/` Vercel functions are retained as legacy optional integrations: GitHub Pages cannot run server functions, and the new messaging system does not call them.
-Encrypted Actions secrets: `VERCEL_TOKEN` for deployment and optional `GEMINI_API_KEY` for free-tier AI, and `SUPABASE_SECRET_KEY` for private photo processing. The free-tier confirmation is a repository Actions variable, not a secret. Verified team/project IDs are in the workflow. The workflow copies the Gemini key without logging it, applies the confirmation flag, and removes unused OpenAI runtime settings. Supabase provides runtime authentication and private account storage; user records do not belong in Actions.
 
-Secret settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions
+Photo deployment needs only `SUPABASE_ACCESS_TOKEN` in encrypted Actions secrets, as described below. Runtime server credentials stay inside Supabase.
 
-Variable settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/variables/actions
+Secret settings: https://github.com/Mr-Albenberg/nextwork/settings/secrets/actions
+
+Variable settings: https://github.com/Mr-Albenberg/nextwork/settings/variables/actions
 
 Free AI does not guarantee unlimited free infrastructure. Vercel and GitHub hosting/execution are governed by their account plans and limits; this change does not purchase or upgrade either service.
 

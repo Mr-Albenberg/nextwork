@@ -99,6 +99,7 @@ function paintProfilePhotos() {
     .forEach((node) => {
       const id = node.dataset.memberId || Account.user.id,
         photo = ProfileMedia.photos.get(id);
+      if (id === Account.user.id && typeof isOrganizationAccount === "function" && isOrganizationAccount()) return;
       if (
         photo?.hasPhoto &&
         validPhotoURL(photo.url) &&
@@ -454,4 +455,11 @@ function bindProfileMedia() {
 
 function memberPhotoAvatar(userId, name) {
   return `<span class="member-photo-avatar" data-member-id="${esc(userId)}" aria-label="${esc(name || "Member")}">${profileInitials(name)}</span>`;
+}
+
+let profilePhotoPaintQueued = false;
+function scheduleProfilePhotoPaint() {
+  if (profilePhotoPaintQueued) return;
+  profilePhotoPaintQueued = true;
+  Promise.resolve().then(() => { profilePhotoPaintQueued = false; paintProfilePhotos(); });
 }

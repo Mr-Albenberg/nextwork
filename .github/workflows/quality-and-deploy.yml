@@ -59,6 +59,13 @@ jobs:
         run: |
           node tests/profile-photo.test.js
           node tests/photo-http.test.mjs
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check Supabase runtime compatibility
+        run: |
+          deno check --config supabase/functions/deno.json supabase/functions/profile-photo/index.ts
+          deno run --config supabase/functions/deno.json --allow-env=PHOTO_ALLOW_LOCALHOST tests/photo-http.test.mjs
       - name: Test account isolation and sync
         run: node tests/account.test.js
       - name: Test searchable catalogs
@@ -122,6 +129,7 @@ jobs:
           PGPASSWORD: local-ci-only
         run: |
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/storage-bootstrap.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140005_messaging.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140006_profile_photos.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/profile-photos.test.sql
       - name: Verify GitHub Pages mirror
