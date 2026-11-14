@@ -27,6 +27,9 @@ create index if not exists organization_applications_listing on public.organizat
 create index if not exists application_messages_application on public.application_messages(application_id,created_at);
 create or replace function public.owns_organization(org uuid) returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from public.organizations where id=org and owner_id=(select auth.uid())); $$;
 create or replace function public.can_read_application(app uuid) returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from public.organization_applications a join public.organization_listings l on l.id=a.listing_id join public.organizations o on o.id=l.organization_id where a.id=app and (a.applicant_id=(select auth.uid()) or o.owner_id=(select auth.uid()))); $$;
+create or replace function public.applied_to_listing(listing bigint) returns boolean language sql stable security definer set search_path='' as $$ select exists(select 1 from public.organization_applications where listing_id=listing and applicant_id=(select auth.uid())); $$;
+revoke all on function public.applied_to_listing(bigint) from public,anon;
+grant execute on function public.applied_to_listing(bigint) to authenticated;
 revoke all on function public.owns_organization(uuid), public.can_read_application(uuid) from public,anon;
 grant execute on function public.owns_organization(uuid), public.can_read_application(uuid) to authenticated;
 alter table public.organizations enable row level security;
@@ -43,7 +46,7 @@ create policy "Create own organization" on public.organizations for insert to au
 create policy "Edit own organization" on public.organizations for update to authenticated using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
 create policy "Published listings public" on public.organization_listings for select using(status='published');
 create policy "Owners read all listing states" on public.organization_listings for select to authenticated using(public.owns_organization(organization_id));
-create policy "Applicants retain applied listing details" on public.organization_listings for select to authenticated using(exists(select 1 from public.organization_applications a where a.listing_id=organization_listings.id and a.applicant_id=(select auth.uid())));
+create policy "Applicants retain applied listing details" on public.organization_listings for select to authenticated using(public.applied_to_listing(id));
 create policy "Owners create listings" on public.organization_listings for insert to authenticated with check(public.owns_organization(organization_id));
 create policy "Owners edit listings" on public.organization_listings for update to authenticated using(public.owns_organization(organization_id)) with check(public.owns_organization(organization_id));
 create policy "Application participants read" on public.organization_applications for select to authenticated using(applicant_id=(select auth.uid()) or public.can_read_application(id));
