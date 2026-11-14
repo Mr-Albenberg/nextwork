@@ -296,30 +296,89 @@ function recoResultsHTML() {
   return `${s.note ? `<div class="notice">${esc(s.note)}</div>` : ""}${recoMarketHTML(s)}${recoGapHTML(s)}<div class="section-title" style="margin-top:8px"><h2>Projects to build for ${esc(s.role)}</h2><span class="tag">${s.source === "ai" ? "Free-tier AI" : "Free recommendations"}</span></div>${s.projects.map((p, i) => recoProjectHTML(p, i, s)).join("")}${recoSavedHTML()}`;
 }
 
+function recoRefreshSaved() {
+  const box = typeof $ === "function" ? $("#reco-results") : null;
+  if (box) box.innerHTML = recoResultsHTML();
+  else if (typeof render === "function") render();
+}
+
 function saveIdea(i) {
   const s = recoState.result;
   const p = s && s.projects[i];
   if (!p) return;
   let list = recoSavedIdeas();
   if (list.some((x) => x.title === p.title)) list = list.filter((x) => x.title !== p.title);
-  else list = [{ title: p.title, pitch: p.pitch, skills: p.skills, role: s.role, savedAt: new Date().toISOString() }, ...list].slice(0, 30);
+  else
+    list = [
+      {
+        title: p.title,
+        pitch: p.pitch,
+        why: p.why || "",
+        build: recoStrings(p.build, 8),
+        deliverables: recoStrings(p.deliverables, 8),
+        skills: recoStrings(p.skills, 12),
+        weeks: p.weeks,
+        hours: s.hours,
+        role: s.role,
+        savedAt: new Date().toISOString(),
+      },
+      ...list,
+    ].slice(0, 30);
   workspaceLocal.setItem(RECO_SAVED_KEY, JSON.stringify(list));
-  $("#reco-results").innerHTML = recoResultsHTML();
+  recoRefreshSaved();
   toast(list.some((x) => x.title === p.title) ? "Project idea saved" : "Project idea removed");
 }
 
 function removeIdea(n) {
   const list = recoSavedIdeas();
+  if (!list[n]) return;
   list.splice(n, 1);
   workspaceLocal.setItem(RECO_SAVED_KEY, JSON.stringify(list));
-  $("#reco-results").innerHTML = recoResultsHTML();
+  recoRefreshSaved();
+  toast("Project idea removed");
+}
+
+function recoBrief(p, weeks, hours, role) {
+  const lines = ["# " + p.title, p.pitch || ""];
+  if (p.why) lines.push("", "Why: " + p.why);
+  if (p.build && p.build.length) lines.push("", "## What you will build", ...p.build.map((x) => "- " + x));
+  if (p.deliverables && p.deliverables.length) lines.push("", "## Deliverables", ...p.deliverables.map((x) => "- " + x));
+  lines.push("", "Skills: " + (p.skills || []).join(", "));
+  if (weeks) lines.push("Scope: about " + weeks + " weeks" + (hours ? " at ~" + hours + " hrs/week" : ""));
+  if (role) lines.push("Target role: " + role);
+  return lines.join("\n");
+}
+
+function recoCopyText(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => toast("Project brief copied"), () => toast("Copy failed. Select the text manually."));
+  else toast("Copy is not available in this browser.");
+}
+
+function copySavedIdea(n) {
+  const x = recoSavedIdeas()[n];
+  if (x) recoCopyText(recoBrief(x, x.weeks, x.hours, x.role));
+}
+
+// Saved ideas as shown on the Applications page.
+function recoApplicationsHTML() {
+  const list = recoSavedIdeas();
+  const head = `<div class="section-title" style="margin-top:35px"><h2>Saved project ideas · ${list.length}</h2><a class="text-link" href="#recommend">Get more ideas →</a></div>`;
+  if (!list.length) return head + '<div class="jobs"><div class="empty">Save a project idea from <a href="#recommend">Project ideas</a> and it will show up here.</div></div>';
+  return (
+    head +
+    `<div class="jobs">${list
+      .map(
+        (x, n) => `<div class="panel reco-saved"><span class="tag">Project idea</span><h3 style="margin-top:16px">${esc(x.title)}</h3><p>${esc(x.pitch || "")}</p>
+${x.skills && x.skills.length ? `<div class="tags">${x.skills.slice(0, 6).map((s) => `<span class="tag">${esc(s)}</span>`).join("")}</div>` : ""}
+<small class="resume-hint">For: ${esc(x.role || "your target role")}${x.weeks ? " · about " + esc(x.weeks) + " weeks" : ""}</small>
+<div class="resume-actions" style="margin-top:12px"><button class="outline" onclick="copySavedIdea(${n})">Copy project brief</button><button class="outline" onclick="removeIdea(${n})">Remove</button></div></div>`
+      )
+      .join("")}</div>`
+  );
 }
 
 function copyIdea(i) {
   const s = recoState.result;
   const p = s && s.projects[i];
-  if (!p) return;
-  const brief = `# ${p.title}\n${p.pitch}\n\nWhy: ${p.why}\n\n## What you will build\n${p.build.map((x) => "- " + x).join("\n")}\n\n## Deliverables\n${p.deliverables.map((x) => "- " + x).join("\n")}\n\nSkills: ${p.skills.join(", ")}\nScope: about ${p.weeks} weeks at ~${s.hours} hrs/week\nTarget role: ${s.role}`;
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(brief).then(() => toast("Project brief copied"), () => toast("Copy failed. Select the text manually."));
-  else toast("Copy is not available in this browser.");
+  if (p) recoCopyText(recoBrief(p, p.weeks, s.hours, s.role));
 }
