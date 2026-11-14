@@ -89,7 +89,7 @@ function bindRecommend() {
   const detect = () => {
     const value = role.value.trim();
     const m = RecommendEngine.matchFamily(value);
-    $("#reco-detected").textContent = family.value ? "Using the field you chose." : value.length < 2 ? "" : m.matched ? "Detected: " + m.family.label : "No clear match. Choose a field for better results.";
+    $("#reco-detected").textContent = family.value ? "Using the field you chose." : value.length < 2 ? "" : m.matched ? "Detected: " + m.family.label : "Not a built-in field. We will use the free-tier AI to research this career (sign-in required).";
   };
   detect();
   role.oninput = () => {
@@ -146,7 +146,7 @@ async function recoLoadMarket(role, family) {
   }
 }
 
-async function recoFetchAI(resume, role, family, hours) {
+async function recoFetchAI(resume, role, family, hours, custom = false) {
   const session = (await Account.client.auth.getSession()).data.session;
   if (!session) {
     Account.message = "Sign in to get AI project recommendations.";
@@ -156,7 +156,7 @@ async function recoFetchAI(resume, role, family, hours) {
   const response = await fetch(resumeAPIBase() + "/api/recommend", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
-    body: JSON.stringify({ resume, role, hoursPerWeek: hours, familyId: family.id }),
+    body: JSON.stringify(custom ? { resume, role, hoursPerWeek: hours, custom: true } : { resume, role, hoursPerWeek: hours, familyId: family.id }),
     signal: AbortSignal.timeout(58000)
   });
   let out;
@@ -178,8 +178,9 @@ async function runRecommend(e) {
   const resume = $("#reco-resume").value.trim();
   const role = $("#reco-role").value.trim();
   const hours = Number($("#reco-hours").value) || 8;
-  const ai = $("#reco-method").value === "ai";
   const chosen = $("#reco-family").value;
+  const custom = !chosen && !RecommendEngine.matchFamily(role).matched;
+  const ai = custom || $("#reco-method").value === "ai";
   if (resume.length < 100) {
     error.textContent = "Add at least 100 characters of resume text.";
     return;
@@ -188,16 +189,20 @@ async function runRecommend(e) {
     error.textContent = "Tell us what role you want.";
     return;
   }
+  if (custom) {
+    $("#reco-method").value = "ai";
+    $("#reco-ai").hidden = false;
+  }
   if (ai && typeof Account !== "undefined" && !Account.user) {
     Account.message = "Sign in to get AI project recommendations.";
     location.hash = "login";
     return;
   }
   if (ai && !$("#reco-consent").checked) {
-    error.textContent = "Confirm consent before sending your resume for AI recommendations.";
+    error.textContent = custom ? `"${role}" is not one of our built-in fields, so it uses the free-tier AI to research the career. Tick the consent box to continue.` : "Confirm consent before sending your resume for AI recommendations.";
     return;
   }
-  const family = chosen ? RecommendEngine.familyById(chosen) : RecommendEngine.matchFamily(role).family;
+  const family = chosen ? RecommendEngine.familyById(chosen) : custom ? { id: "custom", label: role } : RecommendEngine.matchFamily(role).family;
   setMarketplaceResume(resume);
   workspaceSession.setItem(RECO_ROLE_KEY, role);
   workspaceSession.setItem(RECO_HOURS_KEY, String(hours));
@@ -206,26 +211,43 @@ async function runRecommend(e) {
   button.disabled = true;
   button.textContent = "Reading the job market…";
   try {
-    const profile = await recoLoadMarket(role, family);
-    const analysis = RecommendEngine.analyze(resume, profile);
+    let profile;
+    let analysis;
     let projects = null;
     let source = "local";
     let note = "";
-    if (ai) {
-      button.textContent = "Designing your projects…";
-      try {
-        const out = await recoFetchAI(resume, role, family, hours);
-        if (!out) return;
-        projects = out.projects;
-        source = out.source === "ai" ? "ai" : "local";
-        note = out.fallbackReason || "";
-      } catch (err) {
-        if (/sign in|session/i.test(err.message || "")) throw err;
-        if (err.name !== "TimeoutError" && err.name !== "TypeError") throw err;
-        note = "The AI service could not be reached. Free template recommendations are shown instead.";
+    if (custom) {
+      button.textContent = "Researching this career…";
+      const out = await recoFetchAI(resume, role, family, hours, true);
+      if (!out) return;
+      const m = out.market || {};
+      profile = {
+        ...m,
+        skills: (Array.isArray(m.skills) ? m.skills : []).filter((s) => s && typeof s.skill === "string").map((s) => ({ skill: s.skill, pct: typeof s.pct === "number" ? s.pct : null, count: typeof s.count === "number" ? s.count : null, tier: typeof s.tier === "string" ? s.tier : null }))
+      };
+      if (!profile.skills.length) throw Error("The server returned no market data for this role.");
+      analysis = RecommendEngine.analyze(resume, profile);
+      projects = out.projects;
+      source = "ai";
+    } else {
+      profile = await recoLoadMarket(role, family);
+      analysis = RecommendEngine.analyze(resume, profile);
+      if (ai) {
+        button.textContent = "Designing your projects…";
+        try {
+          const out = await recoFetchAI(resume, role, family, hours);
+          if (!out) return;
+          projects = out.projects;
+          source = out.source === "ai" ? "ai" : "local";
+          note = out.fallbackReason || "";
+        } catch (err) {
+          if (/sign in|session/i.test(err.message || "")) throw err;
+          if (err.name !== "TimeoutError" && err.name !== "TypeError") throw err;
+          note = "The AI service could not be reached. Free template recommendations are shown instead.";
+        }
       }
+      if (!projects) projects = RecommendEngine.fallbackProjects(family, analysis, { hoursPerWeek: hours });
     }
-    if (!projects) projects = RecommendEngine.fallbackProjects(family, analysis, { hoursPerWeek: hours });
     recoState.result = { role, family, profile, analysis, hours, source, note, projects: projects.slice(0, 3).map((p) => recoSafeProject(p, profile, hours)) };
     $("#reco-results").innerHTML = recoResultsHTML();
     $("#reco-results").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -245,7 +267,7 @@ function recoMarketHTML(s) {
   const sources = (Array.isArray(p.sources) ? p.sources : []).map((x) => `${esc(x.name)} (${Number(x.count) || 0})`).join(", ");
   const when = p.fetchedAt ? new Date(p.fetchedAt).toLocaleDateString() : "";
   const samples = (Array.isArray(p.samples) ? p.samples : []).filter((x) => /^https:\/\//.test(String(x.url)));
-  return `<div class="panel wide-panel report-card"><div class="section-title"><div class="eyebrow">◎ WHAT EMPLOYERS ASK FOR</div><span class="tag">${live ? "Live postings" : "Baseline estimate"}</span></div>
+  return `<div class="panel wide-panel report-card"><div class="section-title"><div class="eyebrow">◎ WHAT EMPLOYERS ASK FOR</div><span class="tag">${live ? "Live postings" : p.source === "ai-estimate" ? "AI estimate" : "Baseline estimate"}</span></div>
 <h2>${esc(p.family?.label || s.family.label)}</h2>
 <p>${live ? `Based on <b>${Number(p.postings) || 0}</b> live postings from ${sources}${when ? ", fetched " + esc(when) : ""}. Skills are counted by keyword match in each posting. This is a sample of public postings, not the whole job market.` : esc(p.note || "Showing Nextwork's authored baseline for this role.")}</p>
 <div class="reco-skills">${p.skills.slice(0, 10).map((m) => {

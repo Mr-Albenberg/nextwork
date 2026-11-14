@@ -284,6 +284,72 @@ const netFetch = async (url) => {
   assert.equal(res.body.service, "nextwork-recommend");
   assert.equal(res.body.costPolicy, "free-only");
 
+  // ---------- Any career outside the built-in fields ----------
+  {
+    const Custom = require("../lib/custom-role");
+    const roleName = "Mechanical Design Engineer";
+    let boardJobs = 10, vocabCalls = 0, estimateCalls = 0, projectCalls = 0, geminiOn = true;
+    const makeJobs = (n) => Array.from({ length: n }, (_, i) => ({ title: "Mechanical Design Engineer " + i, absolute_url: "https://example.com/j" + i, content: "<p>You know SolidWorks and GD&amp;T. " + (i % 2 ? "FEA experience. " : "") + "Bonus: Kubernetes</p>" }));
+    const projectJSON = JSON.stringify({ projects: [{ title: "Bracket redesign study", pitch: "Redesign a bracket and prove it with analysis.", why: "Shows your CAD and analysis skills.", build: ["Model the part", "Run a stress study"], deliverables: ["CAD files"], skills: ["SolidWorks", "FEA", "Made Up Skill"], weeks: 3 }] });
+    global.fetch = async (url, options) => {
+      if (url.endsWith("/auth/v1/user")) return { ok: true, json: async () => ({ id: "user-a", is_anonymous: false }) };
+      if (url.endsWith("/rpc/consume_resume_review")) return { ok: true, json: async () => quota };
+      if (url.startsWith("https://boards-api.greenhouse.io/v1/boards/alpha/")) return { ok: true, json: async () => ({ jobs: makeJobs(boardJobs) }) };
+      if (url.startsWith("https://generativelanguage.googleapis.com/")) {
+        const system = JSON.parse(options.body).systemInstruction.parts[0].text;
+        if (system.includes("List up to 30")) {
+          vocabCalls++;
+          return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify({ skills: ["SolidWorks", "GD&T", "FEA", "Kubernetes", "Quantum Welding"] }) }] } }] }) };
+        }
+        if (system.includes("typically ask for")) {
+          estimateCalls++;
+          return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: JSON.stringify({ skills: [{ skill: "CAD", tier: "core" }, { skill: "FEA", tier: "common" }, { skill: "GD&T", tier: "common" }, { skill: "Prototyping", tier: "emerging" }] }) }] } }] }) };
+        }
+        projectCalls++;
+        return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: projectJSON }] } }] }) };
+      }
+      return { ok: false, status: 404, json: async () => ({}) };
+    };
+    const customCall = async () => call({ resume, role: roleName, hoursPerWeek: 8, custom: true });
+    Market.resetCache();
+    Custom.resetCache();
+    quota = true;
+
+    delete process.env.GEMINI_API_KEY;
+    assert.equal((await customCall()).statusCode, 503, "custom careers need the free-tier AI");
+    process.env.GEMINI_API_KEY = "test-free-key";
+    quota = false;
+    assert.equal((await customCall()).statusCode, 429);
+    assert.equal(vocabCalls + estimateCalls + projectCalls, 0, "quota is checked before any AI request");
+    quota = true;
+
+    res = await customCall();
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.custom, true);
+    assert.equal(res.body.market.source, "live");
+    assert.equal(res.body.market.postings, 8, "per-board cap applies");
+    const bySkill = Object.fromEntries(res.body.market.skills.map((s) => [s.skill, s.pct]));
+    assert.equal(bySkill.SolidWorks, 100);
+    assert.equal(bySkill.FEA, 50);
+    assert(!("Quantum Welding" in bySkill), "terms the postings never mention are dropped");
+    assert.deepEqual(res.body.projects[0].skills, ["SolidWorks", "FEA"]);
+    assert.equal(res.body.projects[0].demand.SolidWorks.pct, 100);
+
+    res = await customCall();
+    assert.equal(res.statusCode, 200);
+    assert.equal(vocabCalls, 1, "the market profile for a role is cached");
+
+    Custom.resetCache();
+    Market.resetCache();
+    boardJobs = 3;
+    res = await customCall();
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.market.source, "ai-estimate");
+    assert(res.body.market.skills.every((s) => s.pct === null && s.tier));
+    assert(/not measured/.test(res.body.market.note));
+    boardJobs = 10;
+  }
+
   // ---------- Page behavior (client code in a stubbed browser context) ----------
   const elements = {};
   const element = (s) => elements[s] || (elements[s] = { querySelector() { return { textContent: "", focus() {} }; }, querySelectorAll() { return []; }, focus() {}, value: "", style: {}, innerHTML: "", textContent: "", hidden: true, checked: false, disabled: false, classList: { add() {}, remove() {} }, scrollIntoView() {} });
@@ -377,6 +443,31 @@ const netFetch = async (url) => {
   Object.assign(element("#reco-role"), { value: "Frontend developer" });
   await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
   assert(element("#reco-error").textContent.includes("consent"));
+
+  // A career outside the built-in fields uses the free-tier AI and shows what it returns.
+  const customRole = "Marine biologist";
+  Object.assign(element("#reco-method"), { value: "local" });
+  Object.assign(element("#reco-consent"), { checked: false });
+  Object.assign(element("#reco-resume"), { value: resume });
+  Object.assign(element("#reco-role"), { value: customRole });
+  Object.assign(element("#reco-family"), { value: "" });
+  await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
+  assert(element("#reco-error").textContent.includes("not one of our built-in fields"), "unmatched roles ask for AI consent instead of faking a field");
+  assert.equal(element("#reco-method").value, "ai");
+  let sentBody = null;
+  vm.runInContext('var Account={user:{id:1},client:{auth:{getSession:async()=>({data:{session:{access_token:"t"}}})}}}', ctx);
+  ctx.fetch = async (url, options) => {
+    assert(url.endsWith("/api/recommend"), "custom roles skip the public market endpoint");
+    sentBody = JSON.parse(options.body);
+    return { ok: true, json: async () => ({ source: "ai", custom: true, market: { source: "ai-estimate", postings: 0, family: { id: "custom", label: customRole }, note: "AI estimate, not measured.", skills: [{ skill: "Field sampling", tier: "core" }, { skill: "Statistics", tier: "common" }, { skill: "R", tier: "common" }, { skill: "Scuba certification", tier: "emerging" }] }, projects: [{ title: "Reef survey dataset", pitch: "Analyse public survey data.", why: "Shows statistics.", build: ["Clean data", "Model it"], deliverables: ["Report"], skills: ["Statistics", "R"], weeks: 3 }] }) };
+  };
+  Object.assign(element("#reco-consent"), { checked: true });
+  await vm.runInContext("runRecommend({preventDefault(){}})", ctx);
+  assert.equal(element("#reco-error").textContent, "");
+  assert.equal(sentBody.custom, true);
+  assert.equal(sentBody.role, customRole);
+  out = element("#reco-results").innerHTML;
+  assert(out.includes("AI estimate") && out.includes("Marine biologist") && out.includes("Reef survey dataset"));
 
   console.log("Project recommendation engine, live and baseline market data, AI validation, quota gate, API auth and page behavior checks passed.");
 })().catch((e) => {

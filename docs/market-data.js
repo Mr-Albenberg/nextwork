@@ -9,7 +9,7 @@
       label: "Frontend / web development",
       field: "Development",
       strong: ["frontend", "front end", "front-end", "web developer", "web engineer", "ui engineer", "react developer", "javascript developer", "web dev"],
-      weak: ["developer", "engineer"],
+      weak: ["developer"],
       titles: "front[- ]?end|ui engineer|web (developer|engineer)|react|javascript",
       query: "frontend developer",
       skills: [["JavaScript", "core"], ["React", "core"], ["TypeScript", "core"], ["HTML", "core"], ["CSS", "core"], ["Git", "common"], ["Testing", "common"], ["Accessibility", "common"], ["REST API", "common"], ["Next.js", "common"], ["GraphQL", "emerging"], ["CI/CD", "emerging"]],
@@ -25,7 +25,7 @@
       label: "Software engineering (backend / full stack)",
       field: "Development",
       strong: ["full stack", "fullstack", "full-stack", "backend", "back end", "back-end", "api developer", "platform engineer"],
-      weak: ["software engineer", "software developer", "swe", "programmer", "developer", "engineer"],
+      weak: ["software engineer", "software developer", "swe", "programmer", "developer"],
       titles: "software (engineer|developer)|back[- ]?end|full[- ]?stack|platform engineer|api",
       query: "software engineer",
       skills: [["Python", "core"], ["JavaScript", "core"], ["SQL", "core"], ["Git", "core"], ["REST API", "core"], ["Node.js", "common"], ["PostgreSQL", "common"], ["Docker", "common"], ["AWS", "common"], ["Testing", "common"], ["TypeScript", "common"], ["CI/CD", "emerging"]],
@@ -114,6 +114,22 @@
         { title: "Customer discovery sprint", pitch: "Interview ten real people about a problem and turn what you hear into an opportunity brief.", build: ["Interview guide and recruiting", "Synthesis into themes", "Opportunity brief with evidence", "Recommendation presented to a mentor or peer"], deliverables: ["Interview synthesis", "Opportunity brief", "Presentation"], skills: ["User Research", "Strategy", "Stakeholder Management", "Data Analysis"], hours: 30 },
         { title: "Funnel and metrics model in SQL and Excel", pitch: "Model a product funnel from a public or synthetic dataset and recommend where to focus.", build: ["Event data cleaning", "Funnel and retention queries", "Scenario model in Excel", "Recommendation with caveats"], deliverables: ["Workbook and queries", "Findings memo", "Public repository or sheet"], skills: ["SQL", "Excel", "Data Analysis", "A/B Testing"], hours: 30 },
         { title: "Run a small project with agile rituals", pitch: "Lead a real mini-project with a few teammates using lightweight agile practices and document how it went.", build: ["Backlog and sprint plan", "Weekly check-ins and a retro", "Stakeholder updates", "Outcome report"], deliverables: ["Project board export", "Retro notes", "Outcome summary"], skills: ["Agile", "Jira", "Stakeholder Management", "Product Management", "Roadmapping"], hours: 30 }
+      ]
+    },
+    {
+      id: "mechanical",
+      label: "Mechanical and product engineering",
+      field: "Development",
+      strong: ["mechanical", "aerospace", "manufacturing engineer", "product engineer", "design engineer", "cad", "solidworks", "structural engineer", "thermal engineer", "test engineer", "systems engineer", "industrial engineer"],
+      weak: [],
+      titles: "mechanical|aerospace|manufacturing|product engineer|design engineer|structural|thermal|test engineer|systems engineer|cad",
+      query: "mechanical engineer",
+      skills: [["CAD", "core"], ["SolidWorks", "core"], ["GD&T", "core"], ["FEA", "common"], ["Prototyping", "common"], ["3D Printing", "common"], ["DFM", "common"], ["MATLAB", "common"], ["Thermal Analysis", "common"], ["Python", "common"], ["Testing", "common"], ["Control Systems", "emerging"]],
+      templates: [
+        { title: "Parametric CAD design with a simulated load analysis", pitch: "Design a real part in CAD, run a stress analysis on it, and document how the results changed the design.", build: ["Parametric CAD model with clear design intent", "Finite element analysis with documented assumptions", "Two or three design iterations driven by the results", "Dimensioned drawings with tolerances"], deliverables: ["CAD files and drawings", "Analysis report", "Design-iteration write-up"], skills: ["CAD", "SolidWorks", "FEA", "GD&T"], hours: 40 },
+        { title: "Prototype built and tested against a requirements list", pitch: "Take a small product from requirements to a physical prototype, then measure whether it meets them.", build: ["Written requirements and a design plan", "3D printed or machined prototype", "A repeatable test setup with measurements", "Revision based on the test data"], deliverables: ["Photos and demo video", "Test data and analysis", "Bill of materials"], skills: ["Prototyping", "3D Printing", "CAD", "Testing"], hours: 50 },
+        { title: "Design for manufacturing teardown and redesign", pitch: "Take apart a consumer product, then redesign it to cost less and be easier to assemble.", build: ["Teardown with a part and cost breakdown", "Assembly and tolerance review", "Redesigned parts in CAD", "Before and after comparison"], deliverables: ["Teardown report", "Redesigned CAD model", "Cost comparison"], skills: ["DFM", "CAD", "GD&T", "SolidWorks"], hours: 35 },
+        { title: "Heat transfer model validated with a physical test", pitch: "Model the thermal behavior of a heatsink or enclosure, then check the model against real temperature measurements.", build: ["Analytical or numerical thermal model", "Simple test rig with temperature sensors", "Comparison of model and measurements", "Design change that improves cooling"], deliverables: ["Model code or spreadsheet", "Test data", "Short report"], skills: ["Thermal Analysis", "MATLAB", "Python", "Testing"], hours: 40 }
       ]
     },
     {

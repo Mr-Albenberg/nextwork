@@ -4,6 +4,16 @@
 
   // Skill vocabulary: canonical name -> lowercase terms that count as evidence.
   const ALIASES = {
+    CAD: ["cad", "solidworks", "fusion 360", "autocad", "catia", "creo", "inventor", "onshape", "nx"],
+    SolidWorks: ["solidworks", "solid works"],
+    FEA: ["fea", "finite element", "ansys", "abaqus", "comsol"],
+    "GD&T": ["gd&t", "gdt", "geometric dimensioning", "tolerancing"],
+    "3D Printing": ["3d print", "3d printed", "3d printing", "3d-print", "additive manufacturing", "fdm", "sla "],
+    DFM: ["dfm", "dfma", "design for manufactur"],
+    Prototyping: ["prototype", "prototyping", "prototyped"],
+    MATLAB: ["matlab", "simulink"],
+    "Thermal Analysis": ["thermal analysis", "heat transfer", "thermal model", "cfd"],
+    Testing: ["test plan", "test rig", "tested", "testing", "validation"],
     JavaScript: ["javascript", "js", "ecmascript"],
     TypeScript: ["typescript"],
     React: ["react", "react.js", "reactjs"],

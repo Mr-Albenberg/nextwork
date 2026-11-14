@@ -1,6 +1,7 @@
 const { authenticate, consumeReview } = require("../lib/account-auth");
 const Market = require("../lib/market");
 const Engine = require("../dist/recommend-engine");
+const Custom = require("../lib/custom-role");
 
 const FREE_MODEL = "gemini-3.5-flash-lite";
 function freeAIReady() {
@@ -18,6 +19,33 @@ function local(resume, role, family, profile, hoursPerWeek, reason) {
     market: { source: profile.source, postings: profile.postings, family: profile.family },
     projects: withDemand(Engine.fallbackProjects(family, analysis, { hoursPerWeek }), profile)
   };
+}
+
+// Any career outside the built-in fields: postings and Gemini build the market profile, Gemini designs the projects.
+// There are no template projects for these roles, so every failure is reported plainly instead of faked.
+async function customFlow(res, identity, resume, role, hours) {
+  if (!freeAIReady()) return res.status(503).json({ error: "Careers outside the built-in fields need the free-tier AI, which is not set up on this server. Pick the closest built-in field instead." });
+  if (!(await consumeReview(identity.authorization))) return res.status(429).json({ error: "Free AI limit reached for now. Try again later, or pick the closest built-in field." });
+  let profile;
+  try {
+    profile = await Custom.getCustomProfile(role);
+  } catch {
+    return res.status(502).json({ error: "We could not build a job-market picture for this role right now. Try again in a minute, or pick the closest built-in field." });
+  }
+  const analysis = Engine.analyze(resume, profile);
+  try {
+    const out = await Custom.gemini(process.env, fetch, {
+      system: Engine.aiInstruction,
+      user: Engine.aiPayload(resume, role, profile, analysis, hours),
+      schema: Engine.aiSchema,
+      maxTokens: 4000,
+      timeoutMs: 30000
+    });
+    const projects = Engine.validateAI(out, profile, resume, { hoursPerWeek: hours });
+    return res.status(200).json({ source: "ai", provider: "gemini-free-tier", custom: true, market: profile, projects: withDemand(projects, profile) });
+  } catch (e) {
+    return res.status(502).json({ error: e && e.status === 429 ? "The free AI quota is temporarily exhausted. Try again later." : "The AI could not design projects this time. Try again, or pick the closest built-in field." });
+  }
 }
 
 // Personalized project recommendations. Requires a signed-in session (same rules as /api/resume).
@@ -46,12 +74,13 @@ module.exports = async function handler(req, res) {
   } catch {
     return res.status(400).json({ error: "Invalid JSON." });
   }
-  const { resume, role, hoursPerWeek = 8, familyId = "" } = body || {};
+  const { resume, role, hoursPerWeek = 8, familyId = "", custom = false } = body || {};
   const hours = Number(hoursPerWeek);
   if (typeof resume !== "string" || resume.trim().length < 100 || resume.length > 30000) return res.status(400).json({ error: "Provide 100 to 30,000 resume characters." });
   if (typeof role !== "string" || role.trim().length < 2 || role.length > 120) return res.status(400).json({ error: "Describe your target role in 2 to 120 characters." });
   if (!Number.isFinite(hours) || hours < 2 || hours > 40) return res.status(400).json({ error: "Choose between 2 and 40 hours per week." });
   if (familyId && !Engine.familyById(familyId)) return res.status(400).json({ error: "Unknown role family." });
+  if (custom === true) return customFlow(res, identity, resume.trim(), role.trim(), hours);
 
   const family = (familyId && Engine.familyById(familyId)) || Engine.matchFamily(role).family;
   const profile = await Market.getProfile(role, { familyId: family.id });
