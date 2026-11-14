@@ -108,12 +108,12 @@ The root URL now opens a public homepage (`#home`) with the “Turn your degree 
 
 Proposed graduate plans:
 
-- **Free — $0/month:** graduate profile, browsing/applications, messaging, core resume compatibility and highlighted evidence, saved projects, skills checks, and starter career guidance.
-- **Premium — $9/month or $72/year ($6/month equivalent):** additional career organization and portfolio tools. Annual billing saves $36 against 12 monthly payments (approximately 33%). Browsing/applying and project ranking are never paywalled or boosted by payment.
+- **Free — $0/month:** every feature implemented today, including profile, projects/applications, messages, evidence matching, free-tier AI, resume versions/comparison, portfolio case-study exports, application overview, skills checks, and career guidance.
+- **Premium — proposed $9/month or $72/year ($6/month equivalent):** new employer contact cards, verified-profile visibility, outreach organization, alerts, and application insights. Annual billing saves $36 against 12 monthly payments (approximately 33%). Browsing/applying remain free. Resume compatibility stays evidence-based; planned applicant-list priority is labeled separately.
 
 These are proposed prices, not live subscriptions. No checkout, card collection, payment processor, charges, subscription entitlements, or cancellation system is connected. The price switch and Premium preview are interactive, but do not enroll the user in a paid plan.
 
-The working `#premium` preview includes named resume versions (maximum 10), side-by-side text/skill-term comparison, loading a version into matching, a Markdown case-study draft download, and a personal application overview/next action. Data is stored on the device and preview tools are open for evaluation. Saved-search alerts, milestone workspaces, and deeper role-specific roadmaps are explicitly labeled Planned. Premium does not introduce paid AI APIs or guarantee unlimited free-provider capacity.
+The free `#tools` career toolkit (also available at the legacy `#premium` route) includes named resume versions (maximum 10), side-by-side text/skill-term comparison, loading a version into matching, a Markdown case-study draft download, and a personal application overview/next action. Data is stored on the device; these tools are included in Free. Premium outreach and visibility benefits are future proposals, not active subscription entitlements. Premium does not introduce paid AI APIs or guarantee unlimited free-provider capacity.
 
 ## Nextwork brand
 
@@ -156,3 +156,17 @@ Supabase and Vercel plan limits still apply. No paid plan, billing upgrade, paym
 The website now uses the owner's uploaded **App icon-selection.png** directly as `nextwork-icon.png` for the sidebar/homepage/footer logo, favicon, and Apple touch icon. Both uploaded full wordmark lockups are preserved as `nextwork-primary.png` and `nextwork-reversed.png`, available in Workspace settings. The primary lockup is also used for social sharing metadata. The older generated logo download is replaced by the supplied icon, and the SVG fallback reflects the blue arrow-N identity.
 
 The color system is based on the uploaded assets: royal blue `#1d3be0`, ink `#0a0f1f`, white, and pale blue surfaces. Navigation, CTAs, pricing, messages, progress bars, resume review, and the public homepage use this identity. Semantic green/yellow/red resume evidence colors remain independent for clarity. The homepage uses “Where startups meet new grads” from the uploaded lockup and a revised Nextwork-focused hook. User data, free-tier AI behavior, links, and plan-preview functionality remain intact.
+
+## Revised Premium concept: outreach and visibility
+
+All currently implemented features are Free. The former Premium toolkit is renamed Career toolkit with a Free label. No existing functionality is gated.
+
+Planned Premium benefits:
+
+- Employer-published or employer-supplied business contact emails, where the listing creator has opted into direct applicant outreach. No private-address harvesting or invented contact details.
+- Verified member badge after a profile/identity check; paying alone is not verification and does not certify job skills.
+- Clearly labeled priority placement for verified Premium applications in employer applicant lists. This is independent of evidence-based resume scores and does not guarantee a response or hiring outcome.
+- A cold-outreach workspace with message drafts, follow-up reminders, and contact history.
+- Instant project-match alerts and application-view/outreach insights.
+
+These are proposed plan features only. Verification, employer inbox ranking, email directory, email sending, subscriptions, and payments are not connected. Free-tier-only AI remains the policy for both plans.
