@@ -26,36 +26,29 @@ ctx.location.hash='#pricing';vm.runInContext('render()',ctx);assert(element('#ap
 
 ctx.location.hash='#premium';vm.runInContext('render()',ctx);assert(element('#app').innerHTML.includes('Contacts & drafts'));assert(element('#app').innerHTML.includes('team@patchwork.example'));assert(element('#app').innerHTML.includes('not a deliverable inbox'));element('#outreach-subject').value='Booking flow introduction';element('#outreach-body').value='A focused introduction based on my project experience.';element('#outreach-date').value='2026-11-20';element('#outreach-form').onsubmit({preventDefault(){}});let growth=JSON.parse(data['nextwork-growth']);assert.equal(growth.outreach.length,1);assert.equal(growth.outreach[0].status,'Draft');assert.equal(vm.runInContext('growthTab',ctx),'tracker');const outreachId=growth.outreach[0].id;vm.runInContext("updateOutreach('"+outreachId+"','status','Replied')",ctx);assert.equal(JSON.parse(data['nextwork-growth']).outreach[0].status,'Replied');vm.runInContext("setGrowthTab('alerts')",ctx);element('#alert-name').value='React work';element('#alert-field').value='Development';element('#alert-query').value='React';element('#alert-form').onsubmit({preventDefault(){}});growth=JSON.parse(data['nextwork-growth']);assert.equal(growth.alerts.length,1);assert(vm.runInContext('alertMatches(growthState().alerts[0]).length',ctx)>0);vm.runInContext("setGrowthTab('verification');requestProfileReview()",ctx);assert.equal(JSON.parse(data['nextwork-growth']).review.status,'pending');assert(!JSON.parse(data['proof-profile']).verified);vm.runInContext('priorityPreview=true',ctx);assert(vm.runInContext('priorityApplicants()[0].own',ctx));vm.runInContext('priorityPreview=false',ctx);assert(!vm.runInContext('priorityApplicants()[0].own',ctx));vm.runInContext("setGrowthTab('insights')",ctx);assert(element('#app').innerHTML.includes('Not connected. Employer views'));console.log('Premium tracking, sample contacts, saved alerts, pending review and isolated priority preview passed.');
 
-// Collapsing the inbox keeps the composer mounted and its draft intact.
+// The collapsed inbox keeps its toggle reachable without replacing the draft.
 const sidebarToggle=element('.inbox-toggle');
 sidebarToggle.setAttribute=(name,value)=>{sidebarToggle[name]=value};
 element('#conversation-input').value='Keep this draft while browsing';
 vm.runInContext('toggleMessagesSidebar()',ctx);
-assert.equal(element('#messages-inbox').hidden,true);
+assert.equal(element('#messages-inbox-content').inert,true);
+assert.equal(element('.new-conversation').inert,true);
 assert.equal(sidebarToggle['aria-expanded'],'false');
 assert.equal(sidebarToggle['aria-label'],'Show conversations');
 assert.equal(element('#conversation-input').value,'Keep this draft while browsing');
+const collapsedMarkup=vm.runInContext('messages()',ctx);
+assert(collapsedMarkup.indexOf('inbox-toggle')<collapsedMarkup.indexOf('conversation-main'));
+assert(!collapsedMarkup.includes('bio-toggle'));
+assert(!collapsedMarkup.includes('messages-bio'));
+assert(!collapsedMarkup.includes('class="contact-panel"'));
+assert(collapsedMarkup.includes('View profile'));
 vm.runInContext('toggleMessagesSidebar()',ctx);
-assert.equal(element('#messages-inbox').hidden,false);
+assert.equal(element('#messages-inbox-content').inert,false);
+assert.equal(element('.new-conversation').inert,false);
 assert.equal(sidebarToggle['aria-expanded'],'true');
 assert.equal(element('#conversation-input').value,'Keep this draft while browsing');
-console.log('Collapsible conversation sidebar preserves drafts and exposes its expanded state.');
-
-const bioToggle=element('.bio-toggle');
-bioToggle.setAttribute=(name,value)=>{bioToggle[name]=value};
-vm.runInContext('toggleBioSidebar()',ctx);
-assert.equal(element('#messages-bio').hidden,true);
-assert.equal(bioToggle['aria-expanded'],'false');
-assert.equal(element('#messages-inbox').hidden,false);
-assert.equal(element('#conversation-input').value,'Keep this draft while browsing');
-assert(vm.runInContext('messages()',ctx).includes('bio-collapsed'));
-vm.runInContext('toggleMessagesSidebar();toggleBioSidebar()',ctx);
-assert.equal(element('#messages-inbox').hidden,true);
-assert.equal(element('#messages-bio').hidden,false);
-assert.equal(bioToggle['aria-label'],'Hide bio');
-assert.equal(element('#conversation-input').value,'Keep this draft while browsing');
-const messageMarkup=vm.runInContext('messages()',ctx);
-assert(messageMarkup.indexOf('inbox-toggle')>messageMarkup.indexOf("toggleThread('archived')"));
-assert(messageMarkup.indexOf('bio-toggle')>messageMarkup.indexOf("toggleThread('archived')"));
-assert(!vm.runInContext('personPanel(people()[0])',ctx).includes('messages-bio'));
-console.log('Independent inbox and bio controls preserve drafts and leave profile dialogs unchanged.');
+vm.runInContext("showPersonProfile('peer-1')",ctx);
+assert(element('#modal').innerHTML.includes('Amara Okafor'));
+assert(element('#modal').innerHTML.includes('Figma'));
+assert(element('#modal').innerHTML.includes('person-bio'));
+console.log('Conversation rail preserves drafts, controls keyboard access, and keeps bio information in the profile dialog.');
