@@ -70,7 +70,7 @@ Official references: https://ai.google.dev/gemini-api/docs/pricing and https://a
 
 ## GitHub Actions and deployment
 
-Actions checks syntax, tests analysis/matching/profile behavior, verifies the Pages mirror, and deploys the checked commit through the Vercel project API on pushes to main (or manual deployment).
+Actions checks syntax, tests analysis/matching/profile behavior, and verifies the Pages mirror. Vercel deployments are temporarily paused to conserve quota: the Actions deploy job is disabled for both pushes and manual runs, and `vercel.json` disables automatic Git deployments. The existing production deployment stays live. To resume, restore the commented job condition in `.github/workflows/quality-and-deploy.yml` and remove `git.deploymentEnabled` from `vercel.json`.
 
 Encrypted Actions secrets: `VERCEL_TOKEN` for deployment and optional `GEMINI_API_KEY` for free-tier AI. The free-tier confirmation is a repository Actions variable, not a secret. Verified team/project IDs are in the workflow. The workflow copies the Gemini key without logging it, applies the confirmation flag, and removes unused OpenAI runtime settings. Supabase provides runtime authentication and private account storage; user records do not belong in Actions.
 
@@ -146,7 +146,7 @@ Supabase setup:
 4. Run `supabase/migrations/202611140001_accounts.sql`, then `supabase/migrations/202611140003_account_updates.sql` in Supabase SQL Editor. If the first is already applied, run only the second. Never run test bootstrap files in production. The second migration adds account tool state and self-deletion. The publishable key cannot apply migrations.
 5. Test a real confirmed email login, reset email, LinkedIn linking, account deletion, and a second browser login. Browser integration tests mock Supabase; database tests run the SQL against PostgreSQL.
 
-GitHub checks JavaScript, account access, the recursive Pages mirror, database owner isolation, anonymous denial, quotas, and deletion. Pushes to main deploy through Vercel after checks pass. SQL migrations must be applied separately in Supabase. No billing upgrades, paid AI fallback, or payment processor are enabled. Production email needs an SMTP provider subject to its own plan and limits.
+GitHub checks JavaScript, account access, the recursive Pages mirror, database owner isolation, anonymous denial, quotas, and deletion. Vercel deployments are temporarily paused; pushes to main still run checks. SQL migrations must be applied separately in Supabase. No billing upgrades, paid AI fallback, or payment processor are enabled. Production email needs an SMTP provider subject to its own plan and limits.
 
 ## Repository-supplied Nextwork identity
 

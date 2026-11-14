@@ -90,7 +90,9 @@ jobs:
           diff -qr --exclude=.nojekyll dist docs
 
   deploy:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
+    # Temporarily paused to conserve Vercel quota. Restore the condition below to resume.
+    # if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
+    if: ${{ false }}
     needs: checks
     runs-on: ubuntu-latest
     environment: production
