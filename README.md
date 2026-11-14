@@ -61,7 +61,7 @@ Encrypted repository Actions secrets:
 - `VERCEL_TOKEN`: deployment access for the owning team.
 - `OPENAI_API_KEY`: when set, Actions securely copies it to Vercel's production environment before deployment.
 
-The verified team and project IDs are configured in the workflow; they are not secret credentials. No credentials belong in source code, chat, logs, artifacts, or client scripts. GitHub Actions stores deployment secrets, not end-user login records. The workflow links the Vercel project, sets the AI environment variable from stdin, and deploys with the configured token. The existing Vercel Git integration can also deploy each push; the Actions deployment ensures the runtime secret is applied.
+The verified team and project IDs are configured in the workflow; they are not secret credentials. No credentials belong in source code, chat, logs, artifacts, or client scripts. GitHub Actions stores deployment secrets, not end-user login records. The workflow calls the Vercel project API, sets the AI environment variable without logging it, and deploys the exact checked GitHub commit. The existing Vercel Git integration can also deploy each push; the Actions deployment ensures the runtime secret is applied.
 
 Repository secret administration is not available to the current coding connection. Owners can manage secrets at https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions. To set the AI key directly, use Vercel project Settings → Environment Variables → Production, then redeploy.
 

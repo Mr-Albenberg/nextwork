@@ -1,0 +1,11 @@
+// Project API calls avoid CLI account-login dependencies. Never log credentials or API bodies.
+const token=process.env.VERCEL_TOKEN,project=process.env.VERCEL_PROJECT_ID,team=process.env.VERCEL_ORG_ID;
+if(!token||!project||!team)throw Error('Vercel deployment credentials are missing.');
+const api=async(path,method='GET',body)=>{const url=new URL('https://api.vercel.com'+path);url.searchParams.set('teamId',team);const response=await fetch(url,{method,headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(60000)});const result=await response.json();if(!response.ok){const hint=response.status===401||response.status===403?'Check that VERCEL_TOKEN is a Vercel access token authorized for this project/team.':'';throw Error(`Vercel ${method} ${url.pathname} failed (${response.status}). ${hint}`)}return result};
+async function main(){
+const metadata=await api('/v9/projects/'+project);if(metadata.id!==project)throw Error('Vercel project identity mismatch.');console.log('Verified Vercel project: '+metadata.name);
+if(process.env.OPENAI_API_KEY){await api('/v10/projects/'+project+'/env?upsert=true','POST',{key:'OPENAI_API_KEY',value:process.env.OPENAI_API_KEY,type:'sensitive',target:['production']});console.log('Production AI secret configured securely.')}else console.log('No repository AI secret supplied; preserving existing Vercel settings.');
+const deployment=await api('/v13/deployments','POST',{name:metadata.name,project,target:'production',gitSource:{type:'github',repoId:Number(process.env.GITHUB_REPOSITORY_ID),ref:process.env.GITHUB_SHA}});console.log('Production deployment requested.');
+for(let i=0;i<60;i++){const state=await api('/v13/deployments/'+deployment.id);if(state.readyState==='READY'){console.log('Deployment ready: https://'+state.url);return}if(['ERROR','CANCELED'].includes(state.readyState))throw Error('Vercel deployment ended in '+state.readyState+'. Check the Vercel build logs.');await new Promise(resolve=>setTimeout(resolve,10000))}throw Error('Vercel deployment is still pending. Check project deployments.');
+}
+main().catch(error=>{console.error(error.message);process.exit(1)});

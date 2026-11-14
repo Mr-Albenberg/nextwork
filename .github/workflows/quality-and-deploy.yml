@@ -61,19 +61,7 @@ jobs:
             echo 'Add VERCEL_TOKEN in repository Actions secrets before requesting deployment.'
             exit 1
           fi
-      - name: Install Vercel CLI
-        run: npm install --global vercel@65.16.0
-      - name: Link the configured Vercel project
-        run: vercel link --yes --project "$VERCEL_PROJECT_ID" --scope "$VERCEL_ORG_ID" --token "$VERCEL_TOKEN"
-      - name: Configure production AI key from encrypted Actions secret
+      - name: Configure AI runtime and deploy through the Vercel project API
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        shell: bash
-        run: |
-          if [[ -n "$OPENAI_API_KEY" ]]; then
-            printf '%s' "$OPENAI_API_KEY" | vercel env add OPENAI_API_KEY --environment production --sensitive --force --yes --token "$VERCEL_TOKEN"
-          else
-            echo 'OPENAI_API_KEY is not set in repository secrets; existing Vercel runtime settings are preserved.'
-          fi
-      - name: Deploy production
-        run: vercel deploy --prod --yes --token "$VERCEL_TOKEN"
+        run: node .github/scripts/vercel-deploy.cjs
