@@ -274,10 +274,9 @@ function recommendPage() {
 <form id="reco-form" class="rp-card" novalidate>
 <label class="field">What job do you want?<input id="reco-role" required minlength="2" maxlength="120" list="reco-roles" placeholder="e.g. Mechanical engineer, UX designer, Data analyst, Nurse" value="${esc(role)}" autocomplete="off"></label>
 <datalist id="reco-roles">${RecommendEngine.families.map((f) => `<option value="${esc(f.label)}">`).join("")}</datalist>
-<div class="rp-label">Your resume <small id="reco-file-status" role="status">PDF, DOCX or TXT</small></div>
-<div id="reco-saved" class="rp-resume-ok" style="${hasResume ? "" : "display:none"}"><span><b>✓</b> Using your saved resume</span><button type="button" class="outline" id="reco-replace">Replace</button></div>
-<label class="upload-zone" id="reco-drop" style="${hasResume ? "display:none" : ""}"><span style="font-size:28px">↥</span><b>Drop your resume here or choose a file</b><small>PDF, DOCX, or TXT · up to 5 MB</small><input id="reco-file" type="file" accept=".pdf,.docx,.txt,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
-<details class="rp-text" id="reco-text-wrap" ${hasResume ? "" : "open"}><summary>Review or paste your resume text</summary><textarea id="reco-resume" maxlength="30000" placeholder="Paste your resume here, or upload a file above.">${esc(resume)}</textarea></details>
+<div class="rp-label">Your profile resume</div>
+<div id="reco-saved" class="rp-resume-ok"><span>${hasResume?'✓ Using your saved profile resume':'Upload your resume once in your profile to get started.'}</span><a class="outline" href="#profile">${hasResume?'Manage resume':'Upload resume'}</a></div>
+<details class="rp-text" id="reco-text-wrap"><summary>View saved resume text</summary><textarea id="reco-resume" readonly maxlength="30000">${esc(resume)}</textarea></details>
 <button class="primary rp-go" id="reco-run" type="submit">Find my projects ↗</button>
 <p id="reco-error" class="review-error" role="alert"></p>
 <p class="rp-fine">When you continue, your resume text and target job are sent to Google Gemini (free tier) to design your projects. Google may use free-tier content to improve its products. Remove anything sensitive first.</p>
@@ -290,42 +289,6 @@ function bindRecommend() {
   const text = $("#reco-resume");
   const role = $("#reco-role");
   role.oninput = () => workspaceSession.setItem(RECO_ROLE_KEY, role.value);
-  text.oninput = () => setMarketplaceResume(text.value);
-  const replace = $("#reco-replace");
-  if (replace) {
-    replace.onclick = () => {
-      $("#reco-saved").style.display = "none";
-      $("#reco-drop").style.display = "";
-    };
-  }
-  const load = async (file) => {
-    if (!file) return;
-    const status = $("#reco-file-status");
-    status.textContent = "Reading your file…";
-    try {
-      text.value = await parseResumeFile(file);
-      setMarketplaceResume(text.value);
-      status.textContent = `Loaded ${file.name}`;
-      $("#reco-saved").style.display = "";
-      $("#reco-drop").style.display = "none";
-      if (!role.value.trim()) role.focus();
-    } catch (e) {
-      status.textContent = e.message || "Could not read this file. Paste the text instead.";
-      $("#reco-text-wrap").open = true;
-    }
-  };
-  $("#reco-file").onchange = (e) => load(e.target.files[0]);
-  const drop = $("#reco-drop");
-  drop.ondragover = (e) => {
-    e.preventDefault();
-    drop.classList.add("dragging");
-  };
-  drop.ondragleave = () => drop.classList.remove("dragging");
-  drop.ondrop = (e) => {
-    e.preventDefault();
-    drop.classList.remove("dragging");
-    load(e.dataTransfer.files[0]);
-  };
   $("#reco-form").onsubmit = runRecommend;
 }
 
@@ -351,7 +314,7 @@ async function runRecommend(e) {
     return;
   }
   if (resume.length < 100) {
-    error.textContent = "Add your resume first: upload a file, or paste at least 100 characters of text.";
+    error.textContent = "Add your resume in your profile first. It will be available here automatically.";
     $("#reco-text-wrap").open = true;
     return;
   }

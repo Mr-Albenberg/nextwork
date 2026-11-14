@@ -419,13 +419,32 @@ async function login(page, email) {
       rows.get(users["alice@example.com"].id).profile.name,
       "Alice Updated",
     );
-    await page.goto(base + "/#resume");
-    await page.locator('#resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.')});
+    await page.goto(base + "/#profile");
+    await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
+    await page.locator('#profile-resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.')});
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
     assert.equal(rows.get(users['alice@example.com'].id).profile.tagline,'Frontend Developer');
     assert(rows.get(users['alice@example.com'].id).extras['proof-resume-report']);
     await page.reload();
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
+    await page.getByRole('button',{name:'Clear resume',exact:true}).waitFor();
+    const chooserPromise=page.waitForEvent('filechooser');
+    await page.getByRole('button',{name:'Upload a new resume',exact:true}).click();
+    const chooser=await chooserPromise;
+    await chooser.setFiles({name:'replacement.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a replacement version with JavaScript.')});
+    await page.getByText('Saved resume: replacement.txt',{exact:true}).waitFor();
+    await page.goto(base + '/#skills');
+    assert((await page.locator('#resume').inputValue()).includes('accessible React applications'));
+    await page.goto(base + '/#recommend');
+    assert((await page.locator('#reco-resume').inputValue()).includes('accessible React applications'));
+    assert.equal(await page.locator('input[type=file]').count(),0);
+    await page.goto(base + '/#profile');
+    await page.getByRole('button',{name:'Clear resume',exact:true}).click();
+    await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
+    assert.equal(await page.evaluate(()=>marketplaceResume()),'');
+    await page.goto(base + '/#skills');
+    assert.equal(await page.locator('#resume').inputValue(),'');
+    await page.goto(base + '/#resume');
     await page
       .getByLabel("Resume text")
       .fill(
