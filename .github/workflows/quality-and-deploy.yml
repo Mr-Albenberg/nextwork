@@ -64,5 +64,6 @@ jobs:
       - name: Configure AI runtime and deploy through the Vercel project API
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED }}
+          # Owner confirmed completion of unbilled Free Tier setup. A repository value can override it.
+          GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED || secrets.GEMINI_FREE_TIER_CONFIRMED || 'true' }}
         run: node .github/scripts/vercel-deploy.cjs
