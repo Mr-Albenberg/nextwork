@@ -41,7 +41,11 @@ function createPhotoStore({ fetcher = fetch, key = secretKey() } = {}) {
       throw failure;
     }
     if (raw) return response;
-    return response.status === 204 ? null : response.json();
+    if (response.status === 204 || response.status === 205) return null;
+    const text = await response.text();
+    // PostgREST upserts with Prefer: return=minimal return 201 and no body.
+    if (!text.trim() && method !== "GET") return null;
+    return JSON.parse(text);
   }
   const query = (table, id) =>
     "/rest/v1/" + table + "?user_id=eq." + encodeURIComponent(id);
