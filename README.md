@@ -77,3 +77,9 @@ Free AI does not guarantee unlimited free infrastructure. Vercel and GitHub host
 ## Remaining production work
 
 Current opportunities are samples. Applications, profiles, and messages are browser-local and are not transmitted to employers. A real marketplace needs a connected authentication/database provider, graduate and employer access policies, employer-owned listing management, shared applications and conversations, and real employer-approved project briefs. Setting a database connection alone does not implement those features. The public Vercel URL works without a custom domain.
+
+## Main demo and expanded marketplace
+
+The marketplace contains 14 clearly labeled sample paid projects. Each has its own brief, budget, duration, deliverables, impact, skills, and two project-specific matching criteria, plus its field foundation rubric. The additional catalog is shared by the browser and server through `dist/extra-jobs.js`.
+
+New visitors with no existing profile or resume start with **Jordan Rivera**, a fictional graduate with a complete profile, realistic sample resume, and saved opportunities. Existing visitors can choose **Load demo profile** in the toolbar. Their prior profile and resume are backed up in the tab session and restored by **Exit demo**. A default demo can be exited to start a personal profile; it does not automatically reload after dismissal. Reset demo restores its original sample data. Demo data is local and is not a real authenticated account or a real applicant. All demo achievements and contact details are illustrative.
