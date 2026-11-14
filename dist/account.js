@@ -81,7 +81,7 @@ function accountPanel() {
     (i) => i.provider === "linkedin_oidc",
   );
   const email = Account.user.email || "LinkedIn member";
-  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-danger"><div><h3>Delete account</h3><p>Permanently delete your account and all saved profile, resume, project, and application data.</p></div><button class="account-delete-button" data-auth-action="delete-dialog">Delete account</button></div><div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
+  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>${isOrganizationAccount() ? "Organization account · Hiring workspace" : "Personal account · Candidate workspace"}. Account type cannot be changed.</p><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${!isOrganizationAccount() && typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-danger"><div><h3>Delete account</h3><p>Permanently delete your account and all saved profile, resume, project, and application data.</p></div><button class="account-delete-button" data-auth-action="delete-dialog">Delete account</button></div><div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
 }
 function accountFeedback() {
   return `<p id="auth-feedback" role="status" class="${Account.error ? "review-error" : "resume-hint"}">${esc(Account.error || Account.message)}</p>`;
@@ -196,6 +196,10 @@ function bindAccount() {
             render();
           }
           if (action === "delete-dialog") openDeleteAccount();
+          if (action === "organization-signout") {
+            await endAccountSession();
+            location.hash = "organization-signup";
+          }
           if (action === "signout") {
             if (Backend.ready && (Backend.pending.size || Backend.task))
               await saveWorkspace();
@@ -221,7 +225,7 @@ function bindAccount() {
               password,
               options: {
                 emailRedirectTo: authCallback(),
-                data: { full_name: String(fields.get("name") || "").trim() },
+                data: { full_name: String(fields.get("name") || "").trim(), account_kind: "personal" },
               },
             }),
           );
@@ -249,11 +253,15 @@ function bindAccount() {
           checkAuthResult(await Account.client.auth.updateUser({ password }));
           Account.recovery = false;
           Account.message = "Password saved.";
-          location.hash = "profile";
+          location.hash = typeof isOrganizationAccount === "function" && isOrganizationAccount() ? "settings" : "profile";
         } else {
-          checkAuthResult(
+          const data = checkAuthResult(
             await Account.client.auth.signInWithPassword({ email, password }),
           );
+          if (isOrganizationAccount(data.user)) {
+            await endAccountSession();
+            throw Error("This is an organization account. Use Organization login to access your hiring portal.");
+          }
           location.hash = postLoginRoute();
         }
       });
@@ -416,6 +424,15 @@ function requireAccount(message = "Log in to access your Nextwork workspace.") {
 function updateAccountChrome(page) {
   document.body.dataset.auth = Account.user ? "member" : "guest";
   document.body.dataset.page = page;
+  const hiring = isOrganizationAccount();
+  document.body.dataset.accountType = hiring ? "organization" : "personal";
+  document.querySelectorAll('a.account, header a.avatar').forEach(link => link.href = hiring ? '#settings' : '#profile');
+  const brand = document.querySelector('aside .brand');
+  if (brand) brand.href = hiring ? '#organization' : '#overview';
+  const nextStep = document.querySelector('.sidebar-next-step');
+  if (nextStep) { nextStep.href = hiring ? '#organization' : '#resume'; nextStep.innerHTML = hiring ? '<span>YOUR HIRING WORKSPACE</span><b>Build your next team</b><small>Review listings & applicants →</small>' : '<span>YOUR NEXT STEP</span><b>Find your strongest match</b><small>Review your resume →</small>'; }
+  const bell = document.querySelector('.bell');
+  if (bell) { bell.setAttribute('aria-label', hiring ? 'View applicants' : 'View messages'); bell.onclick = () => { if(hiring) Organization.tab='applicants'; location.hash=hiring?'organization':'messages'; render(); }; }
   const crumb = document.querySelector(".header-breadcrumb");
   if (crumb)
     crumb.innerHTML = Account.user
@@ -426,8 +443,10 @@ function updateAccountChrome(page) {
 function postLoginRoute() {
   const next = sessionStorage.getItem("nextwork-auth-intent");
   sessionStorage.removeItem("nextwork-auth-intent");
-  return /^project\/\d+$/.test(next || "") ? next : next === "organization" ? "organization" : "overview";
+  if (typeof isOrganizationAccount === 'function' && isOrganizationAccount()) return 'organization';
+  return /^project\/\d+$/.test(next || '') ? next : 'overview';
 }
+
 function openDeleteAccount() {
   if (!Account.user) return;
   const modal = document.querySelector("#modal");

@@ -34,6 +34,7 @@ const ctx = {
   },
 };
 vm.createContext(ctx);
+vm.runInContext(fs.readFileSync("dist/account-types.js", "utf8"), ctx);
 vm.runInContext(fs.readFileSync("dist/account.js", "utf8"), ctx);
 vm.runInContext(fs.readFileSync("dist/backend.js", "utf8"), ctx);
 vm.runInContext(
@@ -109,5 +110,15 @@ assert.equal(session.getItem('nextwork-auth-intent'),null);
 session.setItem('nextwork-auth-intent','https://example.com/');
 assert.equal(vm.runInContext('postLoginRoute()',ctx),'overview');
 session.setItem('nextwork-auth-intent','organization');
-assert.equal(vm.runInContext('postLoginRoute()',ctx),'organization');
+assert.equal(vm.runInContext('postLoginRoute()',ctx),'overview');
 console.log('Shared listing login destinations are preserved with internal route validation.');
+vm.runInContext("Account.user={id:'candidate',user_metadata:{account_kind:'organization'},app_metadata:{nextwork_account_type:'personal'}}",ctx);
+assert.equal(vm.runInContext('isOrganizationAccount()',ctx),false);
+assert.equal(vm.runInContext("accountRouteAllowed('organization')",ctx),false);
+assert.equal(vm.runInContext("postLoginRoute()",ctx),'overview');
+vm.runInContext("Account.user={id:'hiring',app_metadata:{nextwork_account_type:'organization'}}",ctx);
+assert.equal(vm.runInContext('isOrganizationAccount()',ctx),true);
+assert.equal(vm.runInContext("postLoginRoute()",ctx),'organization');
+for(const page of ['profile','resume','explore','projects','submissions','messages'])assert.equal(vm.runInContext(`accountRouteAllowed('${page}')`,ctx),false);
+for(const page of ['organization','settings','password'])assert.equal(vm.runInContext(`accountRouteAllowed('${page}')`,ctx),true);
+console.log('Personal and hiring route boundaries use trusted account type; editable metadata cannot convert candidates.');

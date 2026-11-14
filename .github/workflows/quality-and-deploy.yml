@@ -77,6 +77,12 @@ jobs:
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140002_organizations.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/organizations.test.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/account-deletion.test.sql
+      - name: Test immutable account types and role boundaries
+        env:
+          PGPASSWORD: local-ci-only
+        run: |
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611140004_account_types.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/account-types.test.sql
       - name: Verify GitHub Pages mirror
         run: |
           diff -qr --exclude=.nojekyll dist docs

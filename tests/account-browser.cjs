@@ -11,6 +11,7 @@ const users = {};
 for (const [email, id, name] of [
   ["alice@example.com", "00000000-0000-0000-0000-000000000001", "Alice"],
   ["bob@example.com", "00000000-0000-0000-0000-000000000002", "Bob"],
+  ["hiring@example.com", "00000000-0000-0000-0000-000000000003", "Hiring lead"],
 ])
   users[email] = {
     id,
@@ -19,7 +20,7 @@ for (const [email, id, name] of [
     aud: "authenticated",
     created_at: new Date().toISOString(),
     email_confirmed_at: new Date().toISOString(),
-    app_metadata: { provider: "email", providers: ["email"] },
+    app_metadata: { provider: "email", providers: ["email"], nextwork_account_type: email === "hiring@example.com" ? "organization" : "personal" },
     user_metadata: { full_name: name },
     identities: [
       { id, provider: "email", user_id: id, identity_data: { email } },
@@ -88,7 +89,7 @@ async function setup(browser) {
         return reply({ msg: "Logout temporarily unavailable" }, 400);
       if (url.pathname.endsWith("/recover") || url.pathname.endsWith("/logout"))
         return reply({});
-      if (url.pathname.endsWith("/organization_listings")) return reply([]);
+      if (["/organization_listings","/organizations","/organization_applications"].some(path=>url.pathname.endsWith(path))) return reply([]);
       const bearer = request.headers().authorization || "",
         subject =
           bearer.startsWith("Bearer ") && bearer.split(".").length >= 3
@@ -438,6 +439,35 @@ async function login(page, email) {
     await page.getByRole("heading", { name: "Welcome back." }).waitFor();
     assert.equal(await page.evaluate(() => Account.user), null);
     assert.deepEqual(errors, []);
+    await context.close();
+    // Separate hiring login and role-specific navigation, with no candidate workspace created.
+    ({ context, page, errors } = await setup(browser));
+    await login(page, "alice@example.com");
+    await page.goto(base + "/#organization");
+    await page.getByRole('heading', {name:'A separate organization account is required.'}).waitFor();
+    assert.equal(await page.locator('#organization-profile').count(), 0);
+    await page.getByRole('button', {name:'Sign out for organization access'}).click();
+    await page.waitForURL('**/#organization-signup');
+    await page.goto(base + '/#organization-login');
+    await page.getByLabel('Work email', {exact:true}).fill('alice@example.com');
+    await page.getByLabel('Password', {exact:true}).fill('valid-password');
+    await page.getByRole('button', {name:'Log in to hiring portal →', exact:true}).click();
+    await page.getByText('This is a personal account. Use Graduate login, or create a separate organization account with a different email.', {exact:true}).waitFor();
+    assert.equal(await page.evaluate(()=>Account.user), null);
+    await page.getByLabel('Work email', {exact:true}).fill('hiring@example.com');
+    await page.getByLabel('Password', {exact:true}).fill('valid-password');
+    const beforeHiring = requests.length;
+    await page.getByRole('button', {name:'Log in to hiring portal →', exact:true}).click();
+    await page.waitForURL('**/#organization');
+    await page.locator('#organization-profile').waitFor();
+    assert.equal(await page.locator('#nav a[href="#resume"]').count(),0);
+    assert.equal(await page.locator('#nav a[href="#explore"]').count(),0);
+    assert(!requests.slice(beforeHiring).some(r=>r.path.endsWith('/account_workspaces')));
+    await page.goto(base + '/#profile');
+    await page.waitForURL('**/#organization');
+    await page.goto(base + '/#settings');
+    await page.getByRole('heading',{name:'Organization account',exact:true}).waitFor();
+    assert.deepEqual(errors,[]);
     await context.close();
     console.log(
       "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, server profile/resume loading, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation, signed-in LinkedIn linking and account deletion passed (mocked Supabase).",

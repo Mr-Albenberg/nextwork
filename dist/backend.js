@@ -124,6 +124,7 @@ async function connectWorkspace(user) {
   applications = [];
   resumeReport = null;
   if (!user) return;
+  if (typeof isOrganizationAccount === "function" && isOrganizationAccount(user)) { Backend.ready = true; return; }
   try {
     let result = await Account.client
       .from("account_workspaces")

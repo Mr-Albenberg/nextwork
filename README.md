@@ -258,3 +258,9 @@ The two-step organization sign-up asks for contact name, work email/password, co
 Organization profile setup includes public company details and clearly separated private hiring defaults. Defaults prefill new listings while every listing remains editable. This uses existing tables and auth metadata; no additional migration is required.
 
 The organization portal now defaults to Overview, with public company description, private industry/team/hiring summaries, published/pending/shortlist counts, setup steps, recent applications, a project-brief checklist, and an explanation of the review workflow. The applicant inbox also supports status filtering. Applicants still cannot access other candidates' documents, and existing organization ownership controls are unchanged.
+
+### Fixed personal and organization accounts
+
+Run `supabase/migrations/202611140004_account_types.sql` in the Supabase SQL Editor after the previous migrations. It preserves existing organization owners as hiring accounts and other existing users as personal accounts. Sign out and back in after running it. New organization signup assigns the type once at identity creation; editing user metadata cannot convert an existing identity. Use separate emails for personal and hiring accounts. The migration also restricts organization creation, listing management, candidate application submission, and candidate workspace access in database policies. No data is deleted.
+
+The web interface uses trusted `app_metadata.nextwork_account_type`; organization signup requires this migration. The downloadable SQL is `/account-types-setup.sql`. GitHub Actions tests the migration and direct database role boundaries.

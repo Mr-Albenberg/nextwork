@@ -1,5 +1,5 @@
 \set ON_ERROR_STOP on
-insert into auth.users values('00000000-0000-0000-0000-000000000003');
+insert into auth.users(id) values('00000000-0000-0000-0000-000000000003');
 set role authenticated;
 set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';
 insert into public.organizations(id,owner_id,name) values('10000000-0000-0000-0000-000000000001',auth.uid(),'Test Startup');

@@ -66,7 +66,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
   const identity = await authenticate(req);
   if (identity.status) {
-    return res.status(identity.status).json({ error: identity.status === 401 ? "Sign in to get AI project recommendations." : "Account verification is temporarily unavailable. Please try again." });
+    return res.status(identity.status).json({ error: identity.status === 401 ? "Sign in to get AI project recommendations." : identity.status === 403 ? "Project recommendations are available to personal accounts." : "Account verification is temporarily unavailable. Please try again." });
   }
   let body = req.body;
   try {
