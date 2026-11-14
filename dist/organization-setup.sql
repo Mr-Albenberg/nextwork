@@ -43,6 +43,7 @@ create policy "Create own organization" on public.organizations for insert to au
 create policy "Edit own organization" on public.organizations for update to authenticated using(owner_id=(select auth.uid())) with check(owner_id=(select auth.uid()));
 create policy "Published listings public" on public.organization_listings for select using(status='published');
 create policy "Owners read all listing states" on public.organization_listings for select to authenticated using(public.owns_organization(organization_id));
+create policy "Applicants retain applied listing details" on public.organization_listings for select to authenticated using(exists(select 1 from public.organization_applications a where a.listing_id=organization_listings.id and a.applicant_id=(select auth.uid())));
 create policy "Owners create listings" on public.organization_listings for insert to authenticated with check(public.owns_organization(organization_id));
 create policy "Owners edit listings" on public.organization_listings for update to authenticated using(public.owns_organization(organization_id)) with check(public.owns_organization(organization_id));
 create policy "Application participants read" on public.organization_applications for select to authenticated using(applicant_id=(select auth.uid()) or public.can_read_application(id));
