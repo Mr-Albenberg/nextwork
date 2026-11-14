@@ -117,7 +117,7 @@ The free `#tools` career toolkit (also available at the legacy `#premium` route)
 
 ## Nextwork brand
 
-The public product is named Nextwork. The single-color geometric N mark is provided as `dist/logo.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and service identifiers are retained for compatibility. The canonical deployment is https://nextwork-jobs.vercel.app.
+The public product is named Nextwork. The single-color geometric N mark is provided as `dist/assets/brand/nextwork-mark.svg` and used for the favicon and wordmark. Public copy, page metadata, and exported report filenames use Nextwork. Internal storage keys, API service identifiers, repository name, and service identifiers are retained for compatibility. The canonical deployment is https://nextwork-jobs.vercel.app.
 
 
 ## Accounts and private workspace storage
@@ -227,3 +227,7 @@ Existing sample catalog applications retain their prototype behavior. Real organ
 The experience step of profile setup accepts PDF, DOCX and TXT (5 MB maximum) or pasted text. It uses the existing browser document parser and stores extracted text in the current account's resume workspace for matching/private sync. Uploading does not call an AI provider. Scanned PDFs require pasted/OCR text.
 
 Graduate and organization forms share a searchable skill multi-select with autocomplete, removable tags, keyboard selection, aliases such as JS/TS, and canonical names. Arbitrary free-text tags are not created. A maximum of 20 skills can be selected. Skills are still self-reported; selection does not verify proficiency.
+
+## Brand asset layout
+
+Editable/source brand PNGs live in `assets/brand/`. Published assets live in `dist/assets/brand/`, mirrored to `docs/assets/brand/`. Filenames use `nextwork-icon.png`, `nextwork-wordmark-primary.png`, `nextwork-wordmark-reversed.png`, and `nextwork-mark.svg`. The redundant `nextwork-logo.png` icon alias was removed. References, downloadable brand files, favicon metadata, and CI mirror validation use the new paths. There are no image assets in the repository root.

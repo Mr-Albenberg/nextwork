@@ -68,7 +68,7 @@ jobs:
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/account-deletion.test.sql
       - name: Verify GitHub Pages mirror
         run: |
-          for file in dist/*; do cmp "$file" "docs/$(basename "$file")"; done
+          diff -qr --exclude=.nojekyll dist docs
 
   deploy:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy)
