@@ -57,6 +57,7 @@ const Account = {
   error: "",
   busy: false,
   recovery: false,
+  sessionEpoch: 0,
 };
 function authCallback(recovery = false) {
   const url = new URL(location.href);
@@ -197,9 +198,7 @@ function bindAccount() {
           if (action === "signout") {
             if (Backend.ready && (Backend.pending.size || Backend.task))
               await saveWorkspace();
-            checkAuthResult(
-              await Account.client.auth.signOut({ scope: "local" }),
-            );
+            await endAccountSession();
             Account.recovery = false;
             location.hash = "login";
           }
@@ -312,8 +311,9 @@ async function initializeAccount() {
     );
     Account.client.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") Account.recovery = true;
+      const epoch = Account.sessionEpoch;
       setTimeout(async () => {
-        if (!Account.ready) return;
+        if (!Account.ready || epoch !== Account.sessionEpoch) return;
         if (event === "TOKEN_REFRESHED") {
           Account.user = session?.user || null;
           return;
@@ -330,8 +330,29 @@ async function initializeAccount() {
       }, 0);
     });
     const data = checkAuthResult(await Account.client.auth.getSession());
-    activateWorkspace(data.session?.user || null);
-    await connectWorkspace(data.session?.user || null);
+    let verifiedUser = null;
+    if (data.session) {
+      const verification = await Account.client.auth.getUser();
+      if (verification.error) {
+        if (
+          [401, 403, 404].includes(verification.error.status) ||
+          [
+            "user_not_found",
+            "session_not_found",
+            "refresh_token_not_found",
+          ].includes(verification.error.code)
+        )
+          await endAccountSession();
+        else
+          throw Error(
+            "We couldn’t verify your login. Check your connection and try again.",
+          );
+      } else if (verification.data?.user?.id)
+        verifiedUser = verification.data.user;
+      else await endAccountSession();
+    }
+    activateWorkspace(verifiedUser);
+    await connectWorkspace(verifiedUser);
     const url = new URL(location.href);
     if (url.searchParams.get("auth") === "recovery" && Account.user)
       Account.recovery = true;
@@ -369,9 +390,15 @@ async function initializeAccount() {
 }
 
 function publicPage(page) {
-  return ["home", "pricing", "login", "signup", "forgot", "password", "organization"].includes(
-    page,
-  );
+  return [
+    "home",
+    "pricing",
+    "login",
+    "signup",
+    "forgot",
+    "password",
+    "organization",
+  ].includes(page);
 }
 function requireAccount(message = "Log in to access your Nextwork workspace.") {
   if (typeof Account === "undefined" || Account.user) return true;
@@ -393,8 +420,11 @@ function updateAccountChrome(page) {
       : '<a class="guest-brand" href="#home"><img src="assets/brand/nextwork-icon.png" alt=""><span>nextwork</span></a>';
 }
 
-
-function postLoginRoute(){const next=sessionStorage.getItem('nextwork-auth-intent');sessionStorage.removeItem('nextwork-auth-intent');return next==='organization'?'organization':'profile'}
+function postLoginRoute() {
+  const next = sessionStorage.getItem("nextwork-auth-intent");
+  sessionStorage.removeItem("nextwork-auth-intent");
+  return next === "organization" ? "organization" : "profile";
+}
 function openDeleteAccount() {
   if (!Account.user) return;
   const modal = document.querySelector("#modal");
@@ -415,9 +445,7 @@ function openDeleteAccount() {
         await saveWorkspace();
       const result = await Account.client.rpc("delete_my_account");
       if (result.error) throw result.error;
-      await Account.client.auth.signOut({ scope: "local" });
-      activateWorkspace(null);
-      await connectWorkspace(null);
+      await endAccountSession();
       clearLegacyWorkspaceStorage();
       Account.message = "Your account has been deleted.";
       Account.error = "";
@@ -431,4 +459,34 @@ function openDeleteAccount() {
       button.disabled = false;
     }
   };
+}
+
+function removeSavedAuthSession() {
+  const prefix =
+    "sb-" +
+    new URL(NEXTWORK_SUPABASE_URL).hostname.split(".")[0] +
+    "-auth-token";
+  for (const storage of [localStorage, sessionStorage])
+    for (let i = storage.length - 1; i >= 0; i--) {
+      const key = storage.key(i);
+      if (
+        key &&
+        (key === prefix ||
+          key.startsWith(prefix + "-") ||
+          key.startsWith(prefix + "."))
+      )
+        storage.removeItem(key);
+    }
+}
+async function endAccountSession() {
+  Account.sessionEpoch++;
+  try {
+    await Account.client?.auth.signOut({ scope: "local" });
+  } catch {
+  } finally {
+    removeSavedAuthSession();
+    Account.recovery = false;
+    activateWorkspace(null);
+    await connectWorkspace(null);
+  }
 }

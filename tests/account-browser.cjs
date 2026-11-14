@@ -5,6 +5,8 @@ const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 const rows = new Map(),
   requests = [];
 let failStorage = false;
+let failLogout = false;
+const deletedUsers = new Set();
 const users = {};
 for (const [email, id, name] of [
   ["alice@example.com", "00000000-0000-0000-0000-000000000001", "Alice"],
@@ -60,7 +62,11 @@ async function setup(browser) {
         });
       if (url.pathname.endsWith("/token")) {
         const user = users[body.email];
-        if (!user || body.password !== "valid-password")
+        if (
+          !user ||
+          deletedUsers.has(user.id) ||
+          body.password !== "valid-password"
+        )
           return reply(
             { msg: "Invalid login credentials", code: "invalid_credentials" },
             400,
@@ -78,6 +84,8 @@ async function setup(browser) {
           user: { ...users["alice@example.com"], email: body.email },
           session: null,
         });
+      if (url.pathname.endsWith("/logout") && failLogout)
+        return reply({ msg: "Logout temporarily unavailable" }, 400);
       if (url.pathname.endsWith("/recover") || url.pathname.endsWith("/logout"))
         return reply({});
       if (url.pathname.endsWith("/organization_listings")) return reply([]);
@@ -99,10 +107,16 @@ async function setup(browser) {
         assert(user);
         assert(!body?.user_id);
         rows.delete(user.id);
+        deletedUsers.add(user.id);
         return reply(null);
       }
       if (url.pathname.endsWith("/user"))
-        return reply(user || {}, user ? 200 : 401);
+        return reply(
+          user && !deletedUsers.has(user.id)
+            ? user
+            : { msg: "User not found", code: "user_not_found" },
+          user && !deletedUsers.has(user.id) ? 200 : 404,
+        );
       if (url.pathname.endsWith("/account_workspaces")) {
         assert(user, "Database request must have authenticated bearer");
         if (failStorage) return reply({ code: "offline" }, 503);
@@ -336,6 +350,7 @@ async function login(page, email) {
     await context.close();
     ({ context, page, errors } = await setup(browser));
     await login(page, "bob@example.com");
+    failLogout = true;
     await page
       .getByRole("button", { name: "Delete account", exact: true })
       .click();
@@ -353,6 +368,49 @@ async function login(page, email) {
     await page
       .getByText("Your account has been deleted.", { exact: true })
       .waitFor();
+    assert.equal(
+      await page.evaluate(() =>
+        localStorage.getItem("sb-zkoqafidgromlbvczwzy-auth-token"),
+      ),
+      null,
+    );
+    await page.reload();
+    await page.getByRole("heading", { name: "Welcome back." }).waitFor();
+    assert.equal(await page.evaluate(() => Account.user), null);
+    assert.deepEqual(errors, []);
+    await context.close();
+    // Deleted users must never return through a cached, unexpired Supabase JWT.
+    ({ context, page, errors } = await setup(browser));
+    await context.addInitScript(
+      ({ user, accessToken }) =>
+        localStorage.setItem(
+          "sb-zkoqafidgromlbvczwzy-auth-token",
+          JSON.stringify({
+            user,
+            access_token: accessToken,
+            refresh_token: "stale-refresh",
+            expires_in: 3600,
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            token_type: "bearer",
+          }),
+        ),
+      {
+        user: users["bob@example.com"],
+        accessToken: token(users["bob@example.com"]),
+      },
+    );
+    await page.goto(base + "/#profile");
+    await page.waitForURL("**/#login");
+    assert.equal(await page.evaluate(() => Account.user), null);
+    assert.equal(
+      await page.evaluate(() =>
+        localStorage.getItem("sb-zkoqafidgromlbvczwzy-auth-token"),
+      ),
+      null,
+    );
+    await page.reload();
+    await page.getByRole("heading", { name: "Welcome back." }).waitFor();
+    assert.equal(await page.evaluate(() => Account.user), null);
     assert.deepEqual(errors, []);
     await context.close();
     console.log(
