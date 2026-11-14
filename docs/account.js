@@ -1,36 +1,53 @@
 // Public browser configuration. Never put a Supabase secret/service_role key here.
 const NEXTWORK_SUPABASE_URL = "https://zkoqafidgromlbvczwzy.supabase.co";
 const NEXTWORK_SUPABASE_KEY = "sb_publishable_PdLwKMARqX1Lxxp3XAuhbQ_F0T2-Kye";
-// Workspace caches are separated by authenticated user; guest data is never silently adopted.
+// Supabase persists the login session. Account content is fetched from the database, never from disk.
 let workspaceOwner = null;
-function scopedStorage(storage) {
+function memoryStorage() {
+  const values = new Map();
   return {
     getItem(key) {
-      return storage.getItem(
-        workspaceOwner ? "nextwork:" + workspaceOwner + ":" + key : key,
-      );
+      return values.has(key) ? values.get(key) : null;
     },
     setItem(key, value) {
-      const old = this.getItem(key);
-      storage.setItem(
-        workspaceOwner ? "nextwork:" + workspaceOwner + ":" + key : key,
-        value,
-      );
-      if (old !== String(value) && typeof workspaceChanged === "function")
-        workspaceChanged(key, String(value));
+      const text = String(value),
+        old = this.getItem(key);
+      values.set(key, text);
+      if (old !== text && typeof workspaceChanged === "function")
+        workspaceChanged(key);
     },
     removeItem(key) {
-      const old = this.getItem(key);
-      storage.removeItem(
-        workspaceOwner ? "nextwork:" + workspaceOwner + ":" + key : key,
-      );
-      if (old !== null && typeof workspaceChanged === "function")
-        workspaceChanged(key, "");
+      const existed = values.delete(key);
+      if (existed && typeof workspaceChanged === "function")
+        workspaceChanged(key);
+    },
+    clear() {
+      values.clear();
     },
   };
 }
-const workspaceLocal = scopedStorage(localStorage),
-  workspaceSession = scopedStorage(sessionStorage);
+const workspaceLocal = memoryStorage(),
+  workspaceSession = memoryStorage();
+function clearWorkspaceMemory() {
+  workspaceLocal.clear();
+  workspaceSession.clear();
+}
+function clearLegacyWorkspaceStorage() {
+  for (const storage of [localStorage, sessionStorage]) {
+    for (let i = storage.length - 1; i >= 0; i--) {
+      const key = storage.key(i);
+      if (
+        key &&
+        (key.startsWith("nextwork:") ||
+          key.startsWith("proof-") ||
+          key.startsWith("lp-") ||
+          key === "nextwork-growth")
+      )
+        storage.removeItem(key);
+    }
+  }
+}
+
 const Account = {
   client: null,
   user: null,
@@ -58,12 +75,12 @@ function accountPanel() {
   if (!Account.ready)
     return '<section class="panel account-panel" role="status">Loading your account…</section>';
   if (!Account.user)
-    return `<section class="account-panel account-guest"><div><span class="account-eyebrow">YOUR NEXTWORK ACCOUNT</span><h2>Your next chapter, all in one place.</h2><p>Save your profile, keep your resume in sync, and make your next connection.</p></div><div class="account-guest-actions">${linkedinButton("Log in with LinkedIn", "oauth")}<a class="account-button" href="#login">Log in with email</a><p>New here? <a href="#signup">Create an account</a></p></div>${accountFeedback()}</section>`;
+    return `<section class="account-panel account-guest"><div><span class="account-eyebrow">YOUR NEXTWORK ACCOUNT</span><h2>Your next chapter, all in one place.</h2><p>Save your profile, save your resume, and make your next connection.</p></div><div class="account-guest-actions">${linkedinButton("Log in with LinkedIn", "oauth")}<a class="account-button" href="#login">Log in with email</a><p>New here? <a href="#signup">Create an account</a></p></div>${accountFeedback()}</section>`;
   const linked = Account.user.identities?.some(
     (i) => i.provider === "linkedin_oidc",
   );
   const email = Account.user.email || "LinkedIn member";
-  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>Manage how you log in to Nextwork.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-identity"><span class="account-monogram">${profileInitials(graduateProfile().name || email)}</span><div><strong>${esc(graduateProfile().name || "Your Nextwork account")}</strong><span>${esc(email)}</span></div></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}${guestProfileAvailable() ? '<div class="account-import"><p>A profile is saved in the guest workspace on this device.</p><button class="account-text-button" data-auth-action="import">Import guest profile into empty fields</button></div>' : ""}<div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
+  return `<section class="account-panel"><div class="account-heading"><div><span class="account-eyebrow">YOUR ACCOUNT</span><h2>Account & connections</h2><p>Manage how you log in as ${esc(email)}.</p></div><span class="account-private">${icon("check", 14)} Private account</span></div><div class="account-setting"><div class="account-provider-icon">${linkedinIcon()}</div><div class="account-setting-copy"><h3>LinkedIn</h3><p>${linked ? "Your LinkedIn account is connected." : "Connect your professional profile to this account."}</p></div>${linked ? `<span class="account-connected">${icon("check", 15)} Connected</span>` : linkedinButton("Connect LinkedIn", "link")}</div><div class="account-setting"><div class="account-setting-icon">${icon("settings", 21)}</div><div class="account-setting-copy"><h3>Password</h3><p>Keep your account secure with a unique password.</p></div><a class="account-button" href="#password">Change password</a></div>${accountFeedback()}${typeof backendPanel === "function" ? backendPanel() : ""}<div class="account-footer"><span>You’re in control of your connections.</span><button class="account-signout" data-auth-action="signout">Sign out ${icon("arrow", 15)}</button></div></section>`;
 }
 function accountFeedback() {
   return `<p id="auth-feedback" role="status" class="${Account.error ? "review-error" : "resume-hint"}">${esc(Account.error || Account.message)}</p>`;
@@ -130,7 +147,6 @@ async function runAuth(action) {
       );
     await action();
   } catch (error) {
-    if (typeof Backend !== "undefined") Backend.paused = false;
     authFeedback(authError(error));
   } finally {
     Account.busy = false;
@@ -173,27 +189,18 @@ function bindAccount() {
               }),
             );
           }
-          if (action === "sync" || action === "cloud" || action === "device") {
-            await syncWorkspace(false, action === "sync" ? null : action);
+          if (action === "reload") {
+            await connectWorkspace(Account.user);
             render();
           }
           if (action === "signout") {
-            if (backendDirty()) {
-              await syncWorkspace();
-              if (backendDirty())
-                Account.message =
-                  "Signed out. Unsynced changes remain on this device for your next sign-in.";
-            }
-            Backend.paused = true;
+            if (Backend.ready && (Backend.pending.size || Backend.task))
+              await saveWorkspace();
             checkAuthResult(
               await Account.client.auth.signOut({ scope: "local" }),
             );
             Account.recovery = false;
             location.hash = "login";
-          }
-          if (action === "import") {
-            importGuestProfile();
-            render();
           }
         })),
   );
@@ -251,42 +258,6 @@ function bindAccount() {
       });
     };
 }
-function guestProfileAvailable() {
-  try {
-    const p = JSON.parse(localStorage.getItem("proof-profile") || "{}");
-    return (
-      Account.user &&
-      p.name &&
-      p.email !== "jordan.rivera@example.com" &&
-      !String(p.education || "").includes("(fictional)")
-    );
-  } catch {
-    return false;
-  }
-}
-function importGuestProfile() {
-  if (!guestProfileAvailable()) return;
-  const guest = JSON.parse(localStorage.getItem("proof-profile") || "{}"),
-    current = graduateProfile();
-  for (const key of [
-    "name",
-    "education",
-    "degree",
-    "graduation",
-    "location",
-    "field",
-    "role",
-    "skills",
-    "availability",
-    "engagement",
-    "workstyle",
-    "portfolio",
-    "bio",
-  ])
-    if (!current[key] && guest[key]) current[key] = guest[key];
-  workspaceLocal.setItem("proof-profile", JSON.stringify(current));
-  Account.message = "Guest profile imported into empty fields.";
-}
 function activateWorkspace(user) {
   if (typeof resetOrganizationWorkspace === 'function') resetOrganizationWorkspace();
   const owner = user?.id || null,
@@ -309,29 +280,9 @@ function activateWorkspace(user) {
       ? "job"
       : "general";
   }
-  if (user) {
-    const p = graduateProfile();
-    let modified = false;
-    const metadata = user.user_metadata || {};
-    for (const [key, value] of [
-      ["name", metadata.full_name || metadata.name],
-      ["email", user.email],
-    ])
-      if (!p[key] && value) {
-        p[key] = value;
-        modified = true;
-      }
-    if (modified)
-      localStorage.setItem(
-        "nextwork:" + workspaceOwner + ":proof-profile",
-        JSON.stringify(p),
-      );
-  } else {
-    saved = JSON.parse(workspaceLocal.getItem("lp-saved") || "[]");
-    applications = JSON.parse(workspaceLocal.getItem("lp-apps") || "[]");
-  }
 }
 async function initializeAccount() {
+  clearLegacyWorkspaceStorage();
   const entryURL = new URL(location.href);
   try {
     if (!window.supabase?.createClient)
@@ -340,6 +291,13 @@ async function initializeAccount() {
       NEXTWORK_SUPABASE_URL,
       NEXTWORK_SUPABASE_KEY,
       {
+        global: {
+          fetch: (input, init) =>
+            fetch(input, {
+              ...init,
+              signal: init?.signal || AbortSignal.timeout(15000),
+            }),
+        },
         auth: {
           flowType: "pkce",
           detectSessionInUrl: true,
@@ -414,9 +372,9 @@ function publicPage(page) {
 function requireAccount(message = "Log in to access your Nextwork workspace.") {
   if (typeof Account === "undefined" || Account.user) return true;
   Account.message = message;
-  const area = document.querySelector('#app');
-  if (area) area.textContent = '';
-  document.body.classList.remove('messages-page');
+  const area = document.querySelector("#app");
+  if (area) area.textContent = "";
+  document.body.classList.remove("messages-page");
   closeModal();
   location.hash = "login";
   return false;
@@ -430,5 +388,6 @@ function updateAccountChrome(page) {
       ? "Workspace <span>/</span> Your next chapter"
       : '<a class="guest-brand" href="#home"><img src="nextwork-icon.png" alt=""><span>nextwork</span></a>';
 }
+
 
 function postLoginRoute(){const next=sessionStorage.getItem('nextwork-auth-intent');sessionStorage.removeItem('nextwork-auth-intent');return next==='organization'?'organization':'profile'}

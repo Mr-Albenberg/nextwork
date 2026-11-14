@@ -91,23 +91,46 @@ async function setup(browser) {
         return reply({
           url: "https://www.linkedin.com/oauth/v2/authorization?test-link=true",
         });
+      if (url.pathname.endsWith("/rpc/delete_my_account")) {
+        assert(user);
+        assert(!body?.user_id);
+        rows.delete(user.id);
+        return reply(null);
+      }
       if (url.pathname.endsWith("/user"))
         return reply(user || {}, user ? 200 : 401);
       if (url.pathname.endsWith("/account_workspaces")) {
         assert(user, "Database request must have authenticated bearer");
         if (failStorage) return reply({ code: "offline" }, 503);
-        if (method === "GET")
-          return reply(rows.has(user.id) ? [rows.get(user.id)] : []);
-        assert.equal(body.user_id, user.id);
+        if (method === "GET") {
+          const row = rows.get(user.id);
+          return request.headers().accept?.includes("vnd.pgrst.object")
+            ? reply(row || { code: "PGRST116" }, row ? 200 : 406)
+            : reply(row ? [row] : []);
+        }
+        if (body.user_id) assert.equal(body.user_id, user.id);
         const old = rows.get(user.id);
         if (
           method === "PATCH" &&
           url.searchParams.get("version") !== "eq." + old.version
         )
-          return reply([]);
-        const row = { ...body, version: (old?.version || 0) + 1 };
+          return reply({ code: "PGRST116", message: "0 rows" }, 406);
+        const row = {
+          saved_projects: [],
+          application_drafts: [],
+          resume: "",
+          ...old,
+          ...body,
+          user_id: user.id,
+          version: (old?.version || 0) + 1,
+        };
         rows.set(user.id, row);
-        return reply({ version: row.version }, method === "POST" ? 201 : 200);
+        return reply(
+          url.searchParams.get("select") === "*"
+            ? row
+            : { version: row.version },
+          method === "POST" ? 201 : 200,
+        );
       }
       return reply({});
     },
@@ -122,12 +145,7 @@ async function login(page, email) {
     .getByRole("button", { name: "Log in with email", exact: true })
     .click();
   await page.getByRole("heading", { name: "Account & connections" }).waitFor();
-  await page
-    .getByText(
-      "Your profile, saved projects, application drafts, and resume are synced.",
-      { exact: true },
-    )
-    .waitFor();
+  await page.waitForFunction(() => Account.ready && Backend.ready);
 }
 (async () => {
   const browser = await chromium.launch({
@@ -207,10 +225,7 @@ async function login(page, email) {
     await page.getByLabel("College or university").fill("Real University");
     await page.getByRole("button", { name: "Save & continue" }).click();
     await page.waitForFunction(
-      () =>
-        !localStorage.getItem(
-          "nextwork:00000000-0000-0000-0000-000000000001:sync-dirty",
-        ),
+      () => Backend.pending.size === 0 && !Backend.saving,
     );
     assert.equal(
       rows.get(users["alice@example.com"].id).profile.name,
@@ -223,10 +238,7 @@ async function login(page, email) {
         "Alice private resume: built React and JavaScript projects for a university team. Developed accessible interfaces, tested components, and wrote documentation.",
       );
     await page.waitForFunction(
-      () =>
-        !localStorage.getItem(
-          "nextwork:00000000-0000-0000-0000-000000000001:sync-dirty",
-        ),
+      () => Backend.pending.size === 0 && !Backend.saving,
     );
     assert(
       rows.get(users["alice@example.com"].id).resume.includes("Alice private"),
@@ -253,42 +265,54 @@ async function login(page, email) {
         "Alice private",
       ),
     );
-    // Offline edits survive sign-out and upload on the next sign-in.
+    // A failed save locks the workspace; no offline profile or resume is retained.
     await page.goto(base + "/#profile");
     failStorage = true;
-    await page.getByLabel("Full name").fill("Alice Offline");
+    await page.getByLabel("Full name").fill("Unsaved name");
     await page.evaluate(() => saveProfileDraft());
-    await page.waitForFunction(() => Backend.error.includes("Could not sync"));
-    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await page
+      .getByRole("heading", { name: "We couldn’t open your workspace." })
+      .waitFor();
+    assert.equal(await page.getByLabel("Full name").count(), 0);
+    assert.equal(
+      await page.evaluate(() => workspaceLocal.getItem("proof-profile")),
+      null,
+    );
+    assert.equal(
+      rows.get(users["alice@example.com"].id).profile.name,
+      "Alice Updated",
+    );
+    await page.getByRole("button", { name: "Log out", exact: true }).click();
     await page.waitForURL("**/#login");
     failStorage = false;
     await login(page, "alice@example.com");
     assert.equal(
       await page.getByLabel("Full name").inputValue(),
-      "Alice Offline",
+      "Alice Updated",
     );
-    // A newer cloud revision must not silently overwrite pending device edits.
+    // Another session's unrelated columns are preserved by a field-scoped save.
     const cloud = rows.get(users["alice@example.com"].id);
     rows.set(cloud.user_id, {
       ...cloud,
       version: cloud.version + 1,
-      profile: { ...cloud.profile, name: "Alice Cloud" },
+      saved_projects: [7],
     });
-    await page.getByLabel("Full name").fill("Alice Device");
+    await page.getByLabel("Full name").fill("Alice Current");
     await page.evaluate(() => saveProfileDraft());
-    await page.waitForFunction(() => Backend.conflict);
-    assert.equal(
-      await page.getByLabel("Full name").inputValue(),
-      "Alice Device",
+    await page.waitForFunction(
+      () => Backend.pending.size === 0 && !Backend.saving,
     );
-    await page.getByRole("button", { name: "Sync now", exact: true }).click();
-    await page
-      .getByRole("button", { name: "Use account copy", exact: true })
-      .click();
-    await page.waitForFunction(() => !Backend.conflict);
+    assert.deepEqual(rows.get(cloud.user_id).saved_projects, [7]);
+    assert.equal(rows.get(cloud.user_id).profile.name, "Alice Current");
     assert.equal(
-      await page.getByLabel("Full name").inputValue(),
-      "Alice Cloud",
+      await page.getByRole("button", { name: "Sync now", exact: true }).count(),
+      0,
+    );
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Use account copy", exact: true })
+        .count(),
+      0,
     );
     await page.goto(base + "/#password");
     await page.getByLabel("New password", { exact: true }).fill("new-password");
@@ -307,7 +331,7 @@ async function login(page, email) {
     assert.deepEqual(errors, []);
     await context.close();
     console.log(
-      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, cloud profile/resume restore, two-user isolation, offline recovery, explicit conflict resolution, password validation and signed-in LinkedIn linking passed (mocked Supabase).",
+      "Browser: no demo identity, every private workspace route gated, public marketing access, signup confirmation, reset request, email login, cloud profile/resume restore, two-user isolation, server-only storage, failed-save lockout, concurrent column updates, password validation and signed-in LinkedIn linking passed (mocked Supabase).",
     );
   } finally {
     await browser.close();
