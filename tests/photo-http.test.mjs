@@ -22,4 +22,7 @@ const streamed=new ReadableStream({start(controller){controller.enqueue(new Text
 result=await handler(new Request(url,{method:'POST',duplex:'half',headers:{Origin:origin,Authorization:'Bearer verified','Content-Type':'application/json'},body:streamed}));assert.equal(result.status,413);
 const failed=edgeHandler({auth:async()=>({user:{id},authorization:'Bearer verified'}),storeFactory:()=>{throw Error('sensitive-server-key');}});
 result=await failed(request('GET'));assert.equal(result.status,503);assert(!(await result.text()).includes('sensitive-server-key'));
+const quotaBlocked = edgeHandler({ auth: async () => ({user:{id},authorization:'Bearer verified'}), storeFactory: () => ({ ...store, async consume() { throw new Error('quota unavailable'); } }) });
+result = await quotaBlocked(request('GET'));assert.equal(result.status,503);
+result = await quotaBlocked(new Request(url+'?account=true',{method:'DELETE',headers:{Origin:origin,Authorization:'Bearer verified'}}));assert.equal(result.status,200);assert.equal(removed,id);
 console.log('Edge HTTP authentication, CORS, ownership, quotas, streamed body bounds and sanitized failures passed.');

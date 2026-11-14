@@ -34,7 +34,9 @@ export function edgeHandler({ auth = authenticate, storeFactory = createPhotoSto
         try {req.body = JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));} catch {throw new PhotoError('Invalid photo request.');}
       }
       const store = storeFactory();
-      await store.consume(identity.authorization, 'request');
+      // Account deletion must still work after the member exhausts viewing/upload quotas.
+      if (request.method !== 'DELETE' || req.query.account !== 'true')
+        await store.consume(identity.authorization, 'request');
       await handlerFor({ auth: async () => identity, storeFactory: () => store, fetcher })(req,res);
     } catch(error) {
       status = error instanceof PhotoError ? error.status : 503;
