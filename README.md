@@ -51,3 +51,7 @@ The `docs/` folder mirrors the static site. Open repository **Settings → Pages
 https://mr-albenberg.github.io/symmetrical-waffle/
 
 This URL only works after Pages is enabled and its deployment finishes. GitHub Pages serves the static client; live AI calls use your configured Vercel endpoint. When editing static files, update `docs/` alongside `dist/`.
+
+### Backend readiness
+
+`GET /api/resume` returns a non-sensitive readiness check with `aiConfigured`. This confirms whether a server key is set, not whether the provider account has credit. The client checks this endpoint and enables the AI review selector when configured. Actual resumes are accepted only via POST. Vercel functions are configured with a 60-second maximum duration to accommodate review generation.

@@ -2,6 +2,7 @@
 const buckets=new Map();
 module.exports=async function handler(req,res){
 res.setHeader('Cache-Control','no-store');const allowed=process.env.ALLOWED_ORIGIN||'https://mr-albenberg.github.io';const origin=req.headers.origin;if(origin===allowed){res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');res.setHeader('Access-Control-Allow-Headers','Content-Type');res.setHeader('Access-Control-Allow-Methods','POST, OPTIONS');}
+if(req.method==='GET')return res.status(200).json({service:'prooflane-resume',aiConfigured:Boolean(process.env.OPENAI_API_KEY),storage:'browser-local',version:1});
 if(req.method==='OPTIONS')return res.status(204).end();if(req.method!=='POST')return res.status(405).json({error:'Use POST.'});
 if(!process.env.OPENAI_API_KEY)return res.status(503).json({error:'AI review is not configured. Use the local review, or ask the site owner to configure OPENAI_API_KEY.'});
 const ip=String(req.headers['x-forwarded-for']||'unknown').split(',')[0],now=Date.now();for(const[k,v]of buckets)if(now-v.start>3600000)buckets.delete(k);const b=buckets.get(ip)||{start:now,count:0};if(++b.count>10)return res.status(429).json({error:'Review limit reached. Try again later.'});buckets.set(ip,b);

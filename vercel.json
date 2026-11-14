@@ -1,1 +1,1 @@
-{"version":2,"framework":null,"buildCommand":null,"outputDirectory":"dist","cleanUrls":true}
+{"version":2,"framework":null,"buildCommand":null,"outputDirectory":"dist","cleanUrls":true,"functions":{"api/resume.js":{"maxDuration":60}}}
