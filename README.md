@@ -236,3 +236,8 @@ Editable/source brand PNGs live in `assets/brand/`. Published assets live in `di
 ## LinkedIn login convenience
 
 Both login and linking pass `enable_extended_login=true` so LinkedIn can offer its supported Google, Apple, and passkey login options. Nextwork retains and refreshes its Supabase session instead of sending returning users through LinkedIn on each visit. LinkedIn can reuse an existing browser session and prior consent; it still controls authentication, consent, and reauthorization. The flag changes login options, not API permissions. Standard OIDC access supplies basic identity data, not full career history. Supabase session refresh is separate from refreshing LinkedIn provider access tokens.
+
+
+## Signed-in overview and public homepage
+
+`#overview` is the private dashboard: profile completion, saved project count, application drafts, next steps, and saved opportunities use actual account data. Signed-in root visits and standard logins open Overview; organization-intent logins still open the organization portal. `#home` remains the public marketing page. When signed in, its top navigation shows the member's account and an Open app link; signup calls to action switch to opening the workspace. Logged-out visitors see login/registration controls and cannot open Overview.

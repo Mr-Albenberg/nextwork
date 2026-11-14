@@ -244,6 +244,23 @@ async function login(page, email) {
     await page.goto(base + "/#overview");
     await page.getByRole("heading", { name: "Your next steps" }).waitFor();
     assert.equal(await page.locator("#landing").count(), 0);
+    await page.goto(base + "/#home");
+    await page
+      .locator(".landing-nav-actions")
+      .getByRole("link", { name: "Open app", exact: true })
+      .waitFor();
+    assert.equal(
+      await page
+        .locator(".landing-nav-actions")
+        .getByRole("link", { name: "Log in", exact: true })
+        .count(),
+      0,
+    );
+    await page
+      .locator(".landing-nav-actions")
+      .getByRole("link", { name: "Open app", exact: true })
+      .click();
+    await page.waitForURL("**/#overview");
     await page.goto(base + "/#profile");
 
     assert.equal(await page.getByLabel("Full name").inputValue(), "Alice");
