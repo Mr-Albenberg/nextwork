@@ -156,7 +156,7 @@ body[data-auth="guest"] .header-profile-link{align-items:center;justify-content:
 body[data-auth="member"] .shell>.workspace-header{position:fixed;inset:0 0 auto;z-index:40;width:100%;height:var(--toolbar-height);min-height:var(--toolbar-height);padding:0 24px;flex-wrap:nowrap;gap:16px;background:var(--theme-surface,#fff);border-bottom:1px solid var(--line)}
 .workspace-header .brand{padding:0;font-size:23px;gap:8px;white-space:nowrap;letter-spacing:-1.1px}
 .workspace-header .brand-mark{width:29px;height:29px;border-radius:7px}
-body[data-auth="member"]>aside{top:var(--toolbar-height);padding-top:12px}
+body[data-auth="member"]>aside{top:var(--toolbar-height);padding-block:30px}
 body[data-auth="member"]>.shell{padding-top:var(--toolbar-height)}
 .workspace-header .header-right{margin-left:auto;gap:8px}
 .workspace-header .theme-control,.workspace-header .bell{height:36px;min-height:36px;border-radius:8px}
@@ -165,10 +165,12 @@ body[data-auth="member"]>.shell{padding-top:var(--toolbar-height)}
 .workspace-header .header-account .avatar{width:27px;height:27px}
 body[data-auth="guest"] .shell>.workspace-header,body[data-auth="loading"] .shell>.workspace-header{width:100%;max-width:none;height:var(--toolbar-height);min-height:var(--toolbar-height);padding:0 24px;margin:0;flex-wrap:nowrap;gap:12px;background:var(--theme-surface,#fff);border-bottom:1px solid var(--line)}
 .workspace-header .brand:focus-visible{outline:2px solid var(--theme-accent,#1d3be0);outline-offset:4px;border-radius:4px}
-@media(max-width:760px){body[data-auth="member"]>aside{top:auto;margin-top:var(--toolbar-height);padding-top:8px}body[data-auth="member"]>.shell{padding-top:0}body[data-auth="member"] .shell>.workspace-header,body[data-auth="guest"] .shell>.workspace-header,body[data-auth="loading"] .shell>.workspace-header{padding:0 16px}.workspace-header .header-right{gap:6px}.workspace-header .bell{width:36px}.workspace-header .brand{font-size:21px}}
+@media(max-width:760px){body[data-auth="member"]>aside{top:auto;margin-top:var(--toolbar-height);padding-block:8px}body[data-auth="member"]>.shell{padding-top:0}body[data-auth="member"] .shell>.workspace-header,body[data-auth="guest"] .shell>.workspace-header,body[data-auth="loading"] .shell>.workspace-header{padding:0 16px}.workspace-header .header-right{gap:6px}.workspace-header .bell{width:36px}.workspace-header .brand{font-size:21px}}
 @media(max-width:400px){.workspace-header .brand{font-size:19px;gap:6px}.workspace-header .brand-mark{width:26px;height:26px}.workspace-header .header-account>span:not(.avatar){display:none}.workspace-header .header-account{padding:3px;width:36px}.workspace-header .header-right{gap:5px}}
 body[data-auth="member"]:has(#landing)>.shell{padding-top:0}
 
 /* Keep navigation close to the masthead after moving the logo. */
 body[data-auth="member"]>aside .nav-caption:first-child{margin-top:0}
 @media(max-width:760px){body[data-auth="member"]>aside>nav{margin-top:0}}
+
+@media(min-width:761px) and (max-width:1000px){body[data-auth="member"]>aside{padding-block:26px}}
