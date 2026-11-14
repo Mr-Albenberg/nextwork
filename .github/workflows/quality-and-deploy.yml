@@ -63,5 +63,6 @@ jobs:
           fi
       - name: Configure AI runtime and deploy through the Vercel project API
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_FREE_TIER_CONFIRMED: ${{ vars.GEMINI_FREE_TIER_CONFIRMED }}
         run: node .github/scripts/vercel-deploy.cjs

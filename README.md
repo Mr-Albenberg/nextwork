@@ -40,30 +40,39 @@ Select Check my fit or choose a listing in Resume Studio. The listing's skills, 
 
 Upload PDF, DOCX, or TXT (5 MB max), or paste text. Pinned PDF.js and Mammoth parsers load from a CDN and extract text in the browser. Scanned PDFs need OCR; users can paste their text instead. Review extracted text before sending it.
 
-Quick review runs on the device. Contextual AI review requires explicit consent and sends resume/job text to the configured Vercel server and OpenAI. The server uses structured JSON output and evaluates the listing rubric and field foundations separately. Each credited criterion must cite a contiguous resume excerpt. The server verifies citations, computes weighted scores, and drops rewrites whose original quote is absent. AI evidence can recognize transferable work more effectively than the quick keyword check, so its detailed scores can differ from marketplace cards.
+Quick review runs on the device. Optional free-tier Gemini review requires explicit consent and sends resume/job text to the configured Vercel server and Google. Free-tier content may be used to improve Google products; remove sensitive personal information before sending it. The server uses structured JSON output and evaluates the listing rubric and field foundations separately. Each credited criterion must cite a contiguous resume excerpt. The server verifies citations, computes weighted scores, and drops rewrites whose original quote is absent. AI evidence can recognize transferable work more effectively than the quick keyword check, so its detailed scores can differ from marketplace cards.
 
 The API has input limits, a timeout, no-store response headers, and a best-effort per-instance rate limit. Public scale still needs authentication and durable rate limits. There is no server-side resume database in this implementation.
 
-### Environment variables
+### Free-only AI policy and setup
 
-- `OPENAI_API_KEY`: server-side OpenAI key with API billing enabled.
-- `OPENAI_MODEL`: optional; defaults to `gpt-4.1-mini`.
-- `ALLOWED_ORIGIN`: optional CORS origin; defaults to `https://mr-albenberg.github.io`. Same-origin Vercel requests also work.
+The default review is a free local calculation: no API key, credits, billing, or external request. The server contains no OpenAI route, paid model fallback, automatic upgrades, search grounding, or other chargeable tools. It uses the fixed `gemini-2.5-flash-lite` model only after an owner confirms a Free Tier project. Quota, network, model, and provider errors return a clearly labeled free text-check report instead of calling another provider. Old OpenAI environment variables are removed from Vercel by Actions and old GitHub OpenAI secrets are ignored.
 
-`GET /api/resume` returns only readiness information, including `aiConfigured`. It does not test billing or validate the key. `POST /api/resume` accepts `resume`, optional `job`, optional `listingId`, and `field`. Listing IDs select server-owned rubric definitions. Responses include coaching feedback and evidence-specific improvements. End-to-end provider verification should use synthetic resume data and requires API billing.
+Optional remote setup:
+
+1. Create an API key in https://aistudio.google.com/api-keys for a project showing **Free Tier**. Do not attach billing or upgrade the project. Check status at https://aistudio.google.com/projects.
+2. Add it to encrypted GitHub repository Actions secrets as `GEMINI_API_KEY`.
+3. After confirming no billing is attached, add the repository Actions **variable** `GEMINI_FREE_TIER_CONFIRMED` with value `true`, then run the deployment workflow or push a change.
+
+The API key cannot reveal the project's billing status to this app. The confirmation flag is an owner attestation, not independent billing verification. Keep the project unbilled; if you change its billing status, remove the confirmation flag to disable remote AI. Without both a key and confirmation, no remote AI call occurs. Free-tier availability, eligibility, model availability, and quotas can change. Free local review remains available. There is no requirement to buy credits.
+
+Server environment variables: `GEMINI_API_KEY`, `GEMINI_FREE_TIER_CONFIRMED`, and optional `ALLOWED_ORIGIN` (defaults to `https://mr-albenberg.github.io`). Same-origin Vercel calls work too. Model selection is fixed to prevent accidental switching to a paid-only model.
+
+`GET /api/resume` reports readiness and `costPolicy: free-only`. `POST /api/resume` accepts resume text, optional job description, listing ID, and field. A missing free-tier configuration returns free heuristic feedback without contacting an AI provider. The Gemini adapter is tested with mocked provider responses; live AI requires the owner's free-tier key.
+
+Official references: https://ai.google.dev/gemini-api/docs/pricing and https://ai.google.dev/gemini-api/docs/billing.
 
 ## GitHub Actions and deployment
 
-The workflow checks syntax, tests analysis/matching/profile behavior, and verifies the Pages mirror. On a push to main, or a manual run with deployment selected, it deploys the verified Vercel project after checks.
+Actions checks syntax, tests analysis/matching/profile behavior, verifies the Pages mirror, and deploys the checked commit through the Vercel project API on pushes to main (or manual deployment).
 
-Encrypted repository Actions secrets:
+Encrypted Actions secrets: `VERCEL_TOKEN` for deployment and optional `GEMINI_API_KEY` for free-tier AI. The free-tier confirmation is a repository Actions variable, not a secret. Verified team/project IDs are in the workflow. The workflow copies the Gemini key without logging it, applies the confirmation flag, and removes unused OpenAI runtime settings. Profiles and end-user login records do not belong in Actions; they need a runtime authentication/database service.
 
-- `VERCEL_TOKEN`: deployment access for the owning team.
-- `OPENAI_API_KEY`: when set, Actions securely copies it to Vercel's production environment before deployment.
+Secret settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions
 
-The verified team and project IDs are configured in the workflow; they are not secret credentials. No credentials belong in source code, chat, logs, artifacts, or client scripts. GitHub Actions stores deployment secrets, not end-user login records. The workflow calls the Vercel project API, sets the AI environment variable without logging it, and deploys the exact checked GitHub commit. The existing Vercel Git integration can also deploy each push; the Actions deployment ensures the runtime secret is applied.
+Variable settings: https://github.com/Mr-Albenberg/symmetrical-waffle/settings/variables/actions
 
-Repository secret administration is not available to the current coding connection. Owners can manage secrets at https://github.com/Mr-Albenberg/symmetrical-waffle/settings/secrets/actions. To set the AI key directly, use Vercel project Settings → Environment Variables → Production, then redeploy.
+Free AI does not guarantee unlimited free infrastructure. Vercel and GitHub hosting/execution are governed by their account plans and limits; this change does not purchase or upgrade either service.
 
 ## Remaining production work
 
