@@ -101,3 +101,16 @@ The primary navigation now focuses on Find work, Applications, Messages, My prof
 Messages supports creator conversations from project details, a searchable people directory (14 creators and 3 graduates), profile previews, related-project panels, searchable inboxes, saved/archived threads, unread markers, outgoing-message deletion, quick introduction prompts, Enter/Shift+Enter composition, and linked project sharing. Threads persist on this device. Existing messages are not forwarded to any external service, and no live presence or delivery receipts are simulated.
 
 Repeated prototype notices are removed from the main journey. Workspace settings contains the single explanation of local storage, simulated communications, sample-profile controls, and free AI behavior. This remains a browser-local prototype rather than a multi-user messaging backend.
+
+## Public homepage and proposed plans
+
+The root URL now opens a public homepage (`#home`) with the “Turn your degree into proof” hook, an explanation of the project journey, an actual catalog spotlight, evidence-matching example, pricing, FAQs, and free-start calls to action. `#pricing` opens the same page at pricing. The workspace remains at `#explore`, with an Overview link back to the homepage.
+
+Proposed graduate plans:
+
+- **Free — $0/month:** graduate profile, browsing/applications, messaging, core resume compatibility and highlighted evidence, saved projects, skills checks, and starter career guidance.
+- **Premium — $9/month or $72/year ($6/month equivalent):** additional career organization and portfolio tools. Annual billing saves $36 against 12 monthly payments (approximately 33%). Browsing/applying and project ranking are never paywalled or boosted by payment.
+
+These are proposed prices, not live subscriptions. No checkout, card collection, payment processor, charges, subscription entitlements, or cancellation system is connected. The price switch and Premium preview are interactive, but do not enroll the user in a paid plan.
+
+The working `#premium` preview includes named resume versions (maximum 10), side-by-side text/skill-term comparison, loading a version into matching, a Markdown case-study draft download, and a personal application overview/next action. Data is stored on the device and preview tools are open for evaluation. Saved-search alerts, milestone workspaces, and deeper role-specific roadmaps are explicitly labeled Planned. Premium does not introduce paid AI APIs or guarantee unlimited free-provider capacity.
