@@ -741,6 +741,7 @@ async function login(page, email) {
     await page.screenshot({path:'test-artifacts/project-ideas-results.png',fullPage:true});
     await page.getByRole('link',{name:'View project plan',exact:false}).first().click();
     await page.waitForURL('**/#recommend/idea/0');
+    await page.locator('.idea-plan-steps>li').first().waitFor();
     assert.equal(await page.locator('.idea-plan-steps>li').count(),3);
     await page.getByRole('button',{name:'Save project',exact:true}).click();
     await page.getByRole('button',{name:'Saved ✓',exact:true}).waitFor();
