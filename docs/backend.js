@@ -19,6 +19,7 @@ const extraKeys = [
   "proof-conversations",
   "lp-score",
   "nextwork-growth",
+  "nextwork-demo-chats",
   "nw-saved-ideas",
 ];
 const accountColumns = {
