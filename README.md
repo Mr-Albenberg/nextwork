@@ -367,4 +367,10 @@ The authenticated `POST /api/resume` action `profile-import` uses the existing G
 
 ### Single general plan (2026-11-14)
 
-The Premium plan was removed. Every tool is part of one free general plan. The sidebar upgrade box, the Premium workspace link, the pricing comparison, the account-settings plan panel, and the paper-money checkout are gone from the interface. The old `#premium` and `#checkout` addresses open the free career toolkit (`#tools`). The unused `growth.js` and `paper-checkout.js` files and their tests remain in the repository and can be deleted in a later cleanup.
+The Premium plan was removed. Every tool is part of one free general plan. The sidebar upgrade box, the Premium workspace link, the pricing comparison, the account-settings plan panel, and the paper-money checkout are gone from the interface. The old `#premium`, `#checkout`, and `#tools` addresses open resume review after the UI redesign. The unused `growth.js` and `paper-checkout.js` files and their tests remain in the repository and can be deleted in a later cleanup.
+
+### UI redesign (2026-11-15)
+
+The shared `ui.css` design layer unifies typography, neutral surfaces, indigo actions, light/dark colors, form fields, navigation, and mobile layouts. Personal accounts have a five-item mobile navigation bar; resume review and account settings remain reachable from profile/account actions. Portfolio & Resumes and its toolkit have been removed. Legacy `#tools` links open resume review, without deleting old account records.
+
+Project Ideas now follows a short form → compact cards → individual project plan flow. Market graphs and resume-coverage percentages are removed from the results UI. Source context and evidence gaps remain available in a closed optional section, with baseline, AI estimate, and live posting data identified accurately. Full steps, outputs, tools, and optional extensions are available on `#recommend/idea/:index`; saved plans open at `#recommend/saved/:index`. Saved work is organized into Applications, Saved listings, and Project ideas tabs. The last generated plan is kept in private workspace extras so reloading a plan works after synchronization. Account changes clear in-memory recommendation views.
