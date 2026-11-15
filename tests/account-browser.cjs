@@ -457,7 +457,8 @@ async function login(page, email) {
     await chooser.setFiles({name:'replacement.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a replacement version with JavaScript.')});
     await page.getByText('Saved resume: replacement.txt',{exact:true}).waitFor();
     await page.goto(base + '/#skills');
-    assert((await page.locator('#resume').inputValue()).includes('accessible React applications'));
+    await page.waitForURL('**/#recommend');
+    assert((await page.locator('#reco-resume').inputValue()).includes('accessible React applications'));
     await page.goto(base + '/#recommend');
     assert((await page.locator('#reco-resume').inputValue()).includes('accessible React applications'));
     assert.equal(await page.locator('input[type=file]').count(),0);
@@ -466,7 +467,8 @@ async function login(page, email) {
     await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
     assert.equal(await page.evaluate(()=>marketplaceResume()),'');
     await page.goto(base + '/#skills');
-    assert.equal(await page.locator('#resume').inputValue(),'');
+    await page.waitForURL('**/#recommend');
+    assert.equal(await page.locator('#reco-resume').inputValue(),'');
     await page.goto(base + '/#resume');
     await page.getByRole('heading',{name:'Build a stronger application',exact:true}).waitFor();
     await page
