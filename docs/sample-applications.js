@@ -1,4 +1,4 @@
-// Sample listings accept account-backed applications without inventing employer accounts or delivery.
+// Sample listings accept account-backed applications and link to creator messaging.
 let sampleApplicationBusy=false;
 function sampleApplicationRows(){
  let rows=[];try{rows=JSON.parse(workspaceLocal.getItem('proof-applications')||'[]');}catch{}
@@ -6,7 +6,7 @@ function sampleApplicationRows(){
 }
 function sampleApplicationCard(app){
  const job=jobs.find(j=>j.id===app.jobId),company=job?.c||app.listing?.company||'Sample company',title=job?.title||app.listing?.title||'Sample opportunity';
- return `<article class="my-application sample-application-card tone-${statusMeta(app.status).tone}"><div class="my-app-head">${job?logo(job):''}<div class="my-app-title"><small>${esc(company)} · Sample listing</small><h3>${esc(title)}</h3></div>${statusPill(app.status)}</div>${applicationProgress(app.status)}<p class="resume-hint">Saved in your account. No external employer receives this sample application.</p><div class="my-app-foot"><small>${app.status==='withdrawn'?'Withdrawn':'Submitted'} ${esc(friendlyDate(app.status==='withdrawn'?app.withdrawnAt:app.createdAt))}${app.resumeFile?' · resume document attached':app.resume?' · resume text attached':''}</small><div class="row-actions"><button class="outline" onclick="apply(${app.jobId})">View application</button>${app.status==='withdrawn'?`<button class="primary" onclick="applySampleListing(${app.jobId},true)">Reapply</button>`:`<button class="text-control" onclick="withdrawSampleApplication(${app.jobId})">Withdraw</button>`}</div></div></article>`;
+ return `<article class="my-application sample-application-card tone-${statusMeta(app.status).tone}"><div class="my-app-head">${job?logo(job):''}<div class="my-app-title"><small>${esc(company)} · Sample listing</small><h3>${esc(title)}</h3></div>${statusPill(app.status)}</div>${applicationProgress(app.status)}<p class="resume-hint">Saved in your account. No external employer receives this sample application.</p><div class="my-app-foot"><small>${app.status==='withdrawn'?'Withdrawn':'Submitted'} ${esc(friendlyDate(app.status==='withdrawn'?app.withdrawnAt:app.createdAt))}${app.resumeFile?' · resume document attached':app.resume?' · resume text attached':''}</small><div class="row-actions"><button class="outline" onclick="apply(${app.jobId})">View application</button>${job?.demoCreator?`<button class="outline" onclick="messageCreator(${app.jobId})">${icon('message',15)} Message</button>`:''}${app.status==='withdrawn'?`<button class="primary" onclick="applySampleListing(${app.jobId},true)">Reapply</button>`:`<button class="text-control" onclick="withdrawSampleApplication(${app.jobId})">Withdraw</button>`}</div></div></article>`;
 }
 function applySampleListing(id,reapply=false){
  if(typeof requireAccount==='function'&&!requireAccount())return;
