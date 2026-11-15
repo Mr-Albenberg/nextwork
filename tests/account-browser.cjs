@@ -515,7 +515,7 @@ async function login(page, email) {
     assert.equal(await page.locator('#reco-resume').inputValue(),'');
     await page.goto(base + '/#resume');
     assert.equal(await page.locator('#review-consent').count(),0);
-    await page.getByRole('heading',{name:'Build a stronger application',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'My resume',exact:true}).waitFor();
     await page
       .getByLabel("Resume text")
       .fill(

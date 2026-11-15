@@ -12845,3 +12845,34 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
  .jobs-view-list .listing-actions .view-project-button { padding-inline: 8px; }
  .jobs-view-list .listing-actions .bookmark { width: 32px; min-width: 32px; }
 }
+
+/* Resume is a workspace, with the editor and review controls on the page. */
+.resume-compose-page main { max-width: none; display: flex; flex-direction: column; }
+.resume-compose-page #app { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.resume-compose-page .review-page-heading { margin-bottom: 24px; }
+.resume-compose-page .review-composer { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; border: 0; box-shadow: none; border-radius: 0; }
+.resume-compose-page .review-composer-toolbar { padding: 14px 0; border-top: 1px solid var(--line); }
+.resume-compose-page #resume-review-form { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.resume-compose-page .review-compose-grid { flex: 1; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); }
+.resume-compose-page .review-source { padding: 26px 28px 26px 0; display: flex; flex-direction: column; }
+.resume-compose-page .review-source > label.field { flex: 1; display: flex; flex-direction: column; }
+.resume-compose-page .review-source #review-resume { flex: 1; min-height: 240px; height: auto; }
+.resume-compose-page .review-target { padding: 26px 0 26px 28px; }
+.resume-compose-page .review-submit-bar { padding: 18px 0; }
+@media (max-width: 760px) {
+  .resume-compose-page .review-compose-grid, .resume-compose-page .review-compose-grid.has-job { grid-template-columns: minmax(0, 1fr); }
+  .resume-compose-page .review-composer-toolbar { padding: 14px 0; }
+  .resume-compose-page .review-source, .resume-compose-page .review-target { padding: 22px 0; }
+  .resume-compose-page .review-target { border-left: 0; border-top: 1px solid var(--line); }
+  .resume-compose-page .review-source #review-resume { min-height: 200px; }
+  .resume-compose-page .review-submit-bar { padding: 18px 0; }
+}
+
+@media (min-width: 761px) and (max-height: 800px) {
+  .resume-compose-page .review-page-heading { margin-bottom: 15px; }
+  .resume-compose-page .review-composer-toolbar { padding-block: 10px; }
+  .resume-compose-page .review-source { padding: 17px 21px 17px 0; }
+  .resume-compose-page .review-target { padding: 17px 0 17px 21px; }
+  .resume-compose-page .review-source #review-resume { min-height: 120px; }
+  .resume-compose-page .review-submit-bar { padding-block: 12px; }
+}
