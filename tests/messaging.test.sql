@@ -83,6 +83,25 @@ do $$ declare c uuid; f public.chat_attachments; begin
  begin perform public.chat_send_message(c,'10000000-0000-0000-0000-000000000005','','{"title":"Missing ID"}');raise exception 'Unexpected listing'; exception when raise_exception then if sqlerrm='Unexpected listing' then raise; end if; end;
  perform public.chat_discard_attachment(f.id);
 end $$;
+-- Edits preserve identity, files and send order, and only real text changes get a tag.
+select public.chat_test_assert((select edited_at is null from public.chat_messages where id='10000000-0000-0000-0000-000000000001'),'new messages are not edited');
+select public.chat_edit_message('10000000-0000-0000-0000-000000000001','Updated introduction');
+select public.chat_test_assert((select body='Updated introduction' and edited_at is not null and listing is not null from public.chat_messages where id='10000000-0000-0000-0000-000000000001'),'sender can edit text and preserve listing');
+select public.chat_test_assert((select count(*)=1 from public.chat_attachments where message_id='10000000-0000-0000-0000-000000000001'),'edit preserves attachments');
+do $$ begin
+ begin perform public.chat_edit_message('10000000-0000-0000-0000-000000000001',' ');raise exception 'Unexpected empty edit'; exception when invalid_parameter_value then null; end;
+ begin perform public.chat_edit_message('10000000-0000-0000-0000-000000000001',repeat('a',4001));raise exception 'Unexpected long edit'; exception when invalid_parameter_value then null; end;
+end $$;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
+select public.chat_test_assert((select body='Updated introduction' and edited_at is not null from public.chat_messages where id='10000000-0000-0000-0000-000000000001'),'recipient sees edited text and tag');
+do $$ begin
+ begin perform public.chat_edit_message('10000000-0000-0000-0000-000000000001','Forged');raise exception 'Unexpected recipient edit'; exception when insufficient_privilege then null; end;
+end $$;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',false);
+do $$ begin
+ begin perform public.chat_edit_message('10000000-0000-0000-0000-000000000001','Forged');raise exception 'Unexpected outsider edit'; exception when insufficient_privilege then null; end;
+end $$;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
 select public.chat_delete_message('10000000-0000-0000-0000-000000000001');
 select public.chat_test_assert((select deleted_at is not null and body='' and listing is null from public.chat_messages where id='10000000-0000-0000-0000-000000000001'),'delete produces tombstone');
 select public.chat_test_assert(not chat_private.chat_can_read_file(:'filepath'),'deleted message files no longer downloadable');

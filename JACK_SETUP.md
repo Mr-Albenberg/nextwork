@@ -82,3 +82,7 @@ It adds the `application-resumes` private Storage bucket (5 MB; PDF, DOCX, TXT).
 Until 010 is applied, the app still works: decisions save without notes (with a warning to the organization), and Reapply reports that a database update is pending.
 
 After completing this checklist, let the developer know that setup is applied so live verification can be repeated. No admin or service-role secret belongs in the frontend, GitHub Pages files, or a chat message.
+
+## Message editing
+
+Run [011 — message edits](supabase/migrations/202611150011_message_edits.sql) in the Supabase SQL Editor after the messaging migration. This adds the edit timestamp and the sender-only edit RPC. Deploy this migration before the updated messaging client. [Download SQL](https://mr-albenberg.github.io/nextwork/message-edits-setup.sql).

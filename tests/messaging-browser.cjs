@@ -43,6 +43,14 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  }
  await a.setViewportSize({width:1360,height:900});
  await a.locator('#conversation-input').fill('Hello from a real member');await a.locator('#send-message').click();await b.locator('.message-bubble').filter({hasText:'Hello from a real member'}).waitFor();
+ assert.equal(await a.getByRole('button',{name:'Delete your message'}).count(),0);
+ assert.equal(await b.getByRole('button',{name:'Edit your message'}).count(),0);
+ await a.getByRole('button',{name:'Edit your message'}).first().click();
+ assert.equal(await a.locator('#edit-message-input').inputValue(),'Hello from a real member');
+ await a.locator('#edit-message-input').fill('Hello, edited by Alex');await a.getByRole('button',{name:'Save changes',exact:true}).click();
+ await b.locator('.message-bubble').filter({hasText:'Hello, edited by Alex'}).waitFor();assert.equal(await b.locator('.message-edited').count(),1);
+ await a.getByRole('button',{name:'Edit your message'}).first().click();await a.locator('#edit-message-input').fill('Discard this change');await a.getByRole('button',{name:'Cancel',exact:true}).click();
+ assert.equal(fixture.messages[0].body,'Hello, edited by Alex');
  await a.locator('#conversation-input').fill('Keep this unsent draft');await b.locator('#conversation-input').fill('A reply from Taylor');await b.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Keep this unsent draft');
  await a.locator('.inbox-toggle').click();assert.equal(await a.locator('.inbox-toggle').getAttribute('aria-expanded'),'false');await a.locator('.inbox-toggle').click();
  await a.locator('#conversation-input').fill('');await a.locator('#message-file').setInputFiles({name:'notes.txt',mimeType:'text/plain',buffer:Buffer.from('hello')});await a.locator('#send-message').click();await b.getByRole('button',{name:'Download notes.txt',exact:true}).waitFor();const downloadPromise=b.waitForEvent('download');await b.getByRole('button',{name:'Download notes.txt',exact:true}).click();const download=await downloadPromise;assert.equal(download.suggestedFilename(),'notes.txt');assert.equal(fs.readFileSync(await download.path(),'utf8'),'hello');

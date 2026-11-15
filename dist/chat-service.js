@@ -11,7 +11,7 @@ class ChatService {
   start(recipient){return this.rpc('chat_start_conversation',{recipient})}
   state(conversation,changes){return this.rpc('chat_set_state',{conversation,...changes})}
   async messages(conversation,before=null){
-    this.current();let query=this.client.from('chat_messages').select('id,conversation_id,sender_id,body,listing,created_at,deleted_at,chat_attachments(id,name,size_bytes,path)').eq('conversation_id',conversation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(50);
+    this.current();let query=this.client.from('chat_messages').select('*,chat_attachments(id,name,size_bytes,path)').eq('conversation_id',conversation).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(50);
     if(before){if(!/^[\da-f-]{36}$/i.test(before.id)||!Number.isFinite(Date.parse(before.created_at)))throw Error('Invalid message cursor');query=query.or(`created_at.lt.${before.created_at},and(created_at.eq.${before.created_at},id.lt.${before.id})`)}
     return this.checked(await query).reverse();
   }
@@ -26,6 +26,7 @@ class ChatService {
   async discard(file){if(!file.remote)return;this.current();const state=this.checked(await this.client.from('chat_attachments').select('message_id').eq('id',file.remote.id).maybeSingle());if(state?.message_id)return;this.checked(await this.client.storage.from('message-attachments').remove([file.remote.path]));await this.rpc('chat_discard_attachment',{attachment:file.remote.id})}
   async download(attachment){this.current();return this.checked(await this.client.storage.from('message-attachments').download(attachment.path))}
   async cleanupOwnUploads(){this.current();const result=await this.client.from('chat_attachments').select('path').eq('uploaded_by',this.userId);if(['42P01','PGRST205'].includes(result.error?.code))return;const paths=this.checked(result).map(file=>file.path).filter(Boolean);for(let index=0;index<paths.length;index+=100)this.checked(await this.client.storage.from('message-attachments').remove(paths.slice(index,index+100)))}
+  edit(message,body){this.current();if(!body.trim())throw Error('Write a message before saving.');if(body.length>4000)throw Error('Messages can be up to 4,000 characters.');return this.rpc('chat_edit_message',{message,text_body:body})}
   async remove(message){this.current();const paths=(message.chat_attachments||[]).map(file=>file.path);if(paths.length)this.checked(await this.client.storage.from('message-attachments').remove(paths));await this.rpc('chat_delete_message',{message:message.id})}
   subscribe(onChange,onStatus=()=>{}){this.current();this.channel=this.client.channel('chat-'+this.userId+'-'+this.uuid()).on('postgres_changes',{event:'*',schema:'public',table:'chat_messages'},()=>{if(this.isCurrent())onChange()}).on('postgres_changes',{event:'*',schema:'public',table:'chat_conversations'},()=>{if(this.isCurrent())onChange()}).on('postgres_changes',{event:'*',schema:'public',table:'chat_memberships',filter:'user_id=eq.'+this.userId},()=>{if(this.isCurrent())onChange()}).subscribe(status=>{if(this.isCurrent())onStatus(status)});return this.channel}
   stop(){if(this.channel){Promise.resolve(this.client.removeChannel(this.channel)).catch(()=>{});this.channel=null}}

@@ -12442,3 +12442,10 @@ body.messages-page .messenger {
   border-radius: 0;
   box-shadow: none;
 }
+
+.message-edited { display: inline-block; margin-left: 8px; font-size: 10px; color: var(--muted); }
+.message-edit { margin-left: 8px; padding: 5px 7px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
+.message-edit:hover, .message-edit:focus-visible { color: var(--ink); background: var(--theme-subtle); }
+.message-edit-dialog textarea { min-height: 130px; resize: vertical; }
+
+.conversation-composer .composer-tools svg { display: block; width: 18px; height: 18px; overflow: visible; }
