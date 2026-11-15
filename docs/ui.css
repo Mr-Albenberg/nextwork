@@ -12446,9 +12446,9 @@ body.messages-page .messenger {
 /* Reserve the edit slot so hovering never moves the timestamp. */
 .message-meta { display: flex; align-items: center; gap: 6px; min-height: 30px; }
 .message-meta .message-time { margin: 0; white-space: nowrap; flex: 0 0 auto; }
-.message-edit-slot { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 66px; opacity: 0; pointer-events: none; }
+.message-edit-slot { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto; opacity: 0; pointer-events: none; }
 .message-line:hover .message-edit-slot, .message-line:focus-within .message-edit-slot { opacity: 1; pointer-events: auto; }
-.message-edit { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 5px 2px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
+.message-edit { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 5px 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
 .message-edit-dot { color: var(--muted); font-size: 16px; }
 .message-edit:hover, .message-edit:focus-visible { color: var(--ink); background: var(--theme-subtle); }
 .message-edit:disabled { opacity: .4; cursor: default; }
@@ -12466,3 +12466,5 @@ body.messages-page .messenger {
 
 .outgoing .message-meta { justify-content: flex-end; }
 .outgoing .message-edited { text-align: right; }
+
+.message-meta .message-edit, .message-meta .message-time { font-size: 10px; line-height: 1.5; }
