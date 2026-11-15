@@ -645,6 +645,14 @@ if (require.main === module) (async () => {
     await page.setViewportSize({width:1280,height:900});
     await page.goto(base + "/#settings");
     assert.equal(await page.locator('#profile-form').count(), 1, 'Account settings contains one profile editor');
+    const graduation = page.locator('#profile-form [name="graduation"]');
+    const savedGraduation = await graduation.inputValue();
+    await graduation.fill('');
+    await graduation.press('ArrowUp');
+    assert.equal(await graduation.inputValue(), String(new Date().getFullYear()), 'An empty graduation year starts at the current year');
+    await graduation.press('ArrowUp');
+    assert.equal(await graduation.inputValue(), String(new Date().getFullYear() + 1), 'The arrows continue from the selected year');
+    await graduation.fill(savedGraduation);
     assert.equal(await page.locator('.account-panel').count(), 1, 'Account settings contains one account controls panel');
     for (const selector of ['.profile-editor', '.profile-resume-section > section', '.settings-panel', '.account-panel']) {
       assert.equal(await page.locator(selector).evaluate(el => getComputedStyle(el).borderRadius), '0px', selector + ' must have straight section edges');
