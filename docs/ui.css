@@ -12897,3 +12897,21 @@ body:has(.ideas-start-layout) .shell > footer { display: none; }
   .ideas-start-layout .ideas-form { padding: 24px 0; }
   .ideas-start-layout .ideas-intro { display: flex; padding: 24px 0; border-left: 0; border-top: 1px solid var(--line); }
 }
+
+/* Keep identity, save, and resume compatibility consistent across result views. */
+.jobs:is(.jobs-view-list, .jobs-view-grid) .job.opportunity-card { position: relative; }
+.jobs:is(.jobs-view-list, .jobs-view-grid) .job-top { padding-right: 42px; flex-wrap: wrap; }
+.jobs:is(.jobs-view-list, .jobs-view-grid) .job-top .bookmark { position: absolute; top: 14px; right: 16px; margin: 0; }
+.jobs:is(.jobs-view-list, .jobs-view-grid) .job-top .opportunity-type { display: inline-block; margin: 0; padding: 3px 7px; font-size: 10px; color: var(--muted); background: var(--theme-subtle); border-radius: 5px; }
+.jobs-view-list .listing-actions { justify-content: flex-end; }
+.card-match { min-width: 0; display: grid; gap: 5px; }
+.card-match-score { font-size: 11px; line-height: 1.5; }
+.card-match-track { height: 5px; border-radius: 99px; overflow: hidden; background: var(--line); width: 100%; }
+.card-match-track > i { display: block; height: 100%; background: var(--theme-accent); border-radius: inherit; }
+.card-match-empty .card-match-score { color: var(--muted); }
+.jobs-view-list .opportunity-compensation > .card-match { grid-column: 1 / -1; text-align: right; margin-top: 5px; }
+.jobs-view-grid .opportunity-compensation > .card-match { grid-column: 2; grid-row: 1; text-align: right; }
+.browse-job-select > .card-match { margin-top: 12px; }
+@media(max-width: 760px) {
+ .jobs-view-list .opportunity-compensation > .card-match { grid-column: 2; grid-row: 1; text-align: right; margin: 0; }
+}

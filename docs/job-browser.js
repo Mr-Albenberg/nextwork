@@ -15,8 +15,7 @@ function previewJob(id) {
   }
 }
 function browserJobCard(j) {
-  const fit = compatibilityFor(j);
-  return `<article class="browse-job"><button class="browse-job-select" data-preview-job="${j.id}" aria-controls="opportunity-preview" aria-pressed="${previewJobId === j.id}" onclick="previewJob(${j.id})"><div>${logo(j)}<span>${esc(j.c)}<small>${esc(j.cat)}</small></span></div><h3>${esc(j.title)}</h3><p><b>$${j.pay.toLocaleString()}</b> · ${esc(j.weeks)}</p><small>${esc(j.location || "Remote")} · ${j.organizationId ? esc(j.sector) : "Project contract"}</small>${fit.score !== null ? `<span class="browse-job-match">${fit.score}% resume compatibility</span>` : ""}</button><button class="bookmark ${saved.includes(j.id) ? "saved" : ""}" onclick="save(${j.id})" aria-pressed="${saved.includes(j.id)}" aria-label="${saved.includes(j.id) ? "Unsave" : "Save"} ${esc(j.title)}">${bookmarkIcon(saved.includes(j.id))}</button></article>`;
+  return `<article class="browse-job"><button class="browse-job-select" data-preview-job="${j.id}" aria-controls="opportunity-preview" aria-pressed="${previewJobId === j.id}" onclick="previewJob(${j.id})"><div>${logo(j)}<span>${esc(j.c)}<small>${esc(j.cat)}</small></span></div><h3>${esc(j.title)}</h3><p><b>$${j.pay.toLocaleString()}</b> · ${esc(j.weeks)}</p><small>${esc(j.location || "Remote")} · ${j.organizationId ? esc(j.sector) : "Project contract"}</small>${cardCompatibilityHTML(j)}</button><button class="bookmark ${saved.includes(j.id) ? "saved" : ""}" onclick="save(${j.id})" aria-pressed="${saved.includes(j.id)}" aria-label="${saved.includes(j.id) ? "Unsave" : "Save"} ${esc(j.title)}">${bookmarkIcon(saved.includes(j.id))}</button></article>`;
 }
 function jobPreviewHTML(j) {
   if (!j)
