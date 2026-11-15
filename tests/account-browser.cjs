@@ -6,6 +6,7 @@ const rows = new Map(),
   requests = [];
 let failStorage = false;
 let failPhotoImport = false;
+const photoImportCounts = new Map();
 let failLogout = false;
 const deletedUsers = new Set();
 const photos = new Map(),
@@ -94,6 +95,7 @@ async function setup(browser) {
       data = photos.get(subject);
     }
     if (request.method() === "POST" && body.action === "import") {
+      photoImportCounts.set(subject, (photoImportCounts.get(subject) || 0) + 1);
       if (failPhotoImport) return route.fulfill({contentType:"application/json",body:JSON.stringify({hasPhoto:false,needsConsent:false,photoError:"LinkedIn photo import failed. Please retry."})});
       if (
         user.identities.some((i) => i.provider === "linkedin_oidc") &&
@@ -495,6 +497,44 @@ async function login(page, email) {
     await page.locator('[data-photo-status]').filter({hasText:'LinkedIn photo import failed. Please retry.'}).waitFor();
     await page.evaluate(() => loadProfilePhoto());
     assert.match(await page.locator('[data-photo-status]').innerText(), /import failed/);
+    await page.waitForFunction(() => !ProfileMedia.importing);
+    const importsBeforeConfirmation = photoImportCounts.get(users["bob@example.com"].id);
+    const controlsStable = await page.evaluate(async () => {
+      const session = (await Account.client.auth.getSession()).data.session;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const input = document.querySelector('#profile-form [name="name"]');
+      const controls = document.querySelector('.profile-photo-controls');
+      const connected = document.querySelector('.account-connected');
+      const status = document.querySelector('[data-photo-status]');
+      const statusText = status.textContent;
+      input.value = 'Unsent profile edit';
+      let mutations = 0;
+      const observer = new MutationObserver(records => mutations += records.length);
+      observer.observe(controls, {childList:true,subtree:true,attributes:true,characterData:true});
+      for (const event of ['INITIAL_SESSION','SIGNED_IN','SIGNED_IN','USER_UPDATED'])
+        await Account.client.auth._notifyAllSubscribers(event, session);
+      await new Promise(resolve => setTimeout(resolve, 50));
+      updatePhotoStatus();paintProfilePhotos();updatePhotoStatus();
+      await Promise.resolve();
+      observer.disconnect();
+      const stable = controls.isConnected && connected.isConnected && status.isConnected &&
+        status.textContent === statusText && input.isConnected && input.value === 'Unsent profile edit' && mutations === 0;
+      input.value = 'Bob';
+      return stable;
+    });
+    assert(controlsStable, 'Session confirmations and unchanged status paints must preserve LinkedIn controls, errors and unsaved edits');
+    assert.equal(photoImportCounts.get(users["bob@example.com"].id), importsBeforeConfirmation, 'Repeated session events must not restart a completed import');
+    const changedProviderImport = page.waitForRequest(request => request.method() === 'POST' && request.url().includes('/functions/v1/profile-photo') && request.postDataJSON()?.action === 'import');
+    await page.evaluate(async () => {
+      const session = (await Account.client.auth.getSession()).data.session;
+      const user = {...session.user,identities:session.user.identities.map(identity => identity.provider === 'linkedin_oidc' ?
+        {...identity,identity_data:{...identity.identity_data,picture:identity.identity_data.picture+'?updated=1'}} : identity)};
+      await Account.client.auth._notifyAllSubscribers('USER_UPDATED', {...session,user});
+    });
+    await changedProviderImport;
+    await page.waitForFunction(() => !ProfileMedia.importing && Boolean(ProfileMedia.importError));
+    assert.equal(photoImportCounts.get(users["bob@example.com"].id), importsBeforeConfirmation + 1, 'Fresh provider details must still trigger an import');
+
     failPhotoImport = false;
     await page.getByRole('button',{name:'Retry LinkedIn import',exact:true}).click();
     await page.waitForFunction(() => ownPhoto().hasPhoto);
