@@ -544,6 +544,18 @@ async function login(page, email) {
     await page.locator('#report-panel-match .evidence-chart').waitFor();
     assert.equal(await page.locator('#report-panel-match [role="meter"]').count(),9,'The chart must include five listing requirements and four field foundations');
     assert(await page.getByRole('meter',{name:'Resume evidence for React',exact:true}).getAttribute('aria-valuenow')==='100');
+    assert.equal(await page.evaluate(()=>resumeReport.match.method),'nextwork-evidencenet-v1');
+    await page.getByRole('button',{name:'Nextwork Match · EvidenceNet v1 beta · How it works',exact:true}).click();
+    await page.getByRole('heading',{name:'Meet Nextwork Match',exact:true}).waitFor();
+    assert(await page.getByText('Runs in your browser',{exact:true}).isVisible());
+    await page.getByRole('button',{name:'Got it',exact:true}).click();
+    assert.equal(await page.locator('#modal').isVisible(),false);
+    assert(await page.evaluate(()=>{
+      const text='Built React components for a university club. Currently learning TypeScript. No SQL experience.';
+      const rows=NextworkMatch.evaluate(text,{job:[{id:'r',label:'React',terms:['React']},{id:'t',label:'TypeScript',terms:['TypeScript']},{id:'s',label:'SQL',terms:['SQL']}],baseline:[]});
+      const html=highlightedResume(text,{job:[],baseline:[]},rows);
+      return rows[0].value===100&&rows[1].value===50&&rows[2].value===0&&html.includes('highlight-direct')&&html.includes('highlight-support')&&html.includes('highlight-missing');
+    }),'Model results must drive green/yellow/red highlighting rather than bare keyword presence');
     await page.screenshot({path:'test-artifacts/resume-job-fit.png',fullPage:true});
     await page.getByRole('tab',{name:'Job fit',exact:true}).focus();
     await page.keyboard.press('ArrowRight');

@@ -6,7 +6,8 @@ let r = engine.review(
   resume,
   "Required React, TypeScript and SQL. Must have testing experience.",
 );
-assert.equal(r.match.score, 50);
+assert.equal(r.match.score, 63);
+assert(r.match.partial.includes("TypeScript"), "Related JavaScript evidence earns partial, not full TypeScript credit");
 assert.deepEqual(r.match.missing, ["TypeScript", "Testing"]);
 assert(r.match.matched.includes("React"));
 assert(r.improvements.every((x) => x.title));
@@ -23,12 +24,13 @@ const fit = engine.compatibility(
   "Experienced graduate with React and JavaScript. Built multiple customer dashboards and worked with a team to deliver responsive web applications.",
   { tags: ["React", "JavaScript", "Data Visualization"] },
 );
-assert.equal(fit.jobScore, 67);
+assert.equal(fit.jobScore, 33, "Bare skill claims receive half credit; a contribution must name the relevant skill");
 assert.equal(
   fit.score,
   Math.round(fit.jobScore * 0.75 + fit.fieldScore * 0.25),
 );
-assert.equal(fit.missing[0], "Data Visualization");
+assert(fit.missing.includes("Data Visualization"));
+assert(fit.partial.includes("React"));
 assert.equal(engine.compatibility("", { tags: ["React"] }).score, null);
 assert.equal(
   engine.compatibility(
@@ -42,7 +44,7 @@ assert.equal(
     "Experience in UX Design, copywriting, and user research for academic projects. Conducted user tests and delivered a complete design case study.",
     { tags: ["UI/UX Design", "User Research"] },
   ).jobScore,
-  100,
+  50,
 );
 const handler = require("../api/resume");
 function response() {

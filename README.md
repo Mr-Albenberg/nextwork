@@ -17,6 +17,12 @@ node tests/profile-and-criteria.test.js
 
 `dist/` is the static application. `docs/` mirrors it for GitHub Pages. `api/resume.js` is the Vercel Node function. Static files changed in `dist/` must be copied into `docs/` too; CI verifies this.
 
+## Nextwork Match
+
+EvidenceNet v1 is Nextwork’s custom, synthetic-trained evidence classifier. It runs locally without model API charges and powers listing compatibility, resume job-fit explanations, and the organization fit analyzer. It distinguishes contributions, partial mentions, absent evidence, and contradictions, with credentials and conflicts sent to manual review. This is an early model with no independent real-applicant validation. General resume health checks remain rules; optional Gemini writing feedback remains separate.
+
+See the [model card](dist/nextwork-match-model-card.md) and [training / evaluation guide](models/nextwork-match/README.md). To retrain a candidate in GitHub Actions, run **Train Nextwork Match**. User resumes are never automatically added to training data.
+
 ## Appearance
 
 Click the theme icon button to cycle through Light (sun), Dark (moon), and System (computer). System is the default and follows device appearance changes automatically. Your choice is saved in this browser and synced across open tabs. Theme switching also works when browser storage is unavailable.

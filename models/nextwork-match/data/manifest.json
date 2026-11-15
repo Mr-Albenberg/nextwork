@@ -1,0 +1,47 @@
+{
+  "version": "synthetic-v1",
+  "sha256": "9ded83e435367f21206a1788a75ccad31b6a72bd535ca6f15831beb5235051d1",
+  "featuresSha256": "0f593933bef8a5f9dee1ea5e180f1cae25931a75d26aa15cc75823ce5fda8d80",
+  "counts": {
+    "train": 5114,
+    "validation": 139,
+    "test": 147
+  },
+  "heldout": {
+    "validation": [
+      "graphql",
+      "privacy",
+      "tableau",
+      "content",
+      "agile",
+      "launch"
+    ],
+    "test": [
+      "figma",
+      "statistics",
+      "seo",
+      "projectmanagement",
+      "docker",
+      "onboarding"
+    ]
+  },
+  "featureNames": [
+    "direct",
+    "concept",
+    "tokenCoverage",
+    "action",
+    "outcome",
+    "learning",
+    "negation",
+    "assistance",
+    "listOnly",
+    "related",
+    "future",
+    "teamOnly",
+    "experienceClaim",
+    "short",
+    "hasNumbers",
+    "knownConcept"
+  ],
+  "provenance": "Original authored synthetic examples; no real resumes. Splits separate concept families and sentence templates. Not independent human evaluation."
+}

@@ -68,9 +68,12 @@ const FitAnalyzer = {
     const evidence = ResumeEngine.compatibility(resume, job);
     const profileSkills = splitSkills(profile.skills), profileText = profileSkills.join(', ');
     const skills = (listing.skills || []).map(skill => {
-      const inResume = resume.trim().length >= 100 && ResumeEngine.has(resume, skill);
+      const row=evidence.requirements.find(r=>r.kind==='Requested skill'&&r.text.toLowerCase()===skill.toLowerCase());
+      const inResume = row ? row.value===100 : resume.trim().length >= 100 && ResumeEngine.has(resume, skill);
+      const partialResume = row?.value===50;
+      const contradicted = row && ['contradictory','conflicting','manual'].includes(row.label);
       const inProfile = profileSkills.some(s => s.toLowerCase() === skill.toLowerCase()) || ResumeEngine.has(profileText, skill);
-      return { skill, inResume, inProfile, value: inResume ? 1 : inProfile ? 0.6 : 0 };
+      return { skill, inResume, inProfile, partialResume, value: contradicted ? 0 : inResume ? 1 : partialResume ? 0.5 : inProfile ? 0.6 : 0 };
     });
     const skillScore = skills.length ? Math.round(skills.reduce((n, s) => n + s.value, 0) / skills.length * 100) : 0;
     const prefs = FitAnalyzer.preferences(profile, listing);
@@ -87,7 +90,7 @@ const FitAnalyzer = {
     // Each category gets room so preference mismatches aren't crowded out by missing criteria.
     const gaps = [
       ...jobRows.filter(r => !r.value && r.kind !== 'Requested skill').map(r => r.text).slice(0, 3),
-      ...[...skills.filter(s => !s.inResume && !s.inProfile).map(s => s.skill + ' not mentioned'), ...skills.filter(s => !s.inResume && s.inProfile).map(s => s.skill + ' self-reported only')].slice(0, 3),
+      ...[...skills.filter(s=>s.partialResume).map(s=>s.skill+' needs a specific contribution'), ...skills.filter(s => !s.inResume && !s.partialResume && !s.inProfile).map(s => s.skill + ' not evidenced'), ...skills.filter(s => !s.inResume && !s.partialResume && s.inProfile).map(s => s.skill + ' self-reported only')].slice(0, 3),
       ...prefs.filter(p => p[0] === 'warn').map(p => p[1] + ': ' + p[2]),
     ];
     return { score, verdict, hasResume, evidence, skills, skillScore, prefs, prefScore, jobRows, fieldRows, strengths, gaps };
@@ -120,7 +123,7 @@ function fitAnalysisHTML(app) {
     <div class="fit-columns"><div><h3>${icon('check', 16)} Strengths</h3><ul class="fit-list good">${fit.strengths.map(s => `<li>${esc(s)}</li>`).join('') || '<li class="empty-item">No clear strengths found yet.</li>'}</ul></div><div><h3>${icon('eye', 16)} Worth asking about</h3><ul class="fit-list gap">${fit.gaps.map(s => `<li>${esc(s)}</li>`).join('') || '<li class="empty-item">No obvious gaps.</li>'}</ul></div></div>
     <details class="fit-details"><summary>Criteria breakdown</summary>
       <table class="fit-table"><thead><tr><th>Criterion</th><th>Type</th><th>Evidence</th></tr></thead><tbody>${[...fit.jobRows, ...fit.fieldRows].map(r => `<tr><td>${esc(r.text)}</td><td>${esc(r.kind)}</td><td>${r.value ? `<span class="evidence-yes">Found</span>${r.evidence ? `<small>“${esc(r.evidence.slice(0, 160))}”</small>` : ''}` : '<span class="evidence-no">Not evidenced</span>'}</td></tr>`).join('')}</tbody></table>
-      <p class="fine-print">Score = 55% resume evidence + 30% requested skills + 15% preferences. Keyword evidence isn’t verified proficiency, and missing evidence isn’t proof of missing ability. Use this to guide your review, not to decide for you.</p>
+      <p class="fine-print">Score = 55% resume evidence + 30% requested skills + 15% preferences. Resume evidence isn’t verified proficiency, and missing evidence isn’t proof of missing ability. Use this to guide your review, not to decide for you.</p>
     </details>
   </section>`;
 }

@@ -1,0 +1,37 @@
+name: Train Nextwork Match
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU training dependencies
+        run: pip install -r models/nextwork-match/requirements.txt
+      - name: Generate synthetic evidence pairs and train candidate weights
+        env:
+          OPENBLAS_NUM_THREADS: '1'
+        run: |
+          node models/nextwork-match/build-data.cjs
+          node models/nextwork-match/build-challenge.cjs
+          python models/nextwork-match/train.py
+          node models/nextwork-match/evaluate.cjs
+          node tests/nextwork-match.test.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nextwork-match-candidate
+          path: |
+            dist/nextwork-model.js
+            dist/nextwork-match-model-card.md
+            models/nextwork-match/evaluation.json
+            models/nextwork-match/benchmark.json
+            models/nextwork-match/verification.json
+            models/nextwork-match/data/manifest.json

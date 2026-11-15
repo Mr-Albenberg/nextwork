@@ -12938,3 +12938,7 @@ body[data-page="explore"] .jobs { width: 100%; max-width: none; min-width: 0; }
  .jobs-view-list .job.opportunity-card > .card-match { margin-top: 2%; }
  .jobs-view-list .listing-actions { margin-top: 2%; }
 }
+
+/* Nextwork Match evidence provenance and model details. */
+.match-model-tag{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--theme-line);background:var(--theme-subtle);color:var(--theme-accent);font:600 11px/1.4 Inter,sans-serif;border-radius:6px;padding:6px 9px;cursor:pointer;white-space:normal;text-align:left;width:auto!important;max-width:100%}
+.match-model-tag:hover{border-color:var(--theme-accent)}.match-model-tag:focus-visible{outline:2px solid var(--theme-accent);outline-offset:3px}.match-model-dialog{max-width:680px}.match-model-dialog>p,.match-model-dialog li{line-height:1.8;color:var(--theme-muted)}.match-model-dialog h2{font-size:28px}.match-model-dialog h3{margin-top:24px}.match-model-dialog li{margin-bottom:10px}.match-model-benefits{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.match-model-benefits span{padding:8px 12px;border:1px solid var(--theme-line);background:var(--theme-subtle);border-radius:6px;font-size:12px}.evidence-partial{color:var(--theme-warning,#9b6518)}.evidence-next-step{border-left:2px solid var(--theme-accent);padding-left:12px}.evidence-criterion small{line-height:1.7}.compatibility-heading{gap:12px;flex-wrap:wrap}

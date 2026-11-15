@@ -1,0 +1,105 @@
+{
+  "dataset": "9ded83e435367f21206a1788a75ccad31b6a72bd535ca6f15831beb5235051d1",
+  "classes": [
+    "contradictory",
+    "not_evidenced",
+    "partial",
+    "supported"
+  ],
+  "syntheticOnly": true,
+  "metrics": {
+    "train": {
+      "count": 5114,
+      "accuracy": 0.9945,
+      "macroF1": 0.9946,
+      "confusion": [
+        [
+          1015,
+          0,
+          5,
+          0
+        ],
+        [
+          0,
+          1020,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1017,
+          17
+        ],
+        [
+          0,
+          0,
+          6,
+          2034
+        ]
+      ]
+    },
+    "validation": {
+      "count": 139,
+      "accuracy": 1.0,
+      "macroF1": 1.0,
+      "confusion": [
+        [
+          34,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          34,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          37,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          34
+        ]
+      ]
+    },
+    "test": {
+      "count": 147,
+      "accuracy": 1.0,
+      "macroF1": 1.0,
+      "confusion": [
+        [
+          36,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          36,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          39,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          36
+        ]
+      ]
+    }
+  }
+}

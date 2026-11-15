@@ -1,0 +1,1422 @@
+{
+  "model": "nextwork-evidencenet-v1",
+  "version": "1.0.0-beta.1",
+  "scope": "Synthetic/developer-authored evaluation only; not independently validated real-applicant accuracy.",
+  "splits": {
+    "validation": {
+      "model": {
+        "count": 139,
+        "accuracy": 1,
+        "macroF1": 1,
+        "labels": [
+          "contradictory",
+          "not_evidenced",
+          "partial",
+          "supported"
+        ],
+        "confusion": [
+          [
+            34,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            34,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            37,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            34
+          ]
+        ],
+        "errors": []
+      },
+      "keywordBaseline": {
+        "count": 139,
+        "accuracy": 0.3597,
+        "macroF1": 0.2336,
+        "labels": [
+          "contradictory",
+          "not_evidenced",
+          "partial",
+          "supported"
+        ],
+        "confusion": [
+          [
+            0,
+            18,
+            0,
+            16
+          ],
+          [
+            0,
+            34,
+            0,
+            0
+          ],
+          [
+            0,
+            21,
+            0,
+            16
+          ],
+          [
+            0,
+            18,
+            0,
+            16
+          ]
+        ],
+        "errors": [
+          {
+            "id": "validation:graphql:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:graphql:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:graphql:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:graphql:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:graphql:related:0",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:privacy:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:privacy:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:privacy:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:privacy:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:3:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:3:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:3:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:3:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:3:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:3:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:4:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:4:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:4:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:4:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:4:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:privacy:4:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:tableau:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:tableau:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:tableau:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:tableau:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:tableau:related:0",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:tableau:related:1",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:content:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:content:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:content:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:content:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:content:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:agile:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:agile:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:agile:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:agile:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:agile:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:agile:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:agile:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:agile:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:agile:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:agile:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:launch:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:launch:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:launch:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:launch:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:launch:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "validation:SAS:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:SAS:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:SAS:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:SAS:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:Blender:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:Blender:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:Blender:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "validation:Blender:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          }
+        ]
+      }
+    },
+    "test": {
+      "model": {
+        "count": 147,
+        "accuracy": 1,
+        "macroF1": 1,
+        "labels": [
+          "contradictory",
+          "not_evidenced",
+          "partial",
+          "supported"
+        ],
+        "confusion": [
+          [
+            36,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            36,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            39,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            36
+          ]
+        ],
+        "errors": []
+      },
+      "keywordBaseline": {
+        "count": 147,
+        "accuracy": 0.3537,
+        "macroF1": 0.2286,
+        "labels": [
+          "contradictory",
+          "not_evidenced",
+          "partial",
+          "supported"
+        ],
+        "confusion": [
+          [
+            0,
+            20,
+            0,
+            16
+          ],
+          [
+            0,
+            36,
+            0,
+            0
+          ],
+          [
+            0,
+            23,
+            0,
+            16
+          ],
+          [
+            0,
+            20,
+            0,
+            16
+          ]
+        ],
+        "errors": [
+          {
+            "id": "test:figma:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:figma:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:figma:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:figma:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:figma:related:0",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:figma:related:1",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:statistics:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:statistics:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:statistics:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:statistics:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:statistics:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:docker:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:docker:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:docker:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:docker:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:docker:related:0",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:seo:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:seo:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:seo:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:seo:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:seo:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:projectmanagement:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:projectmanagement:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:projectmanagement:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:projectmanagement:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:projectmanagement:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:projectmanagement:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:projectmanagement:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:projectmanagement:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:projectmanagement:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:projectmanagement:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:onboarding:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:onboarding:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:onboarding:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:onboarding:1:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:1:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:1:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:1:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:1:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:1:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:2:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:2:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:2:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:2:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:2:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:2:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:3:0",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:3:1",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:3:2",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:3:3",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:3:4",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:onboarding:3:5",
+            "expected": "contradictory",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "test:Stata:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:Stata:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:Stata:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:Stata:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:SolidWorks:0:2",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:SolidWorks:0:3",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "test:SolidWorks:0:4",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "test:SolidWorks:0:5",
+            "expected": "contradictory",
+            "actual": "supported"
+          }
+        ]
+      }
+    },
+    "challenge": {
+      "model": {
+        "count": 61,
+        "accuracy": 0.9836,
+        "macroF1": 0.9919,
+        "labels": [
+          "conflicting",
+          "contradictory",
+          "manual",
+          "not_evidenced",
+          "partial",
+          "supported"
+        ],
+        "confusion": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            9,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            3,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            16,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            27
+          ]
+        ],
+        "errors": [
+          {
+            "id": "challenge-2",
+            "expected": "supported",
+            "actual": "partial"
+          }
+        ]
+      },
+      "keywordBaseline": {
+        "count": 61,
+        "accuracy": 0.3443,
+        "macroF1": 0.1348,
+        "labels": [
+          "conflicting",
+          "contradictory",
+          "manual",
+          "not_evidenced",
+          "partial",
+          "supported"
+        ],
+        "confusion": [
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            9
+          ],
+          [
+            0,
+            0,
+            0,
+            3,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            6,
+            0,
+            10
+          ],
+          [
+            0,
+            0,
+            0,
+            11,
+            0,
+            17
+          ]
+        ],
+        "errors": [
+          {
+            "id": "challenge-4",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-5",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-6",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-7",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-8",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-9",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-10",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-12",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-14",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-16",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-20",
+            "expected": "conflicting",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-22",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-23",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-25",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-27",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-28",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-29",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-30",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-31",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-32",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-33",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-34",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-35",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-36",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-38",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-39",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-40",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-41",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-43",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-44",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-45",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-47",
+            "expected": "partial",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-49",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-50",
+            "expected": "contradictory",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-55",
+            "expected": "partial",
+            "actual": "supported"
+          },
+          {
+            "id": "challenge-57",
+            "expected": "manual",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-58",
+            "expected": "manual",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-59",
+            "expected": "manual",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-60",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          },
+          {
+            "id": "challenge-61",
+            "expected": "supported",
+            "actual": "not_evidenced"
+          }
+        ]
+      }
+    }
+  }
+}

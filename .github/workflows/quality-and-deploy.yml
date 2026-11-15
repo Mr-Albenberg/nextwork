@@ -55,6 +55,10 @@ jobs:
           node tests/account-resumes.test.js
           node tests/profile-import.test.js
           node tests/profile-import-client.test.js
+      - name: Test Nextwork Match model and synthetic holdout
+        run: |
+          node tests/nextwork-match.test.js
+          node models/nextwork-match/evaluate.cjs
       - name: Test applicant PDF report
         run: node tests/applicant-report.test.js
       - name: Test application lifecycle and fit analyzer
