@@ -129,45 +129,39 @@ function fitAnalysisHTML(app) {
 }
 
 /* ---------------- Shared resume files ---------------- */
-const ApplicationFiles = { urls: new Map() };
-async function applicationFileURL(app) {
-  if (!app?.resume_file?.path) return null;
-  if (ApplicationFiles.urls.has(app.resume_file.path)) return ApplicationFiles.urls.get(app.resume_file.path);
-  const result = await Account.client.storage.from(APPLICATION_BUCKET).download(app.resume_file.path);
-  if (result.error) throw result.error;
-  const type = app.resume_file.type || result.data.type || 'application/octet-stream';
-  const url = URL.createObjectURL(new Blob([result.data], { type }));
-  ApplicationFiles.urls.set(app.resume_file.path, url);
-  return url;
+async function applicationFileURL(app){const file=await ResumeDocuments.get(APPLICATION_BUCKET,app.resume_file);return file?.url||null;}
+async function paintApplicationResume(id){
+ const app=Organization.applications.find(a=>a.id===id)||Organization.mine.find(a=>a.id===id);
+ if(app?.resume_file)return ResumeDocuments.paint('applicant-resume-file',APPLICATION_BUCKET,app.resume_file);
 }
-async function paintApplicationResume(id) {
-  const app = Organization.applications.find(a => a.id === id) || Organization.mine.find(a => a.id === id), node = document.getElementById('applicant-resume-file');
-  if (!app || !node) return;
-  try {
-    const url = await applicationFileURL(app);
-    if (!url || !document.getElementById('applicant-resume-file')) return;
-    const isPDF = /pdf/i.test(app.resume_file.type || app.resume_file.name);
-    node.innerHTML = `${isPDF ? `<iframe class="resume-frame" src="${url}#view=FitH" title="${esc(app.resume_file.name)}"></iframe>` : `<div class="empty-inline">${icon('resume', 22)}<p>This file type can’t be previewed in the browser.</p></div>`}<div class="file-actions"><a class="outline" href="${url}" target="_blank" rel="noopener">${icon('eye', 15)} Open in new tab</a><a class="outline" href="${url}" download="${esc(app.resume_file.name)}">${icon('save', 15)} Download</a></div>`;
-  } catch {
-    node.innerHTML = `<div class="empty-inline">${icon('resume', 22)}<p>The resume file couldn’t be loaded. Try again in a moment.</p><button class="outline" onclick="paintApplicationResume('${id}')">Retry</button></div>`;
-  }
-}
+
 function safeFileName(name) {
   const ext = (String(name).toLowerCase().match(/\.(pdf|docx|txt)$/) || [, 'pdf'])[1];
   return 'resume-' + Date.now().toString(36) + '.' + ext;
 }
-async function shareResumeFile(appId, previous) {
-  const file = typeof savedResumeFile === 'function' ? savedResumeFile() : null;
-  if (!file?.path) return false;
-  const download = await Account.client.storage.from('account-resumes').download(file.path);
-  if (download.error) throw download.error;
-  const path = appId + '/' + safeFileName(file.name), type = file.type || download.data.type || 'application/pdf';
-  const upload = await Account.client.storage.from(APPLICATION_BUCKET).upload(path, download.data, { contentType: type, upsert: false });
-  if (upload.error) throw upload.error;
-  const attached = await Account.client.rpc('attach_application_resume', { app: appId, file: { name: file.name, size: file.size || download.data.size, path, type } });
-  if (attached.error) { await Account.client.storage.from(APPLICATION_BUCKET).remove([path]); throw attached.error; }
-  if (previous?.path && previous.path !== path) await Account.client.storage.from(APPLICATION_BUCKET).remove([previous.path]).catch(() => {});
-  return true;
+async function shareResumeFile(appId,previous){
+ const file=typeof savedResumeFile==='function'?savedResumeFile():null;if(!file?.path)return false;
+ const owner=Account.user?.id,epoch=Account.sessionEpoch,client=Account.client;
+ const current=()=>Account.user?.id===owner&&Account.sessionEpoch===epoch;
+ const download=await client.storage.from('account-resumes').download(file.path);if(download.error)throw download.error;
+ if(!current())throw Error('Account changed.');
+ const path=appId+'/'+crypto.randomUUID()+'.'+file.name.split('.').pop().toLowerCase(),type=ResumeDocuments.type(file);
+ const upload=await client.storage.from(APPLICATION_BUCKET).upload(path,download.data,{contentType:type,upsert:false});if(upload.error)throw upload.error;
+ try{
+  if(!current())throw Error('Account changed.');
+  const attached=await client.rpc('attach_application_resume',{app:appId,file:{name:file.name,size:file.size||download.data.size,path,type}});if(attached.error)throw attached.error;
+ }catch(e){await client.storage.from(APPLICATION_BUCKET).remove([path]).catch(()=>{});throw e;}
+ if(current()&&previous?.path&&previous.path!==path)await client.storage.from(APPLICATION_BUCKET).remove([previous.path]).catch(()=>{});
+ return true;
+}
+async function attachSavedResumeToApplication(id,button){
+ if(button?.disabled)return;
+ const app=Organization.mine.find(a=>a.id===id);if(!app||app.status!=='submitted')return;
+ if(button){button.disabled=true;button.textContent="Attaching resume…";}
+ const owner=Account.user?.id,epoch=Account.sessionEpoch;
+ try{if(!await shareResumeFile(id,app.resume_file)){toast('Upload your original resume in My profile first.');return;}if(Account.user?.id!==owner||Account.sessionEpoch!==epoch)return;Organization.loaded=false;await loadOrganization();render();toast('Original resume attached to your application');}
+ catch{if(Account.user?.id===owner&&Account.sessionEpoch===epoch)toast('The resume could not be attached. Your application is saved; try Attach resume again.');}
+ finally{if(button?.isConnected){button.disabled=false;button.textContent='Attach resume';}}
 }
 
 /* ---------------- Personal: apply, reapply, track ---------------- */
@@ -212,8 +206,8 @@ async function applyLiveListing(id) {
       <label class="field">Your introduction<textarea id="live-introduction" required minlength="30" maxlength="6000" rows="6" placeholder="Why this opportunity, and what you’d bring to it.">${esc(reapplying ? existing.introduction : profile.bio || '')}</textarea></label>
       <fieldset class="share-options"><legend>Share with ${esc(job.c)}</legend>
         <label class="consent"><input type="checkbox" checked disabled> Your full Nextwork profile (education, preferences, skills, links)</label>
-        <label class="consent"><input id="live-attach-resume" type="checkbox" ${resumeText ? 'checked' : 'disabled'}> Resume text ${resumeText ? '' : '<small>(none saved)</small>'}</label>
-        <label class="consent"><input id="live-attach-file" type="checkbox" ${file?.path ? 'checked' : 'disabled'}> Resume file ${file?.path ? `<small>${esc(file.name)}</small>` : '<small>(upload one in your profile)</small>'}</label>
+        <label class="consent"><input id="live-attach-resume" type="checkbox" ${resumeText ? 'checked' : 'disabled'}> Matching text (for resume analysis) ${resumeText ? '' : '<small>(none saved)</small>'}</label>
+        <label class="consent"><input id="live-attach-file" type="checkbox" ${file?.path ? 'checked' : 'disabled'}> Original resume document ${file?.path ? `<small>${esc(file.name)}</small>` : '<small>(upload one in your profile)</small>'}</label>
       </fieldset>
       <label class="consent confirm"><input type="checkbox" required> I’ve reviewed this information and want to ${reapplying ? 'resubmit' : 'submit'} my application.</label>
       <div class="dialog-actions"><button class="primary">${reapplying ? 'Resubmit application' : 'Submit application'} ${icon('arrow', 15)}</button><button type="button" class="outline" onclick="closeModal()">Cancel</button></div>
@@ -234,7 +228,7 @@ async function applyLiveListing(id) {
         appId = checked(await Account.client.from('organization_applications').insert({ listing_id: id, applicant_id: user.id, profile, resume, introduction }).select('id').single()).id;
       }
       let fileNote = '';
-      if (withFile) { try { await shareResumeFile(appId, reapplying ? existing.resume_file : null); } catch { fileNote = ' Your resume file couldn’t be attached — your profile and resume text were sent.'; } }
+      if (withFile) { try { await shareResumeFile(appId, reapplying ? existing.resume_file : null); } catch { fileNote = ' Your resume file could not be attached. Use Attach resume on this application to retry.'; } }
       closeModal(); Organization.loaded = false; workTab = 'applications'; location.hash = 'projects'; render();
       await loadOrganization();
       toast((reapplying ? 'Application resubmitted to ' : 'Application submitted to ') + job.c + '.' + fileNote);
@@ -274,6 +268,7 @@ function myApplicationCard(app) {
     ${applicationProgress(app.status)}
     ${decided || app.decision_note ? `<div class="decision-note tone-${meta.tone}"><b>${app.status === 'accepted' ? icon('check', 15) + ' Accepted' : app.status === 'declined' ? 'Decision: not selected' : 'Note from ' + esc(org)}</b>${app.decision_note ? `<p>“${esc(app.decision_note)}”</p><small>— ${esc(org)}${app.decided_at ? ' · ' + esc(friendlyDate(app.decided_at)) : ''}</small>` : `<p class="muted-copy">${esc(meta.note)}</p>`}</div>` : `<p class="status-hint">${esc(meta.note)}</p>`}
     <div class="my-app-foot"><small>${app.attempt > 1 ? `Reapplied ${esc(friendlyDate(app.reapplied_at || app.updated_at))} · attempt ${app.attempt}` : `Applied ${esc(friendlyDate(app.created_at))}`}${app.resume_file ? ' · resume file shared' : ''}</small><div class="row-actions">
+      ${app.status==='submitted'&&!app.resume_file?`<button class="outline" onclick="attachSavedResumeToApplication('${app.id}',this)">Attach resume</button>`:''}
       ${canReapply(app) ? `<button class="primary" onclick="reapplyApplication('${app.id}')">Reapply ${icon('arrow', 14)}</button>` : ''}
       <button class="outline" onclick="openApplicationMessages('${app.id}')">${icon('message', 15)} Message</button>
       ${['submitted', 'shortlisted'].includes(app.status) ? `<button class="text-control" onclick="withdrawOrganizationApplication('${app.id}')">Withdraw</button>` : ''}

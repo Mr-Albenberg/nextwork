@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),{webcrypto}=require('node:crypto');
+let downloads=0,created=[],revoked=[],release,slow=false,attached=null,failAttach=false,source=new Blob(['%PDF-1.4\nOriginal resume bytes'],{type:'application/pdf'}),uploaded=null,removed=[];
+const c={Account:{user:{id:'alice'},sessionEpoch:1,client:{storage:{from:bucket=>({download:async()=>{downloads++;if(slow)await new Promise(resolve=>release=resolve);return {data:source}},upload:async(path,blob,options)=>{uploaded={bucket,path,blob,options};return {}},remove:async paths=>{removed.push(...paths);return {}}})},rpc:async(name,args)=>{attached={name,args};return failAttach?{error:Error('offline')}:{}}}},crypto:webcrypto,Blob,File,URL:{createObjectURL:blob=>{const url='blob:test-'+created.length;created.push({url,blob});return url},revokeObjectURL:url=>revoked.push(url)},window:{},savedResumeFile:()=>({path:'alice/original.pdf',name:'resume.pdf',size:source.size}),document:{getElementById:()=>null},setTimeout(){}};
+vm.createContext(c);vm.runInContext(fs.readFileSync('dist/resume-documents.js','utf8')+'\nglobalThis.Docs=ResumeDocuments',c);vm.runInContext(fs.readFileSync('dist/applications.js','utf8'),c);
+(async()=>{
+ const d=c.Docs;
+ assert.equal(await d.validate(new File(['%PDF-1.4\nresume'],'resume.pdf')),'application/pdf');
+ await assert.rejects(d.validate(new File(['<html>wrong'],'resume.pdf')),/PDF/);
+ await assert.rejects(d.validate(new File(['x'],'resume.exe')),/PDF, DOCX/);
+ await assert.rejects(d.validate(new File([new Uint8Array(5242881)],'resume.txt')),/5 MB/);
+ const file={path:'alice/file.pdf',name:'resume.pdf'},first=await d.get('account-resumes',file),second=await d.get('account-resumes',file);
+ assert.equal(first.url,second.url);assert.equal(downloads,1);assert.equal(await first.blob.text(),await source.text());
+ d.reset();assert(revoked.includes(first.url));
+ slow=true;const before=created.length,pending=d.get('account-resumes',file);c.Account.user={id:'bob'};c.Account.sessionEpoch++;release();assert.equal(await pending,null);assert.equal(created.length,before,'Stale downloads must not create an accessible object URL');slow=false;
+ c.Account.user={id:'alice'};c.Account.sessionEpoch++;
+ assert(await vm.runInContext("shareResumeFile('application-1',null)",c));assert.equal(uploaded.bucket,'application-resumes');assert.equal(await uploaded.blob.text(),await source.text());assert.equal(uploaded.options.contentType,'application/pdf');assert.equal(attached.name,'attach_application_resume');assert.equal(attached.args.file.path,uploaded.path);assert.equal(attached.args.file.name,'resume.pdf');
+ const stored=uploaded.path;source=new Blob(['%PDF-1.4\nReplacement resume']);assert.equal(await uploaded.blob.text(),'%PDF-1.4\nOriginal resume bytes','Application snapshot must preserve the original bytes');
+ failAttach=true;await assert.rejects(vm.runInContext("shareResumeFile('application-2',null)",c));assert(removed.includes(uploaded.path),'A failed metadata attachment must remove the staged application copy');assert(!removed.includes(stored));
+ const profile=fs.readFileSync('dist/profile.js','utf8');assert(!profile.includes('textarea id="review-resume"'));assert(profile.includes('profile-resume-document'));
+ console.log('Resume documents: signatures/limits, original byte preservation, private cache, account-switch cancellation, application snapshots, attachment rollback and document-first profile passed.');
+})().catch(e=>{console.error(e);process.exitCode=1});

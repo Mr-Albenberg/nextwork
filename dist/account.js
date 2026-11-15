@@ -29,6 +29,7 @@ function memoryStorage() {
 const workspaceLocal = memoryStorage(),
   workspaceSession = memoryStorage();
 function clearWorkspaceMemory() {
+  if (typeof ResumeDocuments !== "undefined") ResumeDocuments.reset();
   if (typeof NextworkMatch !== "undefined") NextworkMatch.reset();
   if (typeof resetMessaging === "function") resetMessaging();
   workspaceLocal.clear();

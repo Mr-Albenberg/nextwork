@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 const projectObjects = new Map();
+const resumeObjects = new Map();
 const rows = new Map(),
   requests = [];
 let failStorage = false;
@@ -163,9 +164,17 @@ async function setup(browser) {
         if(method==='GET')return route.fulfill({contentType:'text/plain',body:projectObjects.get(key)||''});
         projectObjects.set(key,'Project upload test content');return reply({Key:key,Id:'file'});
       }
-      if (url.pathname === "/storage/v1/object/list/account-resumes") return reply([]);
-      if (url.pathname.startsWith("/storage/v1/object/account-resumes/")) return reply({Key:url.pathname,Id:'resume-file'});
-      if (url.pathname === "/storage/v1/object/account-resumes") return reply([]);
+      if (url.pathname === "/storage/v1/object/list/account-resumes") return reply([...resumeObjects.keys()].filter(p=>p.startsWith('account-resumes:'+body.prefix+'/')).map(p=>({id:'file',name:p.slice(('account-resumes:'+body.prefix).length+1)})));
+      if (url.pathname.startsWith("/storage/v1/object/account-resumes/") || url.pathname.startsWith("/storage/v1/object/application-resumes/")) {
+        const bucket=url.pathname.includes('/account-resumes/')?'account-resumes':'application-resumes';
+        const key=bucket+':'+decodeURIComponent(url.pathname.split('/'+bucket+'/')[1]);
+        if(method==='GET')return route.fulfill({contentType:key.endsWith('.pdf')?'application/pdf':key.endsWith('.docx')?'application/vnd.openxmlformats-officedocument.wordprocessingml.document':'text/plain',body:resumeObjects.get(key)||Buffer.from('Missing resume')});
+        let bytes=request.postDataBuffer()||Buffer.from('');const header=request.headers()['content-type']||'';
+        const boundary=/boundary=([^;]+)/.exec(header)?.[1];
+        if(boundary){const parts=bytes.toString('latin1').split('--'+boundary);const filePart=parts.find(p=>/filename=/.test(p));if(filePart)bytes=Buffer.from(filePart.slice(filePart.indexOf('\r\n\r\n')+4).replace(/\r\n$/,''),'latin1');}
+        resumeObjects.set(key,bytes);return reply({Key:key,Id:'resume-file'});
+      }
+      if (url.pathname === "/storage/v1/object/account-resumes" || url.pathname === "/storage/v1/object/application-resumes") {const bucket=url.pathname.split('/').pop();for(const key of body.prefixes||[])resumeObjects.delete(bucket+':'+key);return reply([]);}
       if (url.pathname.startsWith("/storage/v1/object/profile-photo-staging/"))
         return reply({ Key: url.pathname, Id: "staged-photo" });
       if (url.pathname === "/storage/v1/object/profile-photo-staging")
@@ -282,7 +291,7 @@ async function login(page, email) {
   await page.getByRole("heading", { name: "Account & connections" }).waitFor();
   await page.waitForFunction(() => Account.ready && Backend.ready);
 }
-(async () => {
+if (require.main === module) (async () => {
   photoBytes = await require("sharp")({
     create: { width: 400, height: 400, channels: 3, background: "#3a6ab8" },
   })
@@ -471,7 +480,7 @@ async function login(page, email) {
     await page.goto(base + "/#profile");
     await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
     await page.locator('#profile-resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.\nEDUCATION\nExample University\nBachelor of Science in Computer Science\nExpected graduation: 2028\nSKILLS: React, JavaScript, SQL')});
-    await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
+    await page.locator('#profile-resume-document .resume-document-toolbar').filter({hasText:'alice-resume.txt'}).waitFor();
     assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Upload must not change profile fields');
     assert.equal(await page.locator('#profile-import-consent').count(),0);
     await page.getByRole('button',{name:'Fill in profile details',exact:true}).click();
@@ -492,14 +501,14 @@ async function login(page, email) {
     assert.equal(await page.getByRole('heading',{name:'Your profile details are ready'}).count(),0);
     assert(rows.get(users['alice@example.com'].id).extras['proof-resume-report']);
     await page.reload();
-    await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
+    await page.locator('#profile-resume-document .resume-document-toolbar').filter({hasText:'alice-resume.txt'}).waitFor();
     assert.equal(await page.getByLabel('Graduation year').inputValue(),'2028');
-    await page.getByRole('button',{name:'Clear resume',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Remove resume',exact:true}).waitFor();
     const chooserPromise=page.waitForEvent('filechooser');
-    await page.getByRole('button',{name:'Upload a new resume',exact:true}).click();
+    await page.getByRole('button',{name:'Replace resume',exact:true}).click();
     const chooser=await chooserPromise;
     await chooser.setFiles({name:'replacement.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a replacement version with JavaScript.')});
-    await page.getByText('Saved resume: replacement.txt',{exact:true}).waitFor();
+    await page.locator('#profile-resume-document .resume-document-toolbar').filter({hasText:'replacement.txt'}).waitFor();
     await page.goto(base + '/#skills');
     await page.waitForURL('**/#recommend');
     assert((await page.locator('#reco-resume').inputValue()).includes('accessible React applications'));
@@ -507,7 +516,7 @@ async function login(page, email) {
     assert((await page.locator('#reco-resume').inputValue()).includes('accessible React applications'));
     assert.equal(await page.locator('input[type=file]').count(),0);
     await page.goto(base + '/#profile');
-    await page.getByRole('button',{name:'Clear resume',exact:true}).click();
+    await page.getByRole('button',{name:'Remove resume',exact:true}).click();
     await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
     assert.equal(await page.evaluate(()=>marketplaceResume()),'');
     await page.goto(base + '/#skills');
@@ -516,6 +525,7 @@ async function login(page, email) {
     await page.goto(base + '/#resume');
     assert.equal(await page.locator('#review-consent').count(),0);
     await page.getByRole('heading',{name:'My resume',exact:true}).waitFor();
+    await page.locator('#resume-matching-text summary').click();
     await page
       .getByLabel("Resume text")
       .fill(
@@ -1029,3 +1039,5 @@ async function login(page, email) {
   console.error(error);
   process.exit(1);
 });
+
+module.exports={setup,login,rows,users,resumeObjects};

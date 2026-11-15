@@ -53,6 +53,7 @@ jobs:
           node tests/resume-flow.test.js
           node tests/resume-editor.test.js
           node tests/account-resumes.test.js
+          node tests/resume-documents.test.js
           node tests/profile-import.test.js
           node tests/profile-import-client.test.js
       - name: Test Nextwork Match model and synthetic holdout
@@ -99,6 +100,7 @@ jobs:
           trap 'kill "$account_server_pid"' EXIT
           curl --retry-connrefused --retry 5 --retry-delay 1 --fail --silent http://localhost:3000/ > /dev/null
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/account-browser.cjs
+          NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/resume-documents-browser.cjs
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/theme-browser.cjs
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/messaging-browser.cjs
       - uses: actions/upload-artifact@v4
@@ -168,6 +170,7 @@ jobs:
           PGPASSWORD: local-ci-only
         run: |
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611150010_application_lifecycle.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611150012_resume_documents.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/application-lifecycle.test.sql
       - name: Verify GitHub Pages mirror
         run: |
@@ -216,3 +219,7 @@ jobs:
       - name: Configure private project file storage
         if: steps.setup.outputs.configured == 'true'
         run: node .github/scripts/provision-project-files.cjs
+
+      - name: Configure private resume documents and application sharing
+        if: steps.setup.outputs.configured == 'true'
+        run: node .github/scripts/provision-resume-documents.cjs
