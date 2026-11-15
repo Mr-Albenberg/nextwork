@@ -16,6 +16,7 @@ const { chromium } = require('playwright');
     await page.locator('.theme-control:visible').click();
     assert.equal(await theme(), 'light');
     await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => document.body.dataset.auth !== 'loading');
     assert.equal(await theme(), 'light');
     await page.locator('.theme-control:visible').click();
     await page.emulateMedia({ colorScheme: 'light' });
