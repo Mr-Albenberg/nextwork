@@ -1,0 +1,34 @@
+name: Reset Nextwork user data
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Inspect counts or delete all live user accounts and their content
+        required: true
+        default: inspect
+        type: choice
+        options: [inspect, reset]
+      confirmation:
+        description: For reset only, enter DELETE ALL NEXTWORK USER DATA
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: nextwork-live-user-data-reset
+  cancel-in-progress: false
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Inspect or reset the existing Nextwork project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          RESET_MODE: ${{ inputs.mode }}
+          RESET_CONFIRMATION: ${{ inputs.confirmation }}
+        run: node .github/scripts/reset-nextwork-data.cjs
