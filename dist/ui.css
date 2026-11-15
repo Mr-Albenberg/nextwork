@@ -12824,3 +12824,24 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
 }
 
 .jobs-view-list .opportunity-compensation > .fit-link { white-space: nowrap; }
+
+/* List cards keep category and save beside the project actions. */
+.jobs-view-list .listing-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.jobs-view-list .listing-actions .opportunity-type { display: inline-block; margin: 0 auto 0 0; }
+.jobs-view-list .listing-actions .view-project-button { min-height: 34px; font-size: 12px; margin: 0; }
+.jobs-view-list .listing-actions .fit-link { min-height: 34px; font-size: 12px; white-space: nowrap; margin: 0; }
+.jobs-view-list .listing-actions .bookmark { position: static; flex-shrink: 0; margin: 0; }
+@media(max-width: 650px) {
+ .jobs-view-list .listing-actions { gap: 8px; flex-wrap: wrap; }
+ .jobs-view-list .listing-actions .opportunity-type { font-size: 10px; }
+ .jobs-view-list .listing-actions .view-project-button { padding-inline: 10px; }
+ .jobs-view-list .listing-actions .fit-link { padding-inline: 4px; }
+}
+
+@media(max-width: 650px) {
+ .jobs-view-list .listing-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto auto 32px; gap: 6px; }
+ .jobs-view-list .listing-actions .opportunity-type { white-space: normal; max-width: 75px; padding: 4px; }
+ .jobs-view-list .listing-actions .view-project-button, .jobs-view-list .listing-actions .fit-link { font-size: 11px; gap: 4px; }
+ .jobs-view-list .listing-actions .view-project-button { padding-inline: 8px; }
+ .jobs-view-list .listing-actions .bookmark { width: 32px; min-width: 32px; }
+}
