@@ -462,8 +462,8 @@ const netFetch = async (url) => {
   assert(out.includes("Intermediate") && out.includes("32 hours"));
   ctx.location.hash = '#recommend/idea/0';vm.runInContext('render()',ctx);
   const planPage=element('#app').innerHTML;
-  assert(planPage.includes('YOUR PLAN') && planPage.includes('Create the app and CI.') && planPage.includes('Vitest') && planPage.includes('Add offline mode'));
-  assert(planPage.includes('What you’ll create') && planPage.includes('Copy full project brief'));
+  assert(planPage.includes('YOUR PROJECT TIMELINE') && planPage.includes('Create the app and CI.') && planPage.includes('Vitest') && planPage.includes('Add offline mode'));
+  assert(planPage.includes('What you’ll create') && planPage.includes('Start this project'));
   ctx.location.hash='#recommend/results';vm.runInContext('render()',ctx);
   assert(!out.includes("javascript:") && !out.includes("<img src=x"));
   assert.equal(data["nw-reco-role"], "Frontend developer");

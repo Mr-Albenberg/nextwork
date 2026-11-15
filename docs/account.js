@@ -455,7 +455,7 @@ function updateAccountChrome(page) {
   document.body.dataset.auth = Account.user ? "member" : "guest";
   document.body.dataset.page = page;
   const pageLabel = document.querySelector('.workspace-page-label');
-  if (pageLabel) { const labels={overview:'Overview',explore:'Find work',projects:'My work',recommend:'Project ideas',resume:'Resume review',profile:'My profile',messages:'Messages',organization:'Hiring portal',premium:'Premium',checkout:'Membership',settings:'Settings'}; pageLabel.textContent=labels[page.split('/')[0]]||''; }
+  if (pageLabel) { const labels={overview:'Overview',explore:'Find work',projects:'My work',recommend:'Project ideas',resume:'Resume review',profile:'My profile',messages:'Messages',organization:'Hiring portal',premium:'Premium',checkout:'Membership',settings:'Settings'}; pageLabel.textContent=page.startsWith('recommend/saved/')?'My work':labels[page.split('/')[0]]||''; }
 
   const hiring = isOrganizationAccount();
   document.body.dataset.accountType = hiring ? "organization" : "personal";

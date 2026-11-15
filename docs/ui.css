@@ -8818,3 +8818,956 @@ summary:focus-visible {
     height: 25px;
   }
 }
+/* Flexible action rows keep text readable at every zoom level. */
+.ideas-next-callout {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) max-content;
+  gap: 20px;
+  align-items: center;
+  padding: 25px 28px;
+}
+.ideas-next-callout > div {
+  min-width: 0;
+  flex: none;
+}
+.ideas-next-callout .outline {
+  width: auto;
+  min-width: 135px;
+  white-space: nowrap;
+  flex: none;
+}
+.ideas-next-callout b {
+  display: block;
+  white-space: normal;
+  font-size: 14px;
+}
+.ideas-next-callout p {
+  max-width: none;
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.idea-card-actions,
+.idea-plan-heading {
+  min-width: 0;
+}
+.idea-card-actions > a {
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.6;
+}
+.idea-save-button {
+  flex-shrink: 0;
+}
+.idea-plan-heading > div {
+  min-width: 0;
+  flex: 1;
+}
+.idea-plan-heading > .outline {
+  width: auto;
+  flex-shrink: 0;
+}
+.ideas-page h1,
+.ideas-page h2,
+.ideas-page h3,
+.ideas-page p {
+  overflow-wrap: anywhere;
+}
+.idea-plan-layout > * {
+  min-width: 0;
+}
+.section-title > a,
+.report-plan-actions > a,
+.review-results-top .outline {
+  width: auto;
+  flex-shrink: 0;
+}
+/* Evidence and growth are separate, measurable reasons for choosing an idea. */
+.project-fit {
+  background: var(--theme-surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 24px;
+  margin: 0 0 26px;
+  min-width: 0;
+}
+.project-fit-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 12px;
+  margin-bottom: 11px;
+}
+.project-fit-title > span {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  color: var(--muted);
+}
+.project-fit-title > b {
+  font-size: 16px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.project-fit-bar {
+  height: 8px;
+  background: var(--theme-subtle);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.project-fit-bar > i {
+  height: 100%;
+  display: block;
+  background: var(--evidence-positive);
+}
+.project-fit-bar:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent calc(20% - 1px),
+    var(--theme-surface) calc(20% - 1px),
+    var(--theme-surface) 20%
+  );
+  pointer-events: none;
+}
+.project-fit-breakdown {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 25px;
+  margin: 24px 0 17px;
+}
+.project-fit-breakdown > div {
+  border-left: 2px solid var(--line);
+  padding-left: 15px;
+  min-width: 0;
+}
+.project-fit-breakdown strong {
+  font-size: 27px;
+  display: block;
+  line-height: 1.2;
+  margin-bottom: 8px;
+  letter-spacing: -0.7px;
+}
+.project-fit-breakdown > div:first-child {
+  border-color: var(--evidence-positive);
+}
+.project-fit-breakdown > div:nth-child(2) {
+  border-color: var(--theme-accent);
+}
+.project-fit-breakdown span {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.7;
+}
+.project-fit-breakdown p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 8px 0 0;
+}
+.project-fit > small {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.project-fit-compact {
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  padding: 17px 0 0;
+  margin: 18px 0;
+}
+.project-fit-compact .project-fit-title {
+  font-size: 10px;
+}
+.project-fit-compact .project-fit-title > b {
+  font-size: 12px;
+}
+.project-fit-compact .project-fit-bar {
+  height: 6px;
+}
+.project-fit-compact > p {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 8px 0 0;
+  line-height: 1.8;
+}
+.idea-cards {
+  align-items: stretch;
+}
+.idea-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.idea-card > .idea-card-actions {
+  margin-top: auto;
+}
+.idea-card h2 {
+  font-size: 21px;
+}
+.idea-card .tags {
+  margin-top: auto;
+}
+/* A restrained workflow diagram instead of floating paper artwork. */
+.project-process-graphic {
+  border: 1px solid #7c96ba59;
+  border-radius: 8px;
+  background: #142840;
+  padding: 23px;
+  margin-bottom: 28px;
+  width: 100%;
+  max-width: 450px;
+}
+.process-graphic-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #a8c1e4;
+  margin-bottom: 25px;
+}
+.process-graphic-head > span {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+.process-graphic-stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 0 23px;
+  position: relative;
+}
+.process-graphic-stage:not(:nth-last-child(2)):after {
+  content: "";
+  position: absolute;
+  top: 37px;
+  bottom: 5px;
+  left: 17px;
+  width: 1px;
+  background: #567297;
+}
+.process-graphic-stage > b {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 35px;
+  height: 35px;
+  font-size: 11px;
+  border: 1px solid #567297;
+  border-radius: 7px;
+  color: #c5d9f5;
+  background: #203e62;
+}
+.process-graphic-stage > span {
+  flex: 1;
+  min-width: 0;
+}
+.process-graphic-stage strong {
+  display: block;
+  font-size: 14px;
+  color: #f0f5ff;
+  font-weight: 500;
+}
+.process-graphic-stage small {
+  display: block;
+  color: #a9bedb;
+  font-size: 10px;
+  margin-top: 4px;
+  line-height: 1.8;
+}
+.process-graphic-stage > svg {
+  color: #8bd5be;
+  width: 15px;
+}
+.process-graphic-caption {
+  font-size: 10px;
+  border-top: 1px solid #56729770;
+  padding-top: 16px;
+  color: #b1c6e3;
+  line-height: 1.8;
+}
+/* Milestones are real account-backed tasks, with explicit completion. */
+.project-timeline {
+  min-width: 0;
+  padding: 27px;
+}
+.timeline-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.timeline-heading h2 {
+  font-size: 21px;
+  margin: 0 0 8px;
+}
+.timeline-heading p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 0;
+}
+.timeline-heading > strong {
+  font-size: 15px;
+  white-space: nowrap;
+  color: var(--theme-accent);
+  font-weight: 600;
+}
+.project-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--theme-subtle);
+  overflow: hidden;
+  margin: 0 0 25px;
+}
+.project-progress > i {
+  display: block;
+  height: 100%;
+  background: var(--theme-brand);
+}
+.project-timeline-list.idea-plan-steps {
+  list-style: none;
+  counter-reset: none;
+  padding: 0;
+  margin: 25px 0 0;
+}
+.project-timeline-list.idea-plan-steps > li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 17px;
+  position: relative;
+  padding: 0 0 27px;
+  margin: 0;
+  border: 0;
+  counter-increment: none;
+}
+.project-timeline-list.idea-plan-steps > li:before {
+  display: none;
+}
+.project-timeline-list > li:not(:last-child):after {
+  content: "";
+  position: absolute;
+  top: 29px;
+  bottom: 3px;
+  left: 13px;
+  width: 1px;
+  background: var(--line);
+}
+.milestone-marker {
+  padding-top: 1px;
+}
+.milestone-marker > span {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 11px;
+  background: var(--theme-bg);
+}
+.milestone-marker > input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0 2px;
+  accent-color: var(--theme-brand);
+  cursor: pointer;
+}
+.milestone-marker > input:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.project-timeline-list small {
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 500;
+}
+.project-timeline-list h3 {
+  font-size: 15px;
+  margin: 7px 0;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.project-timeline-list p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 0;
+}
+.project-timeline-list .is-complete h3 {
+  color: var(--evidence-positive);
+}
+.milestone-date {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 10px;
+}
+.project-evidence-section {
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+  margin-top: 0;
+}
+.project-evidence-section > h3 {
+  font-size: 15px;
+  margin: 0 0 17px;
+}
+.project-evidence-section .field {
+  font-size: 11px;
+  margin-bottom: 15px;
+}
+.project-evidence-section input,
+.project-evidence-section textarea {
+  font-size: 12px;
+  font-weight: 400;
+}
+.project-evidence-section textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+.project-evidence-section .outline {
+  width: auto;
+  font-size: 11px;
+}
+.project-completion-action {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 21px;
+  margin-top: 23px;
+}
+.project-completion-action p {
+  width: 100%;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.8;
+}
+.project-completion-action .primary {
+  width: auto;
+  font-size: 11px;
+}
+.project-completion-action > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--evidence-positive);
+}
+.project-completion-action .text-control {
+  font-size: 11px;
+}
+.tracked-project-status {
+  color: var(--theme-accent);
+  font-size: 10px;
+  margin: 2px 0 12px;
+}
+.idea-saved-card {
+  min-width: 0;
+}
+.idea-saved-card .project-progress {
+  margin: 15px 0 20px;
+}
+.idea-saved-card > .idea-card-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.idea-saved-card .idea-card-actions .outline {
+  flex: 1;
+}
+.idea-saved-card .idea-card-actions button {
+  flex-shrink: 0;
+}
+.profile-completed-projects .section-title > span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.profile-completed-projects .section-title h2 {
+  font-size: 20px;
+}
+.profile-completed-projects article {
+  display: flex;
+  gap: 15px;
+  border-top: 1px solid var(--line);
+  padding: 20px 0 0;
+  margin-top: 20px;
+}
+.completed-project-mark {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--theme-subtle);
+  color: var(--evidence-positive);
+}
+.profile-completed-projects article > div {
+  min-width: 0;
+}
+.profile-completed-projects h3 {
+  font-size: 15px;
+  margin: 0 0 7px;
+}
+.profile-completed-projects small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.profile-completed-projects p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 10px 0;
+}
+.profile-completed-projects .tags {
+  margin: 11px 0;
+}
+/* Incoming notifications are small and temporary, without an always-on chat launcher. */
+#message-widget.message-notification {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 90;
+  width: auto;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: var(--theme-surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  box-shadow: var(--shadow-lg);
+  padding: 15px 17px;
+}
+.message-notification-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.message-notification-copy > svg {
+  color: var(--theme-accent);
+}
+.message-notification-copy b {
+  display: block;
+  font-size: 12px;
+}
+.message-notification-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 245px;
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.message-notification > .text-control {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.message-notification > .icon-button {
+  width: 27px;
+  min-width: 27px;
+  min-height: 27px;
+  height: 27px;
+  padding: 4px;
+  border: 0;
+}
+/* One resume review, with optional role context and visible editing drafts. */
+.resume-flow-steps {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.resume-flow-steps > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.resume-flow-steps .current {
+  font-weight: 600;
+  color: var(--theme-accent);
+}
+.optional-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-left: 6px;
+}
+.resume-target-details {
+  border-block: 1px solid var(--line);
+  padding: 13px 0;
+  margin: 17px 0;
+}
+.resume-target-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  list-style: none;
+}
+.resume-target-details > summary::-webkit-details-marker {
+  display: none;
+}
+.resume-target-details[open] > summary {
+  margin-bottom: 15px;
+}
+.resume-target-details[open] > summary svg {
+  transform: rotate(45deg);
+}
+.review-target .resume-target-details .field {
+  margin-bottom: 14px;
+}
+.review-target .resume-target-details textarea {
+  height: 115px;
+}
+.review-target > .resume-hint {
+  margin: 7px 0 10px;
+}
+.resume-suggested-edits {
+  border-top: 1px solid var(--line);
+  padding-top: 23px;
+  margin: 23px 0 30px;
+  min-width: 0;
+}
+.resume-edits-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.resume-edits-heading h2 {
+  font-size: 19px !important;
+  margin: 0 0 7px;
+}
+.resume-edits-heading .section-label {
+  font-size: 9px;
+}
+.resume-edits-heading > span {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  padding-top: 7px;
+}
+.resume-suggested-edits > p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 4px 0 18px;
+}
+.resume-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.resume-edit-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 0;
+  background: var(--theme-bg);
+}
+.resume-edit-title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.resume-edit-title > span {
+  font-size: 10px;
+  color: var(--theme-accent);
+  font-weight: 600;
+}
+.resume-edit-title h3 {
+  font-size: 13px !important;
+  line-height: 1.6;
+  margin: 0 !important;
+  flex: 1;
+  min-width: 0;
+}
+.resume-edit-title > small {
+  width: 100%;
+  font-size: 9px;
+  color: var(--muted);
+  margin-left: 23px;
+}
+.resume-edit-before,
+.resume-edit-draft {
+  border-radius: 5px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  background: var(--theme-surface);
+}
+.resume-edit-before {
+  border-left: 3px solid var(--line);
+}
+.resume-edit-draft {
+  border-left: 3px solid var(--evidence-positive);
+}
+.resume-edit-card small {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.resume-edit-card p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.85;
+  margin: 7px 0 0;
+}
+.resume-edit-before p {
+  color: var(--muted);
+}
+.resume-edit-card .resume-edit-reason {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 12px 0;
+}
+.resume-edit-card .text-control {
+  font-size: 11px;
+}
+.resume-suggested-edits > .outline {
+  width: auto;
+  margin-top: 18px;
+  font-size: 11px;
+}
+.report-rewrites {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .project-fit-breakdown {
+    gap: 17px;
+  }
+  .project-fit-breakdown span {
+    font-size: 10px;
+  }
+  .idea-plan-heading {
+    flex-wrap: wrap;
+  }
+  .project-fit-breakdown p {
+    font-size: 10px;
+  }
+  .resume-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .ideas-next-callout {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 14px;
+    padding: 22px;
+  }
+  .ideas-next-callout .outline {
+    grid-column: 1/-1;
+    width: 100%;
+    min-width: 0;
+  }
+  .ideas-next-callout > div {
+    width: auto;
+  }
+  .ideas-next-callout b {
+    font-size: 14px;
+  }
+  .ideas-next-callout p {
+    font-size: 12px;
+  }
+  .idea-plan-heading > .outline {
+    width: 100%;
+  }
+  .project-fit {
+    padding: 20px;
+  }
+  .project-fit-compact {
+    padding: 17px 0 0;
+  }
+  .project-fit-breakdown {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin: 20px 0;
+  }
+  .project-fit-breakdown > div {
+    display: grid;
+    grid-template-columns: 45px 1fr;
+    column-gap: 14px;
+  }
+  .project-fit-breakdown strong {
+    grid-row: 1/3;
+    font-size: 25px;
+    margin: 0;
+  }
+  .project-fit-breakdown span {
+    font-size: 11px;
+  }
+  .project-fit-breakdown p {
+    margin: 6px 0 0;
+    font-size: 11px;
+  }
+  .project-timeline {
+    padding: 21px;
+  }
+  .timeline-heading {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .timeline-heading h2 {
+    font-size: 20px;
+  }
+  .project-timeline-list.idea-plan-steps > li {
+    gap: 13px;
+  }
+  .project-timeline-list h3 {
+    font-size: 14px;
+  }
+  .project-timeline-list p {
+    font-size: 11px;
+  }
+  .project-completion-action .primary {
+    width: 100%;
+  }
+  .project-process-graphic {
+    padding: 21px;
+  }
+  .idea-saved-card .idea-card-actions .outline {
+    font-size: 10px;
+  }
+  .profile-completed-projects {
+    padding: 22px;
+  }
+  .profile-completed-projects .section-title {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  #message-widget.message-notification {
+    right: 12px;
+    left: 12px;
+    bottom: calc(
+      var(--mobile-nav-height, 72px) + env(safe-area-inset-bottom) + 12px
+    );
+    max-width: none;
+    padding: 13px;
+    gap: 11px;
+  }
+  .message-notification-copy {
+    flex: 1;
+    min-width: 0;
+  }
+  .message-notification-copy small {
+    max-width: 180px;
+    font-size: 10px;
+  }
+  .resume-flow-steps {
+    font-size: 9px;
+    gap: 9px;
+  }
+  .resume-flow-steps > svg {
+    width: 12px;
+  }
+  .resume-flow-steps > span {
+    gap: 6px;
+  }
+  .resume-flow-steps .current > svg {
+    width: 14px;
+  }
+  .resume-target-details > summary {
+    font-size: 11px;
+  }
+  .resume-edits-heading {
+    flex-direction: column;
+    gap: 0;
+  }
+  .resume-edits-heading > span {
+    padding: 0;
+  }
+  .resume-edits-heading h2 {
+    font-size: 18px !important;
+  }
+  .resume-edit-card {
+    padding: 17px;
+  }
+  .resume-edit-card p {
+    font-size: 11px;
+  }
+  .resume-edit-title h3 {
+    font-size: 12px !important;
+  }
+  .resume-suggested-edits > .outline {
+    width: 100%;
+  }
+  .resume-suggested-edits {
+    padding-top: 20px;
+  }
+}
+.page-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.page-heading-row > div {
+  flex: 1;
+  min-width: 0;
+}
+.page-heading-row > .outline,
+.page-heading-row > a {
+  width: auto;
+  flex: 0 0 auto;
+}
+.page-heading-row .heading {
+  margin-bottom: 0;
+}
+.project-fit-compact {
+  border-bottom: 0;
+}
+.idea-card .project-fit-compact {
+  margin-bottom: 19px;
+}
+@media (max-width: 760px) {
+  .page-heading-row {
+    flex-direction: column;
+    gap: 17px;
+  }
+  .page-heading-row > .outline {
+    width: auto;
+  }
+  .page-heading-row > div {
+    width: 100%;
+  }
+}
+.project-timeline-list.idea-plan-steps {
+  gap: 0;
+}
+.project-timeline-list.idea-plan-steps > li:last-child {
+  padding-bottom: 20px;
+}
+.project-timeline-list.idea-plan-steps > li > div:last-child {
+  min-width: 0;
+}
+.report-overview-top + .resume-suggested-edits {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 0;
+}

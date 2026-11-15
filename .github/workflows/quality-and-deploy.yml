@@ -59,7 +59,9 @@ jobs:
       - name: Test profile setup, field criteria and grounded AI evidence
         run: node tests/profile-and-criteria.test.js
       - name: Test project recommendations, market data and API
-        run: node tests/recommend.test.js
+        run: |
+          node tests/recommend.test.js
+          node tests/project-tracker.test.js
       - name: Test profile photo validation and import
         run: |
           node tests/profile-photo.test.js
