@@ -12737,8 +12737,8 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
 .account-settings-layout .account-heading, .account-settings-layout .account-setting, .account-settings-layout .account-danger, .account-settings-layout .account-footer { flex-wrap: wrap; }
 .account-settings-layout .account-setting-copy { min-width: 0; }
 /* Arrange the cards in complete rows, including when there are no projects. */
-.account-settings-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); grid-template-areas: "summary editor" "resume workspace" "account account"; align-items: stretch; }
-.account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary editor" "resume workspace" "projects projects" "account account"; }
+.account-settings-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); grid-template-areas: "summary editor" "resume resume" "workspace workspace" "account account"; align-items: stretch; }
+.account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary editor" "resume resume" "workspace workspace" "projects projects" "account account"; }
 .account-settings-layout .profile-side-column, .account-settings-layout .profile-main-column { display: contents; }
 .account-settings-layout .profile-summary-card { grid-area: summary; height: 100%; }
 .account-settings-layout .profile-editor { grid-area: editor; }
@@ -12752,3 +12752,12 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
   .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "account" "workspace"; }
 }
 @media (max-width: 760px) { .account-settings-layout { gap: 18px; } .account-settings-layout .account-panel, .account-settings-layout .settings-panel, .account-settings-layout .profile-editor, .account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects { padding: 20px; } }
+
+/* Keep card copy on the same spacing rhythm. */
+.account-settings-layout :is(.profile-resume-upload, .settings-panel) > :is(h2, h3, p),
+.account-settings-layout .account-heading h2,
+.account-settings-layout .account-heading p { margin: 0 0 12px; line-height: 1.5; }
+.account-settings-layout .settings-panel > h3 { margin-top: 20px; }
+.account-settings-layout .profile-resume-upload > :last-child,
+.account-settings-layout .settings-panel > :last-child,
+.account-settings-layout .account-heading p:last-child { margin-bottom: 0; }
