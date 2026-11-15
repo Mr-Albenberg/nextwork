@@ -73,6 +73,18 @@ async function setup(browser) {
   page.setDefaultTimeout(10000);
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  await context.route('**/api/resume',route=>{
+    if(route.request().method()==='GET')return route.fulfill({json:{service:'prooflane-resume',aiConfigured:true}});
+    const body=route.request().postDataJSON();
+    if(body.action!=='profile-import')return route.fulfill({json:{error:'unexpected action'},status:400});
+    return route.fulfill({json:{source:'ai',suggestions:[
+      {field:'tagline',value:'Frontend developer building accessible tools for community teams',evidence:'I build accessible React applications for community teams'},
+      {field:'education',value:'Example University',evidence:'Example University'},
+      {field:'degree',value:'BS in Computer Science',evidence:'Bachelor of Science in Computer Science'},
+      {field:'graduation',value:'2028',evidence:'Expected graduation: 2028'},
+      {field:'skills',value:'React, JavaScript, SQL',evidence:'SKILLS: React, JavaScript, SQL'}
+    ]}});
+  });
   await context.route("**/functions/v1/profile-photo**", async (route) => {
     const request = route.request(),
       url = new URL(request.url());
@@ -448,10 +460,19 @@ async function login(page, email) {
     await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
     await page.locator('#profile-resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.\nEDUCATION\nExample University\nBachelor of Science in Computer Science\nExpected graduation: 2028\nSKILLS: React, JavaScript, SQL')});
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
-    assert.equal(rows.get(users['alice@example.com'].id).profile.tagline,'Frontend Developer');
-    assert.equal(rows.get(users['alice@example.com'].id).profile.degree,'Bachelor of Science in Computer Science');
+    assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Upload must not change profile fields');
+    await page.locator('#profile-import-consent').check();
+    await page.getByRole('button',{name:'Prepare profile suggestions',exact:true}).click();
+    await page.getByRole('heading',{name:'Review suggested changes'}).waitFor();
+    assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Preparing suggestions must not save them');
+    await page.getByRole('button',{name:/Fill missing profile details/}).click();
+    await page.waitForFunction(()=>!Backend.saving&&Backend.pending.size===0);
+    assert.equal(rows.get(users['alice@example.com'].id).profile.degree,'BS in Computer Science');
+    assert.equal(rows.get(users['alice@example.com'].id).profile.education,'Real University','Filling blanks preserves existing values');
     assert.equal(rows.get(users['alice@example.com'].id).profile.graduation,'2028');
-    assert(rows.get(users['alice@example.com'].id).profile.skills.includes('React'));
+    await page.getByRole('button',{name:/Update all different details/}).click();
+    await page.waitForFunction(()=>!Backend.saving&&Backend.pending.size===0);
+    assert.equal(rows.get(users['alice@example.com'].id).profile.education,'Example University');
     assert(rows.get(users['alice@example.com'].id).extras['proof-resume-report']);
     await page.reload();
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();

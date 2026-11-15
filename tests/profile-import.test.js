@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict');
+const {profileImport,validateSuggestions}=require('../lib/profile-import');
+const resume='Alex Johnson\nFrontend Developer\nEDUCATION\nExample University | Bachelor of Science in Computer Science, expected 2028\nBuilt accessible React applications for community teams and a volunteer dashboard.';
+const suggestions=[{field:'education',value:'Example University',evidence:'Example University'},{field:'bio',value:'I build accessible React applications for community teams.',evidence:'Built accessible React applications for community teams'}];
+assert.equal(validateSuggestions({suggestions},resume).length,2);
+for(const row of [{field:'bio',value:'Invented',evidence:'invented evidence'},{field:'password',value:'bad',evidence:'Alex'},{field:'workstyle',value:'Anywhere',evidence:'Alex'},{field:'tagline',value:'word '.repeat(15),evidence:'Alex'},{field:'portfolio',value:'javascript:alert(1)',evidence:'Alex'}])assert.throws(()=>validateSuggestions({suggestions:[row]},resume));
+assert.throws(()=>validateSuggestions({suggestions:[suggestions[0],suggestions[0]]},resume));
+let calls=0,quota=true,provider='ok';
+global.fetch=async(url)=>{if(url.includes('/rpc/'))return {ok:true,json:async()=>quota};calls++;if(provider==='offline')throw Error();return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(provider==='bad'?{suggestions:[{field:'bio',value:'Made up',evidence:'fabricated'}]}:{suggestions})}]}}]})};};
+(async()=>{
+ const identity={authorization:'Bearer test'};
+ assert.equal((await profileImport(identity,{resume})).status,400);
+ assert.equal((await profileImport(identity,{resume:'short',consent:true})).status,400);
+ delete process.env.GEMINI_API_KEY;
+ assert.equal((await profileImport(identity,{resume,consent:true})).status,503);
+ assert.equal(calls,0);
+ process.env.GEMINI_API_KEY='test';process.env.GEMINI_FREE_TIER_CONFIRMED='true';quota=false;
+ assert.equal((await profileImport(identity,{resume,consent:true})).status,429);assert.equal(calls,0);
+ quota=true;assert.equal((await profileImport(identity,{resume,consent:true})).body.source,'ai');
+ provider='bad';assert.equal((await profileImport(identity,{resume,consent:true})).status,502);
+ provider='offline';assert.equal((await profileImport(identity,{resume,consent:true})).status,502);
+ console.log('AI profile drafts: consent, quota, grounding, concise limits, enums and explicit failures passed.');
+})().catch(error=>{console.error(error);process.exitCode=1});

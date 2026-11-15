@@ -1,0 +1,28 @@
+name: Deploy profile AI API
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: profile-ai-api-deploy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate profile processor
+        run: |
+          node tests/profile-import.test.js
+          node tests/profile-import-client.test.js
+      - name: Deploy existing API project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: node .github/scripts/deploy-profile-api.cjs

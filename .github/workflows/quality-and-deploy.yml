@@ -51,6 +51,8 @@ jobs:
         run: |
           node tests/resume.test.js
           node tests/account-resumes.test.js
+          node tests/profile-import.test.js
+          node tests/profile-import-client.test.js
       - name: Test compatibility ranking and marketplace flow
         run: node tests/listing-match.test.js
       - name: Test profile setup, field criteria and grounded AI evidence
