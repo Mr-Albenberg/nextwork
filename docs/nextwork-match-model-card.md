@@ -10,7 +10,7 @@ This is a compact classifier using engineered text-pair features, not a generati
 
 ## Intended use
 
-Help a person compare written resume evidence against an individual listing and Nextwork's separate field-foundation rubric. Show quoted passages, distinguish a bare mention from a described contribution, and suggest where to add accurate evidence. All applicants retain the ability to apply regardless of score. Employers must review applications themselves.
+Help a person compare written resume evidence against an individual listing and Nextwork's separate field-foundation rubric. Show quoted passages, distinguish a bare mention from a described contribution, and suggest where to add accurate evidence. Project ideas also reuse the trained classifier to assess starting-skill coverage: a supported contribution earns full credit, partial evidence earns half, and missing or conflicting evidence earns none. The model does not generate the project briefs. All applicants retain the ability to apply regardless of score. Employers must review applications themselves.
 
 The outputs are **supported**, **partial**, **not evidenced**, and **contradictory**. A postprocessing layer flags conflicting statements and hard requirements such as degrees, certifications, and exact years for manual review. Model probabilities are not calibrated qualification probabilities and are not shown as such.
 
