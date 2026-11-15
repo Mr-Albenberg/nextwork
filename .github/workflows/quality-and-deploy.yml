@@ -50,6 +50,7 @@ jobs:
       - name: Test resume analysis and backend
         run: |
           node tests/resume.test.js
+          node tests/resume-flow.test.js
           node tests/account-resumes.test.js
           node tests/profile-import.test.js
           node tests/profile-import-client.test.js

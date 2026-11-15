@@ -515,6 +515,42 @@ async function login(page, email) {
     assert(
       rows.get(users["alice@example.com"].id).resume.includes("Alice private"),
     );
+    // Full-page review results, grounded criteria charts, view preferences, and viewport-fit navigation.
+    assert(await page.evaluate(async()=>{const input=document.querySelector('#review-resume'),method=document.querySelector('#review-method');method.value='ai';catalogLoadedAt=0;await loadPublicOrganizationJobs();const preserved=input.isConnected&&method.value==='ai'&&input.value.includes('Alice private');method.value='local';return preserved}),'Catalog updates must preserve the resume draft and review method');
+    await page.getByRole('button',{name:'Review my resume',exact:false}).click();
+    await page.waitForURL('**/#resume/results');
+    await page.getByRole('tab',{name:'Summary',exact:true}).waitFor();
+    assert.equal(await page.locator('#review-resume').count(),0,'Results must be a separate page, without the input form alongside them');
+    await page.evaluate(()=>matchListing(2));
+    await page.waitForURL('**/#resume');
+    await page.setViewportSize({width:1366,height:768});
+    assert(await page.locator('#run-review').evaluate(e=>e.getBoundingClientRect().bottom<innerHeight),'The job review action should fit a laptop viewport');
+    await page.getByRole('button',{name:'Compare with this opportunity',exact:true}).click();
+    await page.waitForURL('**/#resume/results');
+    await page.getByRole('tab',{name:'Job fit',exact:true}).waitFor();
+    await page.locator('#report-panel-match .evidence-chart').waitFor();
+    assert.equal(await page.locator('#report-panel-match [role="meter"]').count(),9,'The chart must include five listing requirements and four field foundations');
+    assert(await page.getByRole('meter',{name:'Resume evidence for React',exact:true}).getAttribute('aria-valuenow')==='100');
+    await page.screenshot({path:'test-artifacts/resume-job-fit.png',fullPage:true});
+    await page.getByRole('tab',{name:'Job fit',exact:true}).focus();
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await page.getByRole('tab',{name:'Next steps',exact:true}).getAttribute('aria-selected'),'true');
+    await page.evaluate(()=>document.documentElement.dataset.theme='dark');
+    await page.screenshot({path:'test-artifacts/resume-dark-results.png',fullPage:true});
+    await page.evaluate(()=>document.documentElement.dataset.theme='light');
+    await page.goto(base+'/#explore');
+    await page.getByRole('button',{name:'Grid view',exact:true}).click();
+    assert(await page.locator('#jobs').evaluate(e=>e.classList.contains('jobs-view-grid')));
+    await page.locator('#query').fill('React');
+    await page.locator('#search button').click();
+    await page.getByRole('button',{name:'List view',exact:true}).click();
+    assert.equal(await page.locator('#query').inputValue(),'React','Changing layout must preserve the search');
+    await page.screenshot({path:'test-artifacts/jobs-list-view.png',fullPage:true});
+    for(const height of [420,600,768]){
+      await page.setViewportSize({width:1366,height});
+      assert(await page.locator('body>aside').evaluate(e=>e.scrollHeight<=e.clientHeight&&getComputedStyle(e).overflowY==='hidden'&&[...e.querySelectorAll('#nav a')].every(n=>n.getBoundingClientRect().bottom<=innerHeight)),'The entire sidebar must fit without scrolling at '+height);
+    }
+    await page.setViewportSize({width:1280,height:900});
     await page.goto(base + "/#settings");
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await page.waitForURL("**/#login");

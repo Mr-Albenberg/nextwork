@@ -294,6 +294,7 @@ function activateWorkspace(user) {
     saved = JSON.parse(workspaceLocal.getItem("lp-saved") || "[]");
     applications = JSON.parse(workspaceLocal.getItem("lp-apps") || "[]");
     resumeReport = null;
+    if(typeof resetResumeReview==='function')resetResumeReview();
     profileStep = 0;
     if (typeof workTab !== "undefined") workTab = "applications";
     if (typeof recoState !== "undefined") recoState = { status: "idle", step: "", error: "", result: null, busy: false };

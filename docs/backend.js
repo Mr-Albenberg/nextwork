@@ -109,6 +109,7 @@ function failWorkspace() {
   saved = [];
   applications = [];
   resumeReport = null;
+  if(typeof resetResumeReview==='function')resetResumeReview();
   closeModal();
   render();
 }
@@ -128,6 +129,7 @@ async function connectWorkspace(user) {
   saved = [];
   applications = [];
   resumeReport = null;
+  if(typeof resetResumeReview==='function')resetResumeReview();
   if (!user) return;
   if (typeof isOrganizationAccount === "function" && isOrganizationAccount(user)) { Backend.ready = true; return; }
   try {
