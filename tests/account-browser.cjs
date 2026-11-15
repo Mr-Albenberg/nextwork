@@ -529,7 +529,7 @@ async function login(page, email) {
     );
     // Full-page review results, grounded criteria charts, view preferences, and viewport-fit navigation.
     assert(await page.evaluate(async()=>{const input=document.querySelector('#review-resume'),method=document.querySelector('#review-method');method.value='ai';catalogLoadedAt=0;await loadPublicOrganizationJobs();const preserved=input.isConnected&&method.value==='ai'&&input.value.includes('Alice private');method.value='local';return preserved}),'Catalog updates must preserve the resume draft and review method');
-    await page.getByRole('button',{name:'Review my resume',exact:false}).click();
+    await page.getByRole('button',{name:'Review resume',exact:false}).click();
     await page.waitForURL('**/#resume/results');
     await page.getByRole('tab',{name:'Summary',exact:true}).waitFor();
     assert.equal(await page.locator('#review-resume').count(),0,'Results must be a separate page, without the input form alongside them');
@@ -537,7 +537,7 @@ async function login(page, email) {
     await page.waitForURL('**/#resume');
     await page.setViewportSize({width:1366,height:768});
     assert(await page.locator('#run-review').evaluate(e=>e.getBoundingClientRect().bottom<innerHeight),'The job review action should fit a laptop viewport');
-    await page.getByRole('button',{name:'Review my resume',exact:true}).click();
+    await page.getByRole('button',{name:'Review resume',exact:true}).click();
     await page.waitForURL('**/#resume/results');
     await page.getByRole('tab',{name:'Job fit',exact:true}).waitFor();
     await page.getByRole('tab',{name:'Job fit',exact:true}).click();

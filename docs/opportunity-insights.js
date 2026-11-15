@@ -38,7 +38,7 @@ function evidenceChartHTML(match) {
 }
 function projectReadinessHTML(job) {
   if (!marketplaceResume().trim())
-    return `<section class="readiness-invite"><div>${icon("resume", 22)}<span><b>See where your experience fits</b><small>Compare your resume with this project’s requirements and field foundations.</small></span></div><button class="outline" onclick="matchListing(${job.id})">Compare my resume ${icon("arrow", 16)}</button></section>`;
+    return `<section class="readiness-invite"><div>${icon("resume", 22)}<span><b>See where your experience fits</b><small>Compare your resume with this project’s requirements and field foundations.</small></span></div><button class="outline" onclick="matchListing(${job.id})">Compare resume ${icon("arrow", 16)}</button></section>`;
   const match = compatibilityFor(job);
   return `<section class="project-readiness"><div class="readiness-summary"><div><span class="section-label">PROJECT READINESS</span><h2>${match.score === null ? "Review your resume evidence" : match.score + "% evidence coverage"}</h2><p>${match.jobScore ?? 0}% project criteria · ${match.fieldScore ?? 0}% field foundations</p></div><button class="outline" onclick="matchListing(${job.id})">Full resume review ${icon("arrow", 16)}</button></div>${evidenceChartHTML(match)}</section>`;
 }

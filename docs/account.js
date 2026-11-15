@@ -463,7 +463,7 @@ function updateAccountChrome(page) {
   const brand = document.querySelector('.workspace-header .brand');
   if (brand) brand.href = Account.user ? (hiring ? '#organization' : '#overview') : '#home';
   const nextStep = document.querySelector('.sidebar-next-step');
-  if (nextStep) { nextStep.href = hiring ? '#organization' : '#resume'; nextStep.innerHTML = hiring ? '<span>YOUR HIRING WORKSPACE</span><b>Build your next team</b><small>Review listings & applicants →</small>' : '<span>YOUR NEXT STEP</span><b>Find your strongest match</b><small>Review your resume →</small>'; }
+  if (nextStep) { nextStep.href = hiring ? '#organization' : '#resume'; nextStep.innerHTML = hiring ? '<span>YOUR HIRING WORKSPACE</span><b>Build your next team</b><small>Review listings & applicants →</small>' : '<span>YOUR NEXT STEP</span><b>Find your strongest match</b><small>Review resume →</small>'; }
   const bell = document.querySelector('.bell');
   if (bell) { bell.setAttribute('aria-label', hiring ? 'View applicants' : 'View messages'); bell.onclick = () => { if(hiring) Organization.tab='applicants'; location.hash=hiring?'organization':'messages'; render(); }; }
   const messageLabel = document.querySelector('.header-message-label');

@@ -30,7 +30,7 @@ function jobPreviewHTML(j) {
     .map((x) => `<li>${esc(x)}</li>`)
     .join(
       "",
-    )}</ul><h3>Relevant skills & requirements</h3><div class="tags">${requirements.map((x) => `<span class="tag">${esc(x)}</span>`).join("")}</div>${compatibilityHTML(j)}<button class="outline" onclick="matchListing(${j.id})">${icon("resume", 16)} Review my resume for this project</button></div>`;
+    )}</ul><h3>Relevant skills & requirements</h3><div class="tags">${requirements.map((x) => `<span class="tag">${esc(x)}</span>`).join("")}</div>${compatibilityHTML(j)}<button class="outline" onclick="matchListing(${j.id})">${icon("resume", 16)} Compare resume</button></div>`;
 }
 function resetOpportunitySearch() {
   query = "";
