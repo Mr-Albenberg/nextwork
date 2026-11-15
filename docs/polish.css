@@ -114,3 +114,7 @@ body>aside nav a{border-radius:var(--pl-radius-sm);transition:background .15s va
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media print{.modal,#toast,.message-widget-launcher,.mini-chat{display:none!important}}
+
+/* Applicant inbox search and count */
+.applicant-search{width:100%;max-width:420px;margin:4px 0 6px;padding:10px 14px;border-radius:99px}
+.applicant-count{margin:0 0 14px;font-size:12px;color:var(--theme-muted,#64708a)}
