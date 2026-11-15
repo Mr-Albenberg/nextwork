@@ -1,15 +1,15 @@
 /* Nextwork. A complete application design system. */
 :root,
 :root[data-theme="light"] {
-  --theme-bg: #f4f6f9;
+  --theme-bg: #f6fbf8;
   --theme-surface: #ffffff;
-  --theme-subtle: #eef2f8;
-  --theme-ink: #152239;
-  --theme-muted: #69768b;
-  --theme-line: #e2e7ef;
-  --theme-accent: #3156df;
-  --theme-brand: #3156df;
-  --theme-success: #218166;
+  --theme-subtle: #e8f5ee;
+  --theme-ink: #064e3b;
+  --theme-muted: #5b7f70;
+  --theme-line: #d5e8de;
+  --theme-accent: #059669;
+  --theme-brand: #059669;
+  --theme-success: #059669;
   --theme-danger: #be4756;
   --ink: var(--theme-ink);
   --muted: var(--theme-muted);
@@ -23,15 +23,15 @@
   --shadow-lg: 0 18px 50px #13234117;
 }
 :root[data-theme="dark"] {
-  --theme-bg: #101826;
-  --theme-surface: #192438;
-  --theme-subtle: #223149;
-  --theme-ink: #edf2fc;
-  --theme-muted: #a8b7cc;
-  --theme-line: #2c3c54;
-  --theme-accent: #9bb4ff;
-  --theme-brand: #6185ef;
-  --theme-success: #84d5ba;
+  --theme-bg: #0b1a14;
+  --theme-surface: #12251d;
+  --theme-subtle: #1a3328;
+  --theme-ink: #e6f5ee;
+  --theme-muted: #9cbfaf;
+  --theme-line: #254236;
+  --theme-accent: #34d399;
+  --theme-brand: #10b981;
+  --theme-success: #6ee7b7;
   --theme-danger: #f69ca8;
   --shadow-lg: 0 18px 50px #0004;
 }
@@ -211,8 +211,8 @@ svg {
 }
 .primary,
 .auth-submit {
-  background: #3156df;
-  border: 1px solid #3156df;
+  background: #059669;
+  border: 1px solid #059669;
   color: #fff;
   box-shadow: 0 3px 5px #203bd312;
 }
@@ -355,7 +355,7 @@ svg {
   gap: 10px;
 }
 .consent input {
-  accent-color: #3156df;
+  accent-color: #059669;
   min-width: 16px;
 }
 .dialog {
@@ -1117,7 +1117,7 @@ body[data-auth="guest"] .workspace-page-label {
   color: var(--muted);
 }
 .searchbar button {
-  background: #3156df;
+  background: #059669;
   color: #fff;
   min-height: 39px;
   border: 0;
@@ -1445,7 +1445,7 @@ body[data-auth="guest"] .workspace-page-label {
 }
 .listing-apply-card {
   top: 100px;
-  border-top: 4px solid #3156df;
+  border-top: 4px solid #059669;
 }
 .listing-apply-card > h2 {
   font-size: 36px;
@@ -1698,7 +1698,7 @@ body[data-auth="guest"] .workspace-page-label {
 }
 .profile-step-nav button.active > span {
   color: #fff;
-  background: #3156df;
+  background: #059669;
 }
 .profile-step-nav button.done > span {
   background: #e9f5ef;
@@ -3159,9 +3159,9 @@ body[data-auth="guest"] .workspace-page-label {
   height: 53px;
   min-width: 53px;
   border-radius: 14px;
-  background: #3156df;
+  background: #059669;
   color: #fff;
-  box-shadow: 0 5px 13px #3156df20;
+  box-shadow: 0 5px 13px #05966920;
 }
 .loading-content {
   flex: 1;
@@ -3240,9 +3240,9 @@ body[data-auth="guest"] .workspace-page-label {
   color: var(--theme-accent);
 }
 .loading-steps .current > span {
-  background: #3156df;
+  background: #059669;
   color: #fff;
-  border-color: #3156df;
+  border-color: #059669;
 }
 .loading-steps .complete {
   color: var(--theme-success);
@@ -3914,7 +3914,7 @@ body[data-auth="guest"] .workspace-page-label {
   color: var(--ink);
 }
 .message-line.outgoing .message-bubble {
-  background: #3156df;
+  background: #059669;
   color: #fff;
 }
 .message-time {
@@ -3984,7 +3984,7 @@ body[data-auth="guest"] .workspace-page-label {
   background: var(--theme-subtle);
 }
 .sample-chat-bubble.outgoing {
-  background: #3156df;
+  background: #059669;
 }
 .sample-chat-bubble p {
   font-size: 13px;
@@ -4096,7 +4096,7 @@ body:has(.home-redesign) main {
 }
 .home-hero h1 em {
   font-style: normal;
-  color: #3156df;
+  color: #059669;
 }
 .home-hero-copy > p {
   font-size: 16px;
@@ -10083,7 +10083,7 @@ summary:focus-visible {
   animation-delay: -2s;
 }
 .scene-opportunity:hover {
-  border-color: #3156df;
+  border-color: #059669;
 }
 .scene-company {
   display: flex;
@@ -10116,7 +10116,7 @@ summary:focus-visible {
   color: #73849c;
 }
 .scene-company > svg {
-  color: #3156df;
+  color: #059669;
   width: 16px;
 }
 .scene-opportunity h3 {
@@ -12347,7 +12347,7 @@ body[data-auth="member"] main > * {
   transition: border-color 150ms ease;
 }
 .conversation-composer #conversation-form:focus-within {
-  border-color: var(--theme-brand, #1d3be0);
+  border-color: var(--theme-brand, #059669);
 }
 .conversation-composer #conversation-input {
   display: block;

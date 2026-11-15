@@ -2,7 +2,7 @@
 .org-top-actions~.growth-tabs{gap:4px;padding-bottom:0;margin-bottom:22px;border-bottom:1px solid var(--pl-line,#e1e5ef)}
 .org-top-actions~.growth-tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;box-shadow:none;padding:12px 16px;font-size:13.5px;font-weight:600;color:var(--theme-muted,#64708a);margin-bottom:-1px}
 .org-top-actions~.growth-tabs button:hover{color:var(--ink);background:none}
-.org-top-actions~.growth-tabs button.active{background:none;box-shadow:none;color:var(--pl-brand,#1d3be0);border-bottom-color:var(--pl-brand,#1d3be0)}
+.org-top-actions~.growth-tabs button.active{background:none;box-shadow:none;color:var(--pl-brand,#059669);border-bottom-color:var(--pl-brand,#059669)}
 
 .org-metrics{gap:14px;margin:4px 0 20px}
 .org-metrics>div{padding:20px 22px;border-radius:var(--pl-radius,12px);border:1px solid var(--pl-line,#e1e5ef);box-shadow:var(--pl-shadow-sm);display:flex;flex-direction:column;gap:4px}
@@ -16,8 +16,8 @@
 .org-status-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}
 .org-status-chips button{display:inline-flex;align-items:center;gap:8px;width:auto;padding:7px 8px 7px 14px;border-radius:99px;border:1px solid var(--pl-line,#e1e5ef);background:var(--pl-surface,#fff);color:var(--theme-muted,#64708a);font-size:12.5px;font-weight:600;cursor:pointer}
 .org-status-chips button b{font-weight:700;font-size:11.5px;min-width:22px;text-align:center;background:var(--pl-subtle,#f4f6fc);color:var(--ink);border-radius:99px;padding:2px 7px}
-.org-status-chips button:hover{border-color:var(--pl-brand,#1d3be0);color:var(--ink)}
-.org-status-chips button.active{background:var(--pl-brand,#1d3be0);border-color:var(--pl-brand,#1d3be0);color:#fff}
+.org-status-chips button:hover{border-color:var(--pl-brand,#059669);color:var(--ink)}
+.org-status-chips button.active{background:var(--pl-brand,#059669);border-color:var(--pl-brand,#059669);color:#fff}
 .org-status-chips button.active b{background:rgba(255,255,255,.22);color:#fff}
 .org-filters{display:grid;grid-template-columns:minmax(220px,1.7fr) minmax(150px,1fr) minmax(170px,1fr);gap:12px;margin-bottom:22px;align-items:stretch}
 .org-filters>*{min-width:0;margin:0}
@@ -37,7 +37,7 @@
 .org-row-actions button,.org-row-actions a{width:auto;flex:0 0 auto;margin:0;white-space:nowrap;font-size:12.5px;padding:9px 14px}
 
 .org-status{display:inline-flex;margin:0;width:auto;font-size:11px;font-weight:700;text-transform:capitalize;letter-spacing:.01em;padding:4px 10px;border-radius:99px;border:1px solid transparent;background:var(--pl-subtle,#f4f6fc);color:var(--theme-muted,#64708a)}
-.org-status-submitted .org-status{background:color-mix(in srgb,#1d3be0 12%,transparent);color:#2a49e8;border-color:color-mix(in srgb,#1d3be0 25%,transparent)}
+.org-status-submitted .org-status{background:color-mix(in srgb,#059669 12%,transparent);color:#2a49e8;border-color:color-mix(in srgb,#059669 25%,transparent)}
 .org-status-shortlisted .org-status,.org-status-draft .org-status{background:color-mix(in srgb,#d98a00 14%,transparent);color:#a86800;border-color:color-mix(in srgb,#d98a00 28%,transparent)}
 .org-status-accepted .org-status,.org-status-published .org-status{background:color-mix(in srgb,#1f9d55 14%,transparent);color:#1b7d46;border-color:color-mix(in srgb,#1f9d55 28%,transparent)}
 .org-status-declined .org-status{background:color-mix(in srgb,#d64545 12%,transparent);color:#b83a3a;border-color:color-mix(in srgb,#d64545 26%,transparent)}
