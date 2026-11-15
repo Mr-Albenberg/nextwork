@@ -4,7 +4,7 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
 (async()=>{
  const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  const fixture=new ChatFixture(),pages=[],errors=[];
- const html=`<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="${base}/style.css"><link rel="stylesheet" href="${base}/ui.css"></head><body class="messages-page"><aside><b>Nextwork</b><nav id="nav"></nav></aside><div class="shell"><header>Messages</header><main id="app"></main></div><div id="modal" class="modal" hidden></div><script>
+ const html=`<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="${base}/style.css"><link rel="stylesheet" href="${base}/polish.css"><link rel="stylesheet" href="${base}/ui.css"><link rel="stylesheet" href="${base}/org-portal.css"><link rel="stylesheet" href="${base}/workspace.css"></head><body class="messages-page"><aside><b>Nextwork</b><nav id="nav"></nav></aside><div class="shell"><header>Messages</header><main id="app"></main></div><div id="modal" class="modal" hidden></div><script>
  const $=selector=>document.querySelector(selector),esc=value=>String(value??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
  const Account={user:null,client:null};const jobs=[{id:7,title:'Build a tested booking flow',c:'Startup',tags:['React'],cat:'Development',pay:1200,weeks:'2 weeks',bg:'#edf2ff'}];
  function icon(name,size=18){return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16" stroke="currentColor"/></svg>'}function logo(){return '<span class="company-logo">S</span>'}function graduateProfile(){return {skills:'React'}}function requireAccount(){return Boolean(Account.user)}function closeModal(){$('#modal').hidden=true}function toast(text){window.lastToast=text}function workspaceNav(){return '<a href="#messages">Messages '+unreadCount()+'</a>'}function render(){if(location.hash==='#messages'){$('#app').innerHTML=messages();bindMessages()}else{$('#app').innerHTML='<h1>Find work</h1><label>Keep working<input id="other-page-input"></label>'}if(typeof renderMessageWidget==='function')renderMessageWidget()}
@@ -20,6 +20,22 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  const a=await open(ids.alex),b=await open(ids.taylor),c=await open(ids.outsider);
  await a.getByRole('button',{name:'New conversation',exact:true}).click();await a.locator('.people-row').filter({hasText:'Taylor'}).getByRole('button',{name:'Message',exact:true}).click();
  await a.locator('#conversation-input').waitFor();await b.evaluate(()=>refreshMessaging(true));await b.locator('#conversation-input').waitFor();
+ // Check the actual composer controls at desktop and narrow phone widths.
+ for(const width of [1360,768,390,320]){
+  await a.setViewportSize({width,height:900});
+  await a.evaluate(()=>document.getAnimations().forEach(animation=>animation.finish()));
+  const layout=await a.evaluate(()=>{
+   const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}};
+   return {form:rect('#conversation-form'),input:rect('#conversation-input'),tools:rect('.composer-tools'),send:rect('#send-message'),buttons:[...document.querySelectorAll('.composer-tools button')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}}),width:innerWidth,height:innerHeight};
+  });
+  for(const r of [layout.input,layout.send,...layout.buttons]){
+   assert(r.left>=layout.form.left&&r.right<=layout.form.right,`Control stays inside composer at ${width}px`);
+   assert(r.bottom<=layout.form.bottom&&r.bottom<=layout.height,`Control stays above bottom edge at ${width}px`);
+  }
+  assert(layout.input.bottom<=layout.tools.top&&layout.input.bottom<=layout.send.top,`Text area clears toolbar at ${width}px`);
+  for(const r of layout.buttons)assert(r.right<=layout.send.left||r.bottom<=layout.send.top||r.top>=layout.send.bottom,`Tools clear Send at ${width}px`);
+ }
+ await a.setViewportSize({width:1360,height:900});
  await a.locator('#conversation-input').fill('Hello from a real member');await a.locator('#send-message').click();await b.locator('.message-bubble').filter({hasText:'Hello from a real member'}).waitFor();
  await a.locator('#conversation-input').fill('Keep this unsent draft');await b.locator('#conversation-input').fill('A reply from Taylor');await b.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Keep this unsent draft');
  await a.locator('.inbox-toggle').click();assert.equal(await a.locator('.inbox-toggle').getAttribute('aria-expanded'),'false');await a.locator('.inbox-toggle').click();
