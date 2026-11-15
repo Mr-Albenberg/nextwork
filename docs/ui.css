@@ -9771,3 +9771,4 @@ summary:focus-visible {
   padding-top: 0;
   margin-top: 0;
 }
+.ideas-intro .project-process-graphic{margin-bottom:23px;padding:20px}.ideas-intro .process-graphic-head{margin-bottom:19px}.ideas-intro .process-graphic-stage{padding-bottom:18px}.ideas-intro .process-graphic-stage:not(:nth-last-child(2)):after{bottom:3px}.ideas-intro>h2{font-size:27px;line-height:1.35}.ideas-intro>p{font-size:12px;line-height:1.8}.ideas-intro>small{margin-top:24px}.ideas-start-layout{align-items:start}
