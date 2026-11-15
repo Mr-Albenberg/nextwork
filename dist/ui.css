@@ -12505,8 +12505,9 @@ body.messages-page .messenger {
 .messages-page .conversation-composer {
   padding: 12px 20px 16px;
   border: 0;
-  background: var(--pl-subtle, var(--theme-surface));
+  background: transparent;
 }
+.messages-page .conversation-main { background: var(--bg); }
 .conversation-composer #conversation-form {
   display: block;
   max-width: 900px;

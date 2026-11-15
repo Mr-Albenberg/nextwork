@@ -44,6 +44,8 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  }
  await a.setViewportSize({width:1360,height:900});
  assert.equal(await a.locator('#inbox-search').getAttribute('placeholder'),'Search conversations:');
+ const surfaces=await a.evaluate(()=>({composer:getComputedStyle(document.querySelector('.conversation-composer')).backgroundColor,pane:getComputedStyle(document.querySelector('.conversation-main')).backgroundColor,chat:getComputedStyle(document.querySelector('.chat-scroll')).backgroundColor}));assert.equal(surfaces.composer,'rgba(0, 0, 0, 0)');assert.equal(surfaces.pane,surfaces.chat);
+
  assert.equal(await a.locator('.inbox-person.selected small').textContent(),'Member');assert.equal(await a.locator('.person-heading small').textContent(),'Member · View profile');
  assert(await a.locator('#send-message').isDisabled());await a.locator('#conversation-input').fill('  \n  ');assert(await a.locator('#send-message').isDisabled());
  await a.locator('#conversation-input').fill('One line');const short=await a.locator('.composer-pill').boundingBox();
@@ -66,7 +68,7 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  const timeBefore=await a.locator('.outgoing .message-time').first().boundingBox();
  await a.locator('.message-line.outgoing').first().hover();
  const timeAfter=await a.locator('.outgoing .message-time').first().boundingBox();assert.equal(timeBefore.x,timeAfter.x);assert.equal(timeBefore.y,timeAfter.y);
- assert.equal(await a.locator('.message-edit-slot').first().evaluate(el=>getComputedStyle(el).opacity),'1');
+ await a.waitForFunction(()=>{const slot=document.querySelector('.message-edit-slot');return slot&&getComputedStyle(slot).opacity==='1'});
 
  const originalBubble=await a.evaluate(()=>{const r=document.querySelector('.outgoing .message-bubble').getBoundingClientRect();return {width:r.width,height:r.height}});
  await a.locator('.message-line.outgoing').first().hover();await a.getByRole('button',{name:'Edit your message'}).first().click();
