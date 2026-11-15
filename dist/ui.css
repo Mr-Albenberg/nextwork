@@ -12310,3 +12310,4 @@ body[data-auth="member"] main > * {
 .editor-suggestion textarea {
   color: var(--ink);
 }
+@media(max-width:760px){.home-career-scene{height:552px}.scene-portfolio{top:458px}}
