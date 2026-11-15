@@ -12675,3 +12675,19 @@ body.messages-page .messenger {
 }
 .message-line.outgoing .message-bubble::after { right: -5px; }
 .message-line.incoming .message-bubble::after { left: -5px; transform: scaleX(-1); }
+
+/* Edited and Edit share a slot so the timestamp stays fixed during hover. */
+.message-edit-swap { display: grid; align-items: center; }
+.message-edit-swap > * { grid-area: 1 / 1; }
+.message-meta .message-edited { display: inline-block; margin: 0; font-size: 10px; line-height: 1.5; text-align: left; }
+.message-edit-slot.has-edited { opacity: 1; }
+.message-edit-slot.has-edited .message-edit { opacity: 0; pointer-events: none; }
+.message-line:hover .has-edited .message-edit, .message-line:focus-within .has-edited .message-edit { opacity: 1; pointer-events: auto; }
+.message-line:hover .has-edited .message-edited, .message-line:focus-within .has-edited .message-edited { opacity: 0; }
+.message-edited-slot { display: inline-flex; align-items: center; gap: 6px; }
+@media (hover: none) {
+  .message-edit-slot.has-edited .message-edit { opacity: 1; pointer-events: auto; }
+  .message-edit-slot.has-edited .message-edited { opacity: 0; }
+}
+
+.message-edit-swap .message-edited { pointer-events: none; }

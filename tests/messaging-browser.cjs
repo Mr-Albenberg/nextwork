@@ -66,9 +66,9 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  await a.locator('#conversation-input').fill('Another editable message');await a.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'Another editable message'}).waitFor();
  await a.locator('#conversation-input').hover();
  assert.equal(await a.locator('.message-edit-slot').first().evaluate(el=>getComputedStyle(el).opacity),'0');
- const timeBefore=await a.locator('.outgoing .message-time').first().boundingBox();
+ const timeBefore=await a.evaluate(()=>{const r=document.querySelector('.outgoing .message-time').getBoundingClientRect();return {x:r.x,y:r.y}});
  await a.locator('.message-line.outgoing').first().hover();
- const timeAfter=await a.locator('.outgoing .message-time').first().boundingBox();assert.equal(timeBefore.x,timeAfter.x);assert.equal(timeBefore.y,timeAfter.y);
+ const timeAfter=await a.evaluate(()=>{const r=document.querySelector('.outgoing .message-time').getBoundingClientRect();return {x:r.x,y:r.y}});assert.equal(timeBefore.x,timeAfter.x);assert.equal(timeBefore.y,timeAfter.y);
  await a.waitForFunction(()=>{const slot=document.querySelector('.message-edit-slot');return slot&&getComputedStyle(slot).opacity==='1'});
 
  const originalBubble=await a.evaluate(()=>{const r=document.querySelector('.outgoing .message-bubble').getBoundingClientRect();return {width:r.width,height:r.height}});
@@ -87,6 +87,14 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
 
  await a.locator('#edit-message-input').fill('Hello, edited by Alex');await a.getByRole('button',{name:'Save changes',exact:true}).click();
  await b.locator('.message-bubble').filter({hasText:'Hello, edited by Alex'}).waitFor();assert.equal(await b.locator('.message-edited').count(),1);
+ assert.equal(await b.locator('.message-meta .message-edited-slot .message-edited').count(),1,'Recipient edited label shares the timestamp rail');
+ await a.locator('#conversation-input').hover();
+ const editedIdle=await a.evaluate(()=>{const row=document.querySelector('.outgoing .message-meta'),label=row.querySelector('.message-edited'),button=row.querySelector('.message-edit'),time=row.querySelector('.message-time');return {label:getComputedStyle(label).opacity,button:getComputedStyle(button).opacity,timeX:time.getBoundingClientRect().x,timeY:time.getBoundingClientRect().y,labelY:label.getBoundingClientRect().y,dots:row.querySelectorAll('.message-edit-dot').length}});
+ assert.equal(editedIdle.label,'1');assert.equal(editedIdle.button,'0');assert.equal(editedIdle.dots,1);assert(Math.abs(editedIdle.timeY-editedIdle.labelY)<2);
+ await a.locator('.message-line.outgoing').first().hover();
+ const editedHover=await a.evaluate(()=>{const row=document.querySelector('.outgoing .message-meta');return {label:getComputedStyle(row.querySelector('.message-edited')).opacity,button:getComputedStyle(row.querySelector('.message-edit')).opacity,timeX:row.querySelector('.message-time').getBoundingClientRect().x,timeY:row.querySelector('.message-time').getBoundingClientRect().y}});
+ assert.equal(editedHover.label,'0');assert.equal(editedHover.button,'1');assert.equal(editedHover.timeX,editedIdle.timeX);assert.equal(editedHover.timeY,editedIdle.timeY);
+
  await a.locator('.message-line.outgoing').first().hover();await a.getByRole('button',{name:'Edit your message'}).first().click();await a.locator('#edit-message-input').fill('Discard this change');await a.getByRole('button',{name:'Cancel edit',exact:true}).click();
  assert.equal(fixture.messages[0].body,'Hello, edited by Alex');
  await a.locator('#conversation-input').fill('Keep this unsent draft');await b.locator('#conversation-input').fill('A reply from Taylor');await b.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Keep this unsent draft');
