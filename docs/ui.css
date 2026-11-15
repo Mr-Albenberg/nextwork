@@ -12531,8 +12531,8 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
 .account-settings-layout .profile-completed-projects { grid-area: projects; }
 .account-settings-layout .account-panel { grid-area: account; }
 @media (max-width: 1000px) {
-  .account-settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "summary" "editor" "resume" "account" "workspace"; }
-  .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "account" "workspace"; }
+  .account-settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "summary" "editor" "resume" "workspace" "account"; }
+  .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "workspace" "account"; }
 }
 @media (max-width: 760px) { .account-settings-layout { gap: 18px; } .account-settings-layout .account-panel, .account-settings-layout .settings-panel, .account-settings-layout .profile-editor, .account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects { padding: 20px; } }
 
@@ -12889,17 +12889,17 @@ body[data-auth="member"] .aside-bottom .account.active b { color: inherit; }
 }
 
 /* Keep account sections in one vertical column at every screen size. */
-.account-settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "summary" "editor" "resume" "account" "workspace"; }
-.account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "account" "workspace"; }
+.account-settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "summary" "editor" "resume" "workspace" "account"; }
+.account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "workspace" "account"; }
 .account-settings-layout .profile-summary-card, .account-settings-layout .profile-editor, .account-settings-layout .settings-panel { padding: 24px 0; border-left: 0; }
 .account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects, .account-settings-layout .account-panel { padding: 24px 0; }
 
 /* Keep resume and account controls together, with a single divider. */
 @media (min-width: 1001px) {
-  .account-settings-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "summary summary" "editor editor" "resume account" "workspace workspace"; }
-  .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary summary" "editor editor" "resume account" "projects projects" "workspace workspace"; }
+  .account-settings-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "summary summary" "editor editor" "resume workspace" "account account"; }
+  .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary summary" "editor editor" "resume workspace" "projects projects" "account account"; }
   .account-settings-layout .profile-resume-section > section { padding: 24px 28px 24px 0; }
-  .account-settings-layout .account-panel { padding: 24px 0 24px 28px; border-left: 1px solid var(--line); }
+  .account-settings-layout .settings-panel { padding: 24px 0 24px 28px; border-left: 1px solid var(--line); }
 }
 
 /* Straight, edge-to-edge separators between account sections. */
@@ -12910,7 +12910,7 @@ body:has(.account-settings-layout) main { --account-gutter: 40px; padding-inline
 .account-settings-layout :is(.resume-document-view, .resume-document-empty, .profile-completed-projects article) { border-radius: 0; }
 @media (min-width: 1001px) {
   .account-settings-layout .profile-resume-section::before { right: 0; }
-  .account-settings-layout .account-panel::before { left: 0; }
+  .account-settings-layout .settings-panel::before { left: 0; }
 }
 @media (max-width: 760px) {
   body:has(.account-settings-layout) main { --account-gutter: 20px; }
