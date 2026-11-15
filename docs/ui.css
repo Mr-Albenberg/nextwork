@@ -12918,3 +12918,13 @@ body:has(.account-settings-layout) main { --account-gutter: 40px; padding-inline
 
 /* Override shared panel rounding on the account workspace sections. */
 body[data-auth="member"] .account-settings-layout :is(.profile-editor, .profile-resume-section > section, .settings-panel, .profile-completed-projects, .account-panel) { border-radius: 0; }
+
+/* Show the profile overview and editor side by side on wider screens. */
+@media (min-width: 1001px) {
+  .account-settings-layout { grid-template-areas: "summary editor" "resume workspace" "account account"; }
+  .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary editor" "resume workspace" "projects projects" "account account"; }
+  .account-settings-layout .profile-summary-card { padding-right: 28px; }
+  .account-settings-layout .profile-editor { padding-left: 28px; border-left: 1px solid var(--line); }
+  .account-settings-layout .profile-summary-card::before { right: 0; }
+  .account-settings-layout .profile-editor::before { left: 0; }
+}
