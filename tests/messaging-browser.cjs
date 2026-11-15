@@ -68,8 +68,14 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  const timeAfter=await a.locator('.outgoing .message-time').first().boundingBox();assert.equal(timeBefore.x,timeAfter.x);assert.equal(timeBefore.y,timeAfter.y);
  assert.equal(await a.locator('.message-edit-slot').first().evaluate(el=>getComputedStyle(el).opacity),'1');
 
+ const originalBubble=await a.evaluate(()=>{const r=document.querySelector('.outgoing .message-bubble').getBoundingClientRect();return {width:r.width,height:r.height}});
  await a.locator('.message-line.outgoing').first().hover();await a.getByRole('button',{name:'Edit your message'}).first().click();
  assert.equal(await a.locator('#edit-message-input').inputValue(),'Hello from a real member');
+ const editingBubble=await a.evaluate(()=>{const r=document.querySelector('.outgoing .message-bubble').getBoundingClientRect();return {width:r.width,height:r.height}});assert(Math.abs(originalBubble.height-editingBubble.height)<2,'Editing keeps the original bubble height');assert(Math.abs(originalBubble.width-editingBubble.width)<2,'Editing keeps the original bubble width');
+ assert.equal(await a.locator('.message-bubble #save-message-edit,.message-bubble [aria-label="Cancel edit"]').count(),0);assert.equal(await a.locator('.message-meta #save-message-edit').count(),1);
+ const editStyle=await a.locator('#edit-message-input').evaluate(el=>{const s=getComputedStyle(el);return {background:s.backgroundColor,border:s.borderTopWidth,padding:s.padding,color:s.color,bubbleColor:getComputedStyle(el.closest('.message-bubble')).color}});assert.equal(editStyle.background,'rgba(0, 0, 0, 0)');assert.equal(editStyle.border,'0px');assert.equal(editStyle.padding,'0px');assert.equal(editStyle.color,editStyle.bubbleColor);
+ await a.screenshot({path:'test-artifacts/message-edit-rail.png'});
+
  assert.equal(await a.locator('#modal:not([hidden])').count(),0,'Edits are inline');
  assert.equal(await a.getByRole('button',{name:'Edit your message',exact:true}).count(),await a.locator('.message-edit:disabled').count());
  await a.evaluate(()=>editMessage(Messaging.messages.get(conversationFor().id)[1].id));assert.equal(await a.locator('#edit-message-input').count(),1);

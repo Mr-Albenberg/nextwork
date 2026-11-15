@@ -12453,13 +12453,40 @@ body.messages-page .messenger {
 .message-edit:hover, .message-edit:focus-visible { color: var(--ink); background: var(--theme-subtle); }
 .message-edit:disabled { opacity: .4; cursor: default; }
 .message-edited { display: block; margin: 0; font-size: 10px; color: var(--muted); }
-.inline-message-editor { white-space: normal; min-width: min(240px, 45vw); }
-.inline-message-editor textarea { display: block; box-sizing: border-box; width: 100%; min-height: 80px; margin: 0; padding: 9px; resize: vertical; font: inherit; line-height: 1.5; border: 1px solid var(--line); border-radius: 5px; background: var(--theme-surface); color: var(--ink); }
-.message-edit-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; }
-.message-edit-actions .icon-button { width: 32px; min-width: 32px; min-height: 32px; padding: 6px; background: var(--theme-surface); color: var(--ink); }
-.message-edit-actions button:disabled { opacity: .4; cursor: default; }
-.message-edit-error { margin: 6px 0 0; font-size: 11px; color: inherit; }
-.message-edit-error:empty { display: none; }
+.inline-message-editor { position: relative; min-width: 1ch; font: inherit; line-height: inherit; }
+.message-edit-mirror { display: block; visibility: hidden; white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: inherit; }
+.message-bubble .inline-message-editor textarea {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  color: inherit;
+  caret-color: currentColor;
+  font: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  resize: none;
+}
+.message-edit-slot.is-editing { opacity: 1; pointer-events: auto; }
+.message-rail-action { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 26px; margin: 0; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.message-rail-action:hover, .message-rail-action:focus-visible { background: var(--theme-subtle); color: var(--ink); }
+.message-rail-action:disabled { opacity: .4; cursor: default; }
+.message-edit-slot.is-editing { gap: 4px; }
+.message-edit-error { max-width: 280px; margin: 4px 0; font-size: 11px; color: var(--ink); }
 @media (hover: none) { .message-edit-slot { opacity: 1; pointer-events: auto; } }
 
 .conversation-composer .composer-tools svg { display: block; width: 18px; height: 18px; overflow: visible; }
