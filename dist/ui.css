@@ -12940,3 +12940,5 @@ body[data-auth="member"] .account-settings-layout :is(.profile-editor, .profile-
   .account-settings-layout .profile-editor { padding-top: 12px; }
   .account-settings-layout .profile-editor::before { content: none; }
 }
+
+.profile-resume-upload .profile-resume-action { width: auto; margin-top: 4px; }
