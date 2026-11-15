@@ -43,6 +43,14 @@ const { chromium } = require('playwright');
     await privatePage.locator('.theme-control').first().dispatchEvent('click');
     assert.equal(await privatePage.locator('html').getAttribute('data-theme'), 'light');
     await blocked.close();
+    const reduced=await browser.newContext({reducedMotion:'reduce'});
+    await reduced.route('https://**',route=>route.abort());
+    const reducedPage=await reduced.newPage();await reducedPage.goto(process.env.TEST_BASE_URL||'http://localhost:3000');
+    await reducedPage.locator('.home-career-scene').waitFor();
+    assert.equal(await reducedPage.locator('.scene-path-moving').evaluate(e=>getComputedStyle(e).animationName),'none');
+    assert(await reducedPage.locator('.reduced-motion-note').isVisible());
+    assert(await reducedPage.locator('.home-hero h1').isVisible());
+    await reduced.close();
     console.log('Theme browser checks passed');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

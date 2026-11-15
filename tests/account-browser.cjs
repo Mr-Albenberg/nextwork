@@ -369,6 +369,10 @@ async function login(page, email) {
     await page.getByRole("heading", { name: "Where do you want to start?" }).waitFor();
     assert.equal(await page.locator("#landing").count(), 0);
     await page.goto(base + "/#home");
+    await page.getByRole('button',{name:'Pause homepage animations',exact:true}).click();
+    assert(await page.locator('.home-hero h1').isVisible());
+    assert.equal(await page.locator('.home-redesign').getAttribute('data-motion'),'paused');
+    await page.getByRole('button',{name:'Play homepage animations',exact:true}).click();
     await page
       .locator(".home-nav>div")
       .getByRole("link", { name: "Open workspace", exact: true })
@@ -536,10 +540,53 @@ async function login(page, email) {
     await page.getByRole('tab',{name:'Job fit',exact:true}).focus();
     await page.keyboard.press('ArrowRight');
     assert.equal(await page.getByRole('tab',{name:'Next steps',exact:true}).getAttribute('aria-selected'),'true');
+    await page.locator('#resume-draft-text').waitFor();
+    const beforeResumeEditing=await page.evaluate(()=>marketplaceResume());
+    await page.locator('.editor-suggestion.pending').first().getByRole('button',{name:'Accept edit',exact:true}).click();
+    await page.locator('#resume-editor-feedback').filter({hasText:'Fill in the bracketed prompts'}).waitFor();
+    await page.locator('.editor-suggestion.pending textarea').first().fill('Alice\nalice@example.com');
+    await page.locator('.editor-suggestion.pending').first().getByRole('button',{name:'Accept edit',exact:true}).click();
+    assert.equal(await page.evaluate(()=>marketplaceResume()),beforeResumeEditing,'Accepting an edit changes only the private draft');
+    await page.locator('.editor-suggestion.pending').first().getByRole('button',{name:'Reject',exact:true}).click();
+    await page.getByRole('button',{name:'Compare',exact:true}).click();
+    assert(await page.locator('.resume-diff-line.added').count()>0);
+    await page.getByLabel('Version name',{exact:true}).fill('Frontend application');
+    await page.getByRole('button',{name:'Save version',exact:true}).click();
+    await page.getByRole('button',{name:'Saved versions',exact:true}).click();
+    await page.getByRole('heading',{name:'Frontend application',exact:true}).waitFor();
+    await page.waitForFunction(()=>Backend.pending.size===0&&!Backend.saving);
+    await page.reload();
+    await page.getByRole('tab',{name:'Next steps',exact:true}).click();
+    await page.getByRole('heading',{name:'Frontend application',exact:true}).waitFor();
+    await page.locator('.editor-export-menu>summary').click();
+    const textExport=page.waitForEvent('download');
+    await page.getByRole('button',{name:'Plain text (.txt)',exact:true}).click();
+    const textFile=await textExport;await textFile.saveAs('test-artifacts/edited-resume.txt');
+    assert(require('node:fs').readFileSync('test-artifacts/edited-resume.txt','utf8').includes('alice@example.com'));
+    const wordExport=page.waitForEvent('download');
+    await page.getByRole('button',{name:'Word document (.docx)',exact:true}).click();
+    const wordFile=await wordExport;await wordFile.saveAs('test-artifacts/edited-resume.docx');
+    assert.equal(require('node:fs').readFileSync('test-artifacts/edited-resume.docx').readUInt32LE(0),0x04034b50);
+    await page.evaluate(()=>{window.__resumePrintCalled=false;const observer=new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.tagName==='IFRAME'){node.contentWindow.print=()=>{window.__resumePrintCalled=true};observer.disconnect()}});observer.observe(document.body,{childList:true})});
+    await page.getByRole('button',{name:'Print / Save as PDF',exact:true}).click();
+    await page.waitForFunction(()=>window.__resumePrintCalled===true);
+    assert((await page.locator('.resume-print-frame').evaluate(frame=>frame.contentDocument.body.textContent)).includes('alice@example.com'));
+    await page.evaluate(()=>document.querySelector('.resume-print-frame').remove());
+
+    await page.getByRole('button',{name:'Use as active resume',exact:false}).click();
+    await page.waitForURL('**/#resume');
+    assert((await page.locator('#review-resume').inputValue()).includes('alice@example.com'));
     await page.evaluate(()=>document.documentElement.dataset.theme='dark');
     await page.screenshot({path:'test-artifacts/resume-dark-results.png',fullPage:true});
     await page.evaluate(()=>document.documentElement.dataset.theme='light');
     await page.goto(base+'/#explore');
+    await page.getByRole('button',{name:'Browse view',exact:true}).click();
+    const browseChoice=page.locator('[data-preview-job]').nth(1);
+    const chosenTitle=await browseChoice.locator('h3').textContent();
+    await browseChoice.click();
+    assert.equal(await page.locator('#opportunity-preview h2').textContent(),chosenTitle,'Selecting a result must update the detail panel');
+    assert(await page.locator('#opportunity-preview').getByRole('link',{name:'View project & apply',exact:false}).isVisible());
+    await page.screenshot({path:'test-artifacts/job-browse-view.png',fullPage:true});
     await page.getByRole('button',{name:'Grid view',exact:true}).click();
     assert(await page.locator('#jobs').evaluate(e=>e.classList.contains('jobs-view-grid')));
     await page.locator('#query').fill('React');
@@ -558,6 +605,7 @@ async function login(page, email) {
     failPhotoImport = true;
     await login(page, "bob@example.com");
     assert.equal(await page.getByLabel("Full name").inputValue(), "Bob");
+    assert.equal(await page.evaluate(()=>workspaceLocal.getItem('proof-resume-editor')),null,'Resume drafts must not cross accounts');
     await page.locator('[data-photo-status]').filter({hasText:'LinkedIn photo import failed. Please retry.'}).waitFor();
     await page.evaluate(() => loadProfilePhoto());
     assert.match(await page.locator('[data-photo-status]').innerText(), /import failed/);

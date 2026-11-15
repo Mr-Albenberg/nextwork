@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node tests/account.test.js && node tests/resume.test.js && node tests/resume-flow.test.js && node tests/project-tracker.test.js && node tests/account-resumes.test.js && node tests/profile-import.test.js && node tests/profile-import-client.test.js && node tests/listing-match.test.js && node tests/profile-and-criteria.test.js && node tests/profile-photo.test.js && node tests/photo-http.test.mjs",
+    "test": "node tests/account.test.js && node tests/resume.test.js && node tests/resume-flow.test.js && node tests/resume-editor.test.js && node tests/project-tracker.test.js && node tests/account-resumes.test.js && node tests/profile-import.test.js && node tests/profile-import-client.test.js && node tests/listing-match.test.js && node tests/profile-and-criteria.test.js && node tests/profile-photo.test.js && node tests/photo-http.test.mjs",
     "prepare:photos": "node scripts/prepare-photo-function.cjs"
   },
   "dependencies": {

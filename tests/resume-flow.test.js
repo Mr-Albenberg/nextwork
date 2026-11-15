@@ -3,7 +3,7 @@ function fixture(){
  const values=new Map(),nodes=new Map();const storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k)};
  const node=selector=>{if(!nodes.has(selector))nodes.set(selector,{value:'',textContent:'',innerHTML:'',disabled:false});return nodes.get(selector)};
  const context={marketplaceResume:()=>storage.getItem('proof-resume')||'',workspaceSession:storage,workspaceLocal:storage,Account:{user:{id:'alice'},client:{auth:{getSession:async()=>({data:{session:{access_token:'synthetic'}}})}}},location:{hash:'#resume'},window:{scrollTo(){}},document:{getElementById:()=>null},$:node,esc:s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),icon:()=>'',render(){},saveWorkspace:async()=>{},AbortSignal,URL,jobs:[],graduateProfile:()=>({field:'Development'}),ResumeEngine:require('../dist/resume-engine')};
- vm.createContext(context);for(const file of ['ui-state.js','opportunity-insights.js','resume.js'])vm.runInContext(fs.readFileSync('dist/'+file,'utf8'),context);
+ vm.createContext(context);for(const file of ['ui-state.js','opportunity-insights.js','resume.js','resume-editor.js'])vm.runInContext(fs.readFileSync('dist/'+file,'utf8'),context);
  node('#review-resume').value='A graduate who built React and JavaScript interfaces. Developed accessible components, collaborated with a team, wrote unit tests, and used Git for version control.';
  node('#review-method').value='local';return {context,node,values,run:()=>vm.runInContext('runResumeReview({preventDefault(){}})',context),read:expression=>vm.runInContext(expression,context)};
 }

@@ -14,6 +14,7 @@ const Backend = {
 };
 const extraKeys = [
   "proof-resume-versions",
+  "proof-resume-editor",
   "proof-resume-file",
   "proof-resume-report",
   "proof-conversations",
