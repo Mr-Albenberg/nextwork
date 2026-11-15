@@ -12498,8 +12498,11 @@ body.messages-page .messenger {
 
 /* Sent bubbles sit against the conversation edge, without a second width inset. */
 
-.message-line.outgoing > div { display: flex; flex-direction: column; align-items: flex-end; }
-.message-line.outgoing .message-bubble { max-width: 100%; }
+.message-line > div { display: flex; flex-direction: column; align-items: flex-start; }
+.message-line.outgoing > div { align-items: flex-end; }
+/* Cap the message container once; nested percentage caps squeeze short replies. */
+.message-line > div { max-width: min(520px, 86%); }
+.message-line .message-bubble { max-width: 100%; }
 
 /* The composer floats inside the conversation, with a constant pill radius. */
 .messages-page .conversation-composer {
