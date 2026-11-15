@@ -461,7 +461,7 @@ function updateAccountChrome(page) {
 
   const hiring = isOrganizationAccount();
   document.body.dataset.accountType = hiring ? "organization" : "personal";
-  document.querySelectorAll('a.account, header .header-account').forEach(link => link.href = hiring ? '#settings' : '#profile');
+  document.querySelectorAll('a.account').forEach(link => link.href = '#settings');
   const brand = document.querySelector('.workspace-header .brand');
   if (brand) brand.href = Account.user ? (hiring ? '#organization' : '#overview') : '#home';
   const nextStep = document.querySelector('.sidebar-next-step');

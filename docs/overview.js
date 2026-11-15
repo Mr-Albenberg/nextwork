@@ -31,7 +31,7 @@ function overviewPage() {
       "projects",
       "workTab='ideas'",
     ],
-    ["check", completed.length, "Projects completed", "profile", ""],
+    ["check", completed.length, "Projects completed", "projects", ""],
   ]
     .map(
       ([i, n, t, r, click]) =>
@@ -39,7 +39,7 @@ function overviewPage() {
     )
     .join(
       "",
-    )}</div><div class="workspace-priority-grid"><section class="panel workspace-next-action"><div class="section-title"><span class="section-label">YOUR NEXT STEP</span><span class="workspace-status-dot">${hasResume ? "Resume ready" : "Profile setup"}</span></div><h2>${hasResume ? "Put your experience to work." : "Show teams what you bring."}</h2><p>${hasResume ? "Browse clear project briefs, review your fit, and choose work where you can contribute." : "Add your resume and a few profile details to give organizations a useful picture of your experience."}</p><div><a class="primary" href="#${hasResume ? "explore" : "profile"}">${hasResume ? "Explore opportunities" : "Complete profile"} ${icon("arrow", 16)}</a><a class="text-link" href="#resume">Review resume ${icon("arrow", 15)}</a></div><div class="workspace-profile-progress"><span>Profile details</span><b>${progress.done}/${progress.total}</b><div class="progress"><i style="width:${progress.percent}%"></i></div></div></section><section class="panel workspace-current-project"><div class="section-title"><span class="section-label">${active.length ? "CONTINUE YOUR PROJECT" : "OPPORTUNITY SPOTLIGHT"}</span>${icon(active.length ? "route" : "briefcase", 19)}</div>${
+    )}</div><div class="workspace-priority-grid"><section class="panel workspace-next-action"><div class="section-title"><span class="section-label">YOUR NEXT STEP</span><span class="workspace-status-dot">${hasResume ? "Resume ready" : "Profile setup"}</span></div><h2>${hasResume ? "Put your experience to work." : "Show teams what you bring."}</h2><p>${hasResume ? "Browse clear project briefs, review your fit, and choose work where you can contribute." : "Add your resume and a few profile details to give organizations a useful picture of your experience."}</p><div><a class="primary" href="#${hasResume ? "explore" : "resume"}">${hasResume ? "Explore opportunities" : "Add resume"} ${icon("arrow", 16)}</a><a class="text-link" href="#resume">Review resume ${icon("arrow", 15)}</a></div><div class="workspace-profile-progress"><span>Profile details</span><b>${progress.done}/${progress.total}</b><div class="progress"><i style="width:${progress.percent}%"></i></div></div></section><section class="panel workspace-current-project"><div class="section-title"><span class="section-label">${active.length ? "CONTINUE YOUR PROJECT" : "OPPORTUNITY SPOTLIGHT"}</span>${icon(active.length ? "route" : "briefcase", 19)}</div>${
     active.length
       ? `<h2>${esc(active[0].title)}</h2><p>Keep your momentum. Your milestones and work samples are saved in My work.</p><div class="workspace-mini-roadmap">${projectSteps(
           active[0],
