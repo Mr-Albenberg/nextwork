@@ -204,7 +204,7 @@ Organization features:
 - Organization profile with name, website, description, and optional public business email.
 - Job/contract builder with engagement type, field, budget/pay basis, location, skill tags, individual requirements, and deliverables.
 - Draft, published, and closed states. Published listings join Find work and support resume matching.
-- Applicant inbox with listing filters, private profile/resume snapshots, accept/decline/shortlist actions, and private application conversations.
+- Applicant inbox with listing filters, private profile/resume snapshots, accept/decline actions, and private application conversations.
 - Applicant-side Organization applications page for decisions, withdrawal, and messages.
 
 Access is enforced by database RLS and restricted decision RPCs. Only the owner can manage listings or decide applications; applicants cannot accept themselves. Only the applicant and organization owner can read application snapshots or send messages in that thread. No service-role key is exposed in the browser. Other organizations cannot see these applicants. Closing a listing stops new applications.
@@ -231,7 +231,7 @@ Organization features:
 - Organization profile with name, website, description, and optional public business email.
 - Job/contract builder with engagement type, field, budget/pay basis, location, skill tags, individual requirements, and deliverables.
 - Draft, published, and closed states. Published listings join Find work and support resume matching.
-- Applicant inbox with listing filters, private profile/resume snapshots, accept/decline/shortlist actions, and private application conversations.
+- Applicant inbox with listing filters, private profile/resume snapshots, accept/decline actions, and private application conversations.
 - Applicant-side Organization applications page for decisions, withdrawal, and messages.
 
 Access is enforced by database RLS and restricted decision RPCs. Only the owner can manage listings or decide applications; applicants cannot accept themselves. Only the applicant and organization owner can read application snapshots or send messages in that thread. No service-role key is exposed in the browser. Other organizations cannot see these applicants. Closing a listing stops new applications.
@@ -267,7 +267,7 @@ The two-step organization sign-up asks for contact name, work email/password, co
 
 Organization profile setup includes public company details and clearly separated private hiring defaults. Defaults prefill new listings while every listing remains editable. This uses existing tables and auth metadata; no additional migration is required.
 
-The organization portal now defaults to Overview, with public company description, private industry/team/hiring summaries, published/pending/shortlist counts, setup steps, recent applications, a project-brief checklist, and an explanation of the review workflow. The applicant inbox also supports status filtering. Applicants still cannot access other candidates' documents, and existing organization ownership controls are unchanged.
+The organization portal now defaults to Overview, with public company description, private industry/team/hiring summaries, published/pending counts, setup steps, recent applications, a project-brief checklist, and an explanation of the review workflow. The applicant inbox also supports status filtering. Applicants still cannot access other candidates' documents, and existing organization ownership controls are unchanged.
 
 ### Fixed personal and organization accounts
 
