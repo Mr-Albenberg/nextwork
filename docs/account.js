@@ -328,6 +328,8 @@ async function initializeAccount() {
       },
     );
     Account.client.auth.onAuthStateChange((event, session) => {
+      // The initial session is verified and rendered explicitly below.
+      if (event === "INITIAL_SESSION") return;
       if (event === "PASSWORD_RECOVERY") Account.recovery = true;
       const epoch = Account.sessionEpoch;
       setTimeout(async () => {
@@ -343,12 +345,16 @@ async function initializeAccount() {
           await connectWorkspace(session?.user || null);
           Account.ready = true;
         } else {
+          const wasLinked = Account.user?.identities?.some(identity => identity.provider === "linkedin_oidc");
           Account.user = session?.user || null;
+          const linked = Account.user?.identities?.some(identity => identity.provider === "linkedin_oidc");
           if (
             ["SIGNED_IN", "USER_UPDATED"].includes(event) &&
             typeof fillMissingFromLinkedIn === "function"
           )
             fillMissingFromLinkedIn().catch(() => {});
+          // Keep existing controls and drafts during routine session confirmations.
+          if (!Account.recovery && ["SIGNED_IN", "USER_UPDATED"].includes(event) && wasLinked === linked) return;
         }
         if (Account.recovery) location.hash = "password";
         render();

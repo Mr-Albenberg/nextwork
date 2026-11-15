@@ -7,6 +7,7 @@ const ProfileMedia = {
   error: "",
   importError: "",
   importing: false,
+  lastImportKey: null,
   needsConsent: false,
   revision: 0,
   preview: null,
@@ -24,6 +25,7 @@ function resetProfileMedia() {
   ProfileMedia.error = "";
   ProfileMedia.importError = "";
   ProfileMedia.importing = false;
+  ProfileMedia.lastImportKey = null;
   ProfileMedia.needsConsent = false;
   closePhotoPreview();
 }
@@ -84,27 +86,24 @@ function canRetryLinkedInImport() {
   return Boolean(Account.user?.identities?.some(identity => identity.provider === "linkedin_oidc") &&
     !ownPhoto().hasPhoto && (ProfileMedia.needsConsent || ProfileMedia.importError));
 }
+function photoStatusText() {
+  return ProfileMedia.importing ? "Importing your LinkedIn details…" :
+    ProfileMedia.importError || ProfileMedia.error || "Visible to signed-in Nextwork members.";
+}
+function linkedInImportLabel() {
+  return ProfileMedia.importing ? "Importing…" : ProfileMedia.needsConsent ?
+    "Fill missing details from LinkedIn" : "Retry LinkedIn import";
+}
 function updatePhotoStatus() {
-  document
-    .querySelectorAll("[data-photo-consent]")
-    .forEach((node) => (node.hidden = !ProfileMedia.needsConsent));
-  document
-    .querySelectorAll("[data-photo-status]")
-    .forEach(
-      (node) =>
-        (node.textContent =
-          ProfileMedia.importing ? "Importing your LinkedIn details…" : ProfileMedia.importError || ProfileMedia.error || "Visible to signed-in Nextwork members."),
-    );
-  document
-    .querySelectorAll('[data-photo-action="remove"]')
-    .forEach((node) => (node.hidden = !ownPhoto().hasPhoto));
-  document
-    .querySelectorAll('[data-photo-action="import"]')
-    .forEach(node => {
-      node.hidden = !canRetryLinkedInImport();
-      node.disabled = ProfileMedia.importing;
-      node.textContent = ProfileMedia.importing ? "Importing…" : ProfileMedia.needsConsent ? "Fill missing details from LinkedIn" : "Retry LinkedIn import";
-    });
+  const update = (node, property, value) => { if (node[property] !== value) node[property] = value; };
+  document.querySelectorAll("[data-photo-consent]").forEach(node => update(node, "hidden", !ProfileMedia.needsConsent));
+  document.querySelectorAll("[data-photo-status]").forEach(node => update(node, "textContent", photoStatusText()));
+  document.querySelectorAll('[data-photo-action="remove"]').forEach(node => update(node, "hidden", !ownPhoto().hasPhoto));
+  document.querySelectorAll('[data-photo-action="import"]').forEach(node => {
+    update(node, "hidden", !canRetryLinkedInImport());
+    update(node, "disabled", ProfileMedia.importing);
+    update(node, "textContent", linkedInImportLabel());
+  });
 }
 function profilePhotoMarkup(id, name) {
   const photo = ProfileMedia.photos.get(id), cached = ProfileMedia.images.get(id);
@@ -223,12 +222,16 @@ async function fillMissingFromLinkedIn({
   retry = false,
 } = {}) {
   if (ProfileMedia.importing) return;
-  if (
-    !Account.user?.identities?.some(
-      (identity) => identity.provider === "linkedin_oidc",
-    )
-  )
-    return;
+  const identity = Account.user?.identities?.find(identity => identity.provider === "linkedin_oidc");
+  if (!identity) return;
+  const details = identity.identity_data || {};
+  const importKey = JSON.stringify([Account.user.id, Account.user.last_sign_in_at || "",
+    identity.id || identity.identity_id || "", identity.updated_at || "", Account.user.email || "",
+    details.picture || details.avatar_url || "", details.full_name || details.name || "",
+    details.given_name || "", details.family_name || "", details.headline || "", details.summary || ""]);
+  // Focus/session confirmations repeat SIGNED_IN. Retry only on a real login/provider change or explicit action.
+  if (!retry && ProfileMedia.lastImportKey === importKey) return;
+  ProfileMedia.lastImportKey = importKey;
   const owner = Account.user.id,
     generation = ProfileMedia.generation,
     revision = ProfileMedia.revision;
@@ -276,7 +279,7 @@ function initializeProfileMedia(user) {
   fillMissingFromLinkedIn().catch(() => {});
 }
 function profilePhotoEditor(p) {
-  return `<div class="profile-photo-editor"><button type="button" class="profile-photo-trigger" data-photo-action="open" aria-label="Change profile photo"><span class="profile-photo-current" data-own-photo>${profilePhotoMarkup(Account.user.id, p.name)}</span><span class="photo-camera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg></span></button><div class="profile-photo-controls"><button type="button" class="account-text-button" data-photo-action="open">Change photo</button><button type="button" class="account-text-button" data-photo-action="remove" ${ownPhoto().hasPhoto ? "" : "hidden"}>Remove photo</button><p data-photo-status role="status">Visible to signed-in Nextwork members.</p><small class="linkedin-data-consent" data-photo-consent ${ProfileMedia.needsConsent ? "" : "hidden"}>${photoConsentText()}</small><button type="button" class="account-text-button" data-photo-action="import" ${canRetryLinkedInImport() ? "" : "hidden"}>Fill missing details from LinkedIn</button></div></div>`;
+  return `<div class="profile-photo-editor"><button type="button" class="profile-photo-trigger" data-photo-action="open" aria-label="Change profile photo"><span class="profile-photo-current" data-own-photo>${profilePhotoMarkup(Account.user.id, p.name)}</span><span class="photo-camera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg></span></button><div class="profile-photo-controls"><button type="button" class="account-text-button" data-photo-action="open">Change photo</button><button type="button" class="account-text-button" data-photo-action="remove" ${ownPhoto().hasPhoto ? "" : "hidden"}>Remove photo</button><p data-photo-status role="status">${esc(photoStatusText())}</p><small class="linkedin-data-consent" data-photo-consent ${ProfileMedia.needsConsent ? "" : "hidden"}>${photoConsentText()}</small><button type="button" class="account-text-button" data-photo-action="import" ${canRetryLinkedInImport() ? "" : "hidden"}>${linkedInImportLabel()}</button></div></div>`;
 }
 function closePhotoPreview() {
   if (ProfileMedia.preview) URL.revokeObjectURL(ProfileMedia.preview);
