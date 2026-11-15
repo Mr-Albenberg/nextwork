@@ -290,11 +290,6 @@ function myApplicationsHTML() {
     ${drafts.length ? `<section class="drafts-section"><div class="section-title"><h2>Practice drafts</h2><small>Sample listings — drafts stay private in your account.</small></div>${drafts.map(j => `<article class="application-row compact">${logo(j)}<div><small>${esc(j.c)}</small><h3>${esc(j.title)}</h3></div><span class="status-pill tone-neutral">Draft</span><button class="outline" onclick="apply(${j.id})">Open draft ${icon('arrow', 14)}</button></article>`).join('')}</section>` : ''}`;
 }
 function submissionsPage() { workTab = 'applications'; setTimeout(() => { location.hash = 'projects'; }, 0); return loadingView('Opening My work', 'Your applications now live in My work.'); }
-function openListingConversation(listingId) {
-  const app = myApplicationFor(listingId);
-  if (app) return openApplicationMessages(app.id);
-  toast('Apply first to start a private conversation with this organization.');
-}
 
 /* ---------------- Organization: applicant inbox and full profile ---------------- */
 function organizationApplicantList() {

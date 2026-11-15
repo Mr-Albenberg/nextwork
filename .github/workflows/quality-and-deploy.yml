@@ -136,6 +136,7 @@ jobs:
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611140004_account_types.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f tests/messaging-storage-bootstrap.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611140005_messaging.sql
+          psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611150009_org_user_messaging.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f tests/messaging.test.sql
       - name: Test private profile photos
         env:
@@ -161,7 +162,7 @@ jobs:
         env:
           PGPASSWORD: local-ci-only
         run: |
-          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611150009_application_lifecycle.sql
+          psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f supabase/migrations/202611150010_application_lifecycle.sql
           psql -h localhost -U postgres -d nextwork_test -v ON_ERROR_STOP=1 -f tests/application-lifecycle.test.sql
       - name: Verify GitHub Pages mirror
         run: |

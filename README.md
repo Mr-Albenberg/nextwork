@@ -37,7 +37,7 @@ When applying, the applicant chooses what to share: their full profile snapshot,
 
 Organizations review each applicant on a full page: profile details, skills (highlighted where they match the listing), introduction, an in-browser PDF preview of the resume, and a **role fit analyzer**. The fit estimate is 55% resume evidence (the same listing criteria and field foundations used for marketplace scores), 30% requested skills (resume evidence counts fully, profile-only skills partly), and 15% stated preferences (field, engagement, availability, work style). Without resume text the estimate is capped at 60. It is a review aid, not a hiring decision; keyword evidence is not verified proficiency.
 
-Database: run `supabase/migrations/202611150009_application_lifecycle.sql` (see JACK_SETUP.md step 5).
+Database: run `supabase/migrations/202611150010_application_lifecycle.sql` (see JACK_SETUP.md step 5).
 
 ## Listing and field compatibility
 
@@ -375,3 +375,7 @@ The Premium plan was removed. Every tool is part of one free general plan. The s
 The shared `ui.css` design layer unifies typography, neutral surfaces, indigo actions, light/dark colors, form fields, navigation, and mobile layouts. Personal accounts have a five-item mobile navigation bar; resume review and account settings remain reachable from profile/account actions. Portfolio & Resumes and its toolkit have been removed. Legacy `#tools` links open resume review, without deleting old account records.
 
 Project Ideas now follows a short form → compact cards → individual project plan flow. Market graphs and resume-coverage percentages are removed from the results UI. Source context and evidence gaps remain available in a closed optional section, with baseline, AI estimate, and live posting data identified accurately. Full steps, outputs, tools, and optional extensions are available on `#recommend/idea/:index`; saved plans open at `#recommend/saved/:index`. Saved work is organized into Applications, Saved listings, and Project ideas tabs. The last generated plan is kept in private workspace extras so reloading a plan works after synchronization. Account changes clear in-memory recommendation views.
+
+### Organization-to-personal messaging (2026-11-14)
+
+Messages are only possible between one organization account and one personal account. Applying to a listing is not required: a personal account can message any organization from its listing page or the Messages search, and an organization can message any personal account from the Messages search. Personal-to-personal and organization-to-organization chats are blocked, and older conversations of those kinds stay readable but cannot receive new messages. Apply `supabase/migrations/202611150009_org_user_messaging.sql` in the Supabase SQL editor after migration 005; until it is applied the database still allows any two members to chat.
