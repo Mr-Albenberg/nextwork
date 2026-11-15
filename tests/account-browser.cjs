@@ -444,12 +444,16 @@ async function login(page, email) {
     );
     await page.goto(base + "/#profile");
     await page.getByRole('button',{name:'Upload resume',exact:true}).waitFor();
-    await page.locator('#profile-resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.')});
+    await page.locator('#profile-resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.\nEDUCATION\nExample University\nBachelor of Science in Computer Science\nExpected graduation: 2028\nSKILLS: React, JavaScript, SQL')});
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
     assert.equal(rows.get(users['alice@example.com'].id).profile.tagline,'Frontend Developer');
+    assert.equal(rows.get(users['alice@example.com'].id).profile.degree,'Bachelor of Science in Computer Science');
+    assert.equal(rows.get(users['alice@example.com'].id).profile.graduation,'2028');
+    assert(rows.get(users['alice@example.com'].id).profile.skills.includes('React'));
     assert(rows.get(users['alice@example.com'].id).extras['proof-resume-report']);
     await page.reload();
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Graduation year').inputValue(),'2028');
     await page.getByRole('button',{name:'Clear resume',exact:true}).waitFor();
     const chooserPromise=page.waitForEvent('filechooser');
     await page.getByRole('button',{name:'Upload a new resume',exact:true}).click();

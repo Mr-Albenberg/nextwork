@@ -28,13 +28,13 @@ const previous=savedResumeFile();
 workspaceLocal.setItem('proof-resume-file',JSON.stringify({path,name:file.name,size:file.size,uploadedAt:new Date().toISOString()}));
 setMarketplaceResume(text);
 workspaceLocal.setItem('proof-resume-report',JSON.stringify(report));
-fillResumeProfile(text);
+const filled=fillResumeProfile(text);
 resumeReport=report;
 await saveWorkspace();
 if(!current())return;
 if(previous?.path)await Account.client.storage.from('account-resumes').remove([previous.path]);
 render();
-const message=$('#file-status');if(message)message.textContent='Resume saved and processed. You can edit the extracted text and profile details.';
+const message=$('#file-status');if(message)message.textContent=filled.length?'Resume saved. Filled '+filled.length+' empty profile fields. Review your details below.':'Resume saved and processed. Your existing profile details were kept.';
 }catch(e){if(current()){const message=$('#file-status');if(message)message.textContent=e.message||'Could not process your resume. Please try again.';}}
 finally{inputs.forEach(input=>input.disabled=false);}
 }
@@ -44,16 +44,68 @@ async function clearProfileResume(){saveProfileDraft();try{await clearResume()}c
 
 async function downloadSavedResume(){const file=savedResumeFile();if(!file)return;const owner=Account.user?.id;try{const result=await Account.client.storage.from('account-resumes').download(file.path);if(Account.user?.id!==owner)return;if(result.error)throw result.error;const url=URL.createObjectURL(result.data),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch{toast('Could not download your resume. Please try again.')}}
 function resumeProfileFields(text){
-const lines=String(text).split(/\n/).map(line=>line.trim()).filter(Boolean);
-const heading=/^(?:professional\s+)?(?:summary|profile|about(?: me)?|objective):?$/i;
-const section=/^(?:education|experience|employment|work experience|skills|projects|certifications|awards|languages|interests)\b/i;
-let bio='',tagline='';
-const summary=lines.findIndex(line=>heading.test(line));
-if(summary>=0){const parts=[];for(const line of lines.slice(summary+1)){if(section.test(line))break;parts.push(line)}bio=parts.join(' ').slice(0,2000);}
-for(const line of lines.slice(1,6)){if(heading.test(line)||section.test(line))break;if(line.length>=8&&line.length<=160&&!/[@|]|https?:|www\.|\d{3}/i.test(line)){tagline=line;break;}}
-return {tagline,bio};
+  const source=String(text||'').slice(0,30000).replace(/\r/g,''),lines=source.split('\n').map(s=>s.trim()).filter(Boolean);
+  const result={};
+  const headings=/^(?:(?:professional|technical|core|relevant|additional)\s+)?(?:summary|profile|about(?: me)?|objective|education|academic background|experience|employment|work experience|skills|competencies|projects|certifications|awards|languages|interests)\s*:?(?:\s|$)/i;
+  const label=(names)=>{const re=new RegExp('^(?:'+names+')\\s*:\\s*(.+)$','i');return lines.map(line=>line.match(re)?.[1]).find(Boolean)||'';};
+  const section=(names)=>{const re=new RegExp('^(?:'+names+')\\s*(?::\\s*(.*))?$','i');let active=false,parts=[];for(const line of lines){const match=line.match(re);if(match){active=true;if(match[1])parts.push(match[1]);continue;}if(active){if(headings.test(line))break;parts.push(line);}}return parts;};
+  const firstSection=lines.findIndex(line=>headings.test(line));
+  const header=lines.slice(0,firstSection<0?8:firstSection);
+  const contact=header.join('\n');
+  const email=source.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)?.[0];
+  if(email)result.email=email.slice(0,300);
+  const explicitName=label('full name|name');
+  const first=(explicitName||lines[0]||'').replace(/^(?:resume|curriculum vitae|cv)\s*[-:–]\s*/i,'').split(/\s*[|•]\s*/)[0].trim();
+  if(first.length<=120&&/^[\p{L}][\p{L}\p{M}.'’ -]+$/u.test(first)&&first.split(/\s+/).length>=2&&first.split(/\s+/).length<=6&&!headings.test(first)&&!/\b(resume|curriculum|developer|engineer|designer|analyst|manager|university|college)\b/i.test(first))result.name=first;
+  const roleWords=/\b(developer|engineer|designer|analyst|manager|marketer|researcher|scientist|specialist|consultant|accountant|nurse|teacher|writer|coordinator|architect|technician|student|graduate|intern|director|administrator)\b/i;
+  const top=header.slice(1,7);
+  const headline=label('tagline|headline|professional title')||top.find(line=>line.length<=160&&roleWords.test(line)&&!/@|https?:|www\.|\d{3}|:/i.test(line))||'';
+  if(headline)result.tagline=headline;
+  const role=label('target role|desired role|job title|role')||headline;
+  if(role&&roleWords.test(role))result.role=role.slice(0,300);
+  const bio=section('(?:professional\\s+)?summary|profile|about(?: me)?|objective').join(' ');
+  if(bio)result.bio=bio.slice(0,2000);
+  const location=label('location|based in|address')||contact.split(/\n|\s*[|•]\s*/).map(s=>s.trim()).find(s=>/^[\p{L} .'-]+,\s*[\p{L} .'-]+(?:\s+\d{5}(?:-\d{4})?)?$/u.test(s)&&!roleWords.test(s));
+  if(location)result.location=location.slice(0,300);
+  const links=[...source.matchAll(/(?:https?:\/\/|www\.|(?:github|gitlab|behance|dribbble)\.(?:com|net)\/)[^\s<>]+/gi)].map(m=>m[0].replace(/[),.;]+$/,''));
+  const explicitPortfolio=label('portfolio|website|personal website|work samples');
+  for(const candidate of [explicitPortfolio,...links.filter(url=>!/linkedin\.com\//i.test(url))]){
+    if(!candidate)continue;
+    try{const url=new URL(/^https?:\/\//i.test(candidate)?candidate:'https://'+candidate);if(['http:','https:'].includes(url.protocol)&&url.hostname.includes('.')&&!url.username&&!url.password){result.portfolio=url.href.slice(0,300);break;}}catch{}
+  }
+  const education=section('education|academic background');
+  const institution=label('college|university|institution|school')||education.find(line=>/\b(university|college|institute|polytechnic|school)\b/i.test(line));
+  if(institution)result.education=institution.split(/\s*[|;]\s*/)[0].slice(0,300);
+  const degree=label('degree|degree or area of study')||education.find(line=>/\b(bachelor|master|doctor|associate|diploma|ph\.?d\.?|[bm]\.?[as]\.?c?\.?|mba|beng|meng)\b/i.test(line));
+  if(degree)result.degree=degree.replace(/\s*[|,–-]?\s*(?:(?:expected\s+)?graduat(?:ion|ing|ed)\s*:?|expected\s*:?|(?:19|20)\d{2}\s*[-–])[^]*$/i,'').trim().slice(0,300);
+  const grad=label('graduation year|graduation|expected graduation')||education.find(line=>/\b(expected|graduat(?:ion|ing|ed)|class of)\b/i.test(line));
+  const years=(grad||education.join(' ')).match(/\b(?:19|20)\d{2}\b/g)||[];
+  if(years.length&&(grad||/\b(?:19|20)\d{2}\s*[-–]\s*(?:19|20)\d{2}\b/.test(education.join(' '))))result.graduation=years[years.length-1];
+  const skillLines=section('(?:(?:technical|core|relevant|additional)\\s+)?skills|competencies').join(', ');
+  const candidates=skillLines.split(/[,;|•·\n]+/).map(s=>s.replace(/^[-*]\s*|^[^:]{1,30}:\s*/g,'').trim()).filter(Boolean);
+  let skills=typeof canonicalSkills==='function'?canonicalSkills(candidates.join(',')):[];
+  if(typeof ResumeEngine!=='undefined')skills=[...new Set([...skills,...ResumeEngine.skills.filter(skill=>ResumeEngine.has(skillLines||source,skill))])];
+  if(skills.length)result.skills=skills.slice(0,40).join(', ');
+  // Preferences are imported only when stated explicitly, never from employment history.
+  const availability=label('availability|weekly availability|hours per week');
+  if(availability){const range=availability.replace(/[–—]/g,'-');if(/\b(?:under|less than)\s*10\b/i.test(range))result.availability='Under 10 hours';else if(/\b10\s*-\s*20\b/.test(range))result.availability='10–20 hours';else if(/\b20\s*-\s*30\b/.test(range))result.availability='20–30 hours';else if(/\b30\s*\+/.test(range))result.availability='30+ hours';}
+  const workstyle=label('work style|work preference|preferred work style');
+  if(workstyle){const options={'remote':'Remote','hybrid':'Hybrid','on-site':'On-site','onsite':'On-site','open to all':'Open to all'};if(options[workstyle.toLowerCase()])result.workstyle=options[workstyle.toLowerCase()];}
+  const engagement=label('engagement|seeking|looking for|employment preference');
+  if(engagement){if(/\b(project|contract)\b/i.test(engagement)&&/full[- ]time/i.test(engagement))result.engagement='Both projects and full-time';else if(/\b(project|contract)\b/i.test(engagement))result.engagement='Paid project / contract';else if(/^full[- ]time(?: role| employment| work)?$/i.test(engagement))result.engagement='Full-time role';}
+  const field=label('field|career field');
+  const fields=typeof MatchCriteria!=='undefined'?Object.keys(MatchCriteria.fieldSkills):['Development','Design','Data & Analytics','Marketing','Business'];
+  const explicitField=fields.find(f=>f.toLowerCase()===field.toLowerCase());
+  if(explicitField)result.field=explicitField;
+  else if(role){const mapping=[['Development',/\b(?:software|frontend|front-end|backend|back-end|full[- ]stack|web|mobile)\s+(?:developer|engineer)\b/i],['Design',/\b(?:ux|ui|product|graphic|visual)\s+designer\b/i],['Data & Analytics',/\bdata\s+(?:analyst|scientist|engineer)\b/i],['Marketing',/\b(?:marketing|marketer|seo)\b/i]];const match=mapping.find(([name,re])=>fields.includes(name)&&re.test(role));if(match)result.field=match[0];}
+  return result;
 }
-function fillResumeProfile(text){const p=graduateProfile(),fields=resumeProfileFields(text);for(const key of ['tagline','bio'])if(!String(p[key]||'').trim()&&fields[key])p[key]=fields[key];workspaceLocal.setItem('proof-profile',JSON.stringify(p));}
+function fillResumeProfile(text){
+  const profile=graduateProfile(),fields=resumeProfileFields(text),filled=[];
+  for(const [key,value] of Object.entries(fields))if(!String(profile[key]||'').trim()&&value){profile[key]=value;filled.push(key);}
+  workspaceLocal.setItem('proof-profile',JSON.stringify(profile));
+  return filled;
+}
 
 function loadResumeExample(){workspaceSession.removeItem('proof-selected-listing');$('#review-listing').value='';$('#review-job').readOnly=false;$('#review-job-title').readOnly=false;$('#selected-listing-summary').innerHTML='';$('#review-resume').value=`Alex Johnson\nalex@example.com | https://github.com/example\nEDUCATION\nBS Computer Science, 2026\nSKILLS\nJavaScript, React, HTML, CSS, Git, SQL\nPROJECTS\n- Built a React dashboard for 40 student volunteers to coordinate weekly community events.\n- Developed accessible forms and reduced incomplete submissions by 20% in a class usability study.\n- Worked on a customer analytics report using SQL.\nEXPERIENCE\n- Collaborated with a team of 4 students to launch a campus resource directory.\n- Presented research findings to a student advisory group.\n`;$('#review-job').value='Junior Frontend Developer\nRequired: React, JavaScript, TypeScript, HTML, CSS, Git, Testing, and Accessibility.\nBuild responsive interfaces, collaborate with designers, write unit tests, and communicate technical decisions.\nA degree in a relevant field or equivalent practical experience is welcome.';$('#review-job-title').value='Junior Frontend Developer';$('#review-resume').oninput();toast('Example loaded. Choose a review type, then run your review.')}
 async function clearResume(){const file=savedResumeFile();if(file){const result=await Account.client.storage.from('account-resumes').remove([file.path]);if(result.error){toast('Could not delete your saved resume. Please try again.');return}}workspaceLocal.removeItem('proof-resume-file');workspaceLocal.removeItem('proof-resume-report');['proof-resume','proof-job','proof-job-title','proof-selected-listing'].forEach(k=>workspaceSession.removeItem(k));workspaceLocal.removeItem('proof-ai-endpoint');workspaceLocal.removeItem('lp-resume');if(typeof detected!=='undefined')detected=[];resumeReport=null;await saveWorkspace();render();toast('Resume cleared across your account')}
