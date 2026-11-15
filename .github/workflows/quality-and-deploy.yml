@@ -151,6 +151,9 @@ jobs:
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611150009_org_user_messaging.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611150011_message_edits.sql
           psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f tests/messaging.test.sql
+          psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f supabase/migrations/202611150013_sample_creators.sql
+          psql -h localhost -U postgres -d nextwork_chat -v ON_ERROR_STOP=1 -f tests/sample-creators.test.sql
+          node tests/sample-creators.test.js
       - name: Test private profile photos
         env:
           PGPASSWORD: local-ci-only

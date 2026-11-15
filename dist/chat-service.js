@@ -1,4 +1,4 @@
-/* Shared, authenticated messaging operations. No workspace JSON or sample recipients. */
+/* Shared, authenticated messaging operations. Messages and attachments use the same database flow for every recipient. */
 (function(root){
 class ChatService {
   constructor(client,userId,{isCurrent=()=>true,uuid=()=>crypto.randomUUID()}={}){this.client=client;this.userId=userId;this.isCurrent=isCurrent;this.uuid=uuid;this.channel=null}
