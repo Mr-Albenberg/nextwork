@@ -12758,3 +12758,28 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
 .account-settings-layout .profile-resume-upload > :last-child,
 .account-settings-layout .settings-panel > :last-child,
 .account-settings-layout .account-heading p:last-child { margin-bottom: 0; }
+
+/* List view emphasizes comparable facts instead of a full project preview. */
+.jobs-view-list .job.opportunity-card { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 8px 20px; padding: 16px 20px; }
+.jobs-view-list .job.opportunity-card .job-top { grid-column: 1 / -1; margin: 0; }
+.jobs-view-list .opportunity-content { display: contents; }
+.jobs-view-list .opportunity-description { grid-column: 1; min-width: 0; }
+.jobs-view-list .opportunity-description > p { display: none; }
+.jobs-view-list .opportunity-description h3 a { font-size: 17px; }
+.jobs-view-list .opportunity-description .tags { margin: 8px 0; }
+.jobs-view-list .opportunity-working { margin: 0; }
+.jobs-view-list .opportunity-compensation { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: 1fr auto; align-content: start; align-items: center; gap: 4px 8px; border: 0; padding: 0; margin: 0; text-align: right; }
+.jobs-view-list .opportunity-compensation > small { display: none; }
+.jobs-view-list .opportunity-compensation > strong { grid-column: 1 / -1; font-size: 24px; }
+.jobs-view-list .opportunity-compensation > .card-match-score { grid-column: 1 / -1; }
+.jobs-view-list .opportunity-compensation > .view-project-button { grid-column: 1 / -1; grid-row: auto; width: 100%; margin: 0; }
+.jobs-view-list .opportunity-compensation > .fit-link { grid-column: 1 / -1; grid-row: auto; min-height: 28px; }
+@media (max-width: 650px) {
+  .jobs-view-list .job.opportunity-card { grid-template-columns: minmax(0, 1fr); padding: 14px 16px; gap: 10px; }
+  .jobs-view-list .opportunity-description { grid-column: 1; }
+  .jobs-view-list .opportunity-compensation { grid-column: 1; grid-row: auto; grid-template-columns: 1fr auto; padding-top: 10px; border-top: 1px solid var(--line); text-align: left; }
+  .jobs-view-list .opportunity-compensation > strong { grid-column: 1; grid-row: 1; font-size: 22px; }
+  .jobs-view-list .opportunity-compensation > .view-project-button { grid-column: 2; grid-row: 1; width: auto; }
+  .jobs-view-list .opportunity-compensation > .card-match-score { grid-column: 1; grid-row: 2; }
+  .jobs-view-list .opportunity-compensation > .fit-link { grid-column: 2; grid-row: 2; }
+}
