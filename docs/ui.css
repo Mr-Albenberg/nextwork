@@ -12876,3 +12876,24 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
   .resume-compose-page .review-source #review-resume { min-height: 120px; }
   .resume-compose-page .review-submit-bar { padding-block: 12px; }
 }
+
+/* Project ideas uses the workspace itself for the form and workflow. */
+body:has(.ideas-start-layout) main { max-width: none; min-height: calc(100dvh - var(--toolbar-height)); }
+body:has(.ideas-start-layout) .shell > footer { display: none; }
+.ideas-page:has(.ideas-start-layout) { max-width: none; margin: 0; }
+.ideas-page:has(.ideas-start-layout) .page-heading-row { padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.ideas-start-layout { grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 0; align-items: stretch; }
+.ideas-start-layout .ideas-form { min-width: 0; padding: 28px 32px 28px 0; background: transparent; border: 0; box-shadow: none; }
+.ideas-start-layout .ideas-intro { min-width: 0; padding: 28px 0 28px 32px; border-left: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); }
+.ideas-start-layout .ideas-intro .project-process-graphic { background: transparent; border: 0; padding: 0; max-width: none; }
+.ideas-start-layout .process-graphic-head, .ideas-start-layout .ideas-intro .section-label { color: var(--theme-accent); }
+.ideas-start-layout .process-graphic-stage > b { background: var(--theme-subtle); border-color: var(--line); color: var(--theme-accent); }
+.ideas-start-layout .process-graphic-stage:after { background: var(--line); }
+.ideas-start-layout .process-graphic-stage strong, .ideas-start-layout .ideas-intro h2 { color: var(--ink); }
+.ideas-start-layout .process-graphic-stage small, .ideas-start-layout .process-graphic-caption, .ideas-start-layout .ideas-intro > p, .ideas-start-layout .ideas-intro > small { color: var(--muted); }
+.ideas-start-layout .process-graphic-caption { border-color: var(--line); }
+@media (max-width: 1000px) {
+  .ideas-start-layout { grid-template-columns: minmax(0, 1fr); }
+  .ideas-start-layout .ideas-form { padding: 24px 0; }
+  .ideas-start-layout .ideas-intro { display: flex; padding: 24px 0; border-left: 0; border-top: 1px solid var(--line); }
+}
