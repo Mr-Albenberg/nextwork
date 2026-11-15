@@ -45,11 +45,25 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  await a.locator('#conversation-input').fill('Hello from a real member');await a.locator('#send-message').click();await b.locator('.message-bubble').filter({hasText:'Hello from a real member'}).waitFor();
  assert.equal(await a.getByRole('button',{name:'Delete your message'}).count(),0);
  assert.equal(await b.getByRole('button',{name:'Edit your message'}).count(),0);
- await a.getByRole('button',{name:'Edit your message'}).first().click();
+ await a.locator('#conversation-input').fill('Another editable message');await a.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'Another editable message'}).waitFor();
+ await a.locator('#conversation-input').hover();
+ assert.equal(await a.locator('.message-edit-slot').first().evaluate(el=>getComputedStyle(el).opacity),'0');
+ const timeBefore=await a.locator('.outgoing .message-time').first().boundingBox();
+ await a.locator('.message-line.outgoing').first().hover();
+ const timeAfter=await a.locator('.outgoing .message-time').first().boundingBox();assert.equal(timeBefore.x,timeAfter.x);assert.equal(timeBefore.y,timeAfter.y);
+ assert.equal(await a.locator('.message-edit-slot').first().evaluate(el=>getComputedStyle(el).opacity),'1');
+
+ await a.locator('.message-line.outgoing').first().hover();await a.getByRole('button',{name:'Edit your message'}).first().click();
  assert.equal(await a.locator('#edit-message-input').inputValue(),'Hello from a real member');
+ assert.equal(await a.locator('#modal:not([hidden])').count(),0,'Edits are inline');
+ assert.equal(await a.getByRole('button',{name:'Edit your message',exact:true}).count(),await a.locator('.message-edit:disabled').count());
+ await a.evaluate(()=>editMessage(Messaging.messages.get(conversationFor().id)[1].id));assert.equal(await a.locator('#edit-message-input').count(),1);
+ await a.locator('#edit-message-input').fill('Draft edit survives refresh');await a.evaluate(()=>refreshMessaging(true));assert.equal(await a.locator('#edit-message-input').inputValue(),'Draft edit survives refresh');
+ assert.equal(await a.evaluate(()=>document.activeElement.id),'edit-message-input');
+
  await a.locator('#edit-message-input').fill('Hello, edited by Alex');await a.getByRole('button',{name:'Save changes',exact:true}).click();
  await b.locator('.message-bubble').filter({hasText:'Hello, edited by Alex'}).waitFor();assert.equal(await b.locator('.message-edited').count(),1);
- await a.getByRole('button',{name:'Edit your message'}).first().click();await a.locator('#edit-message-input').fill('Discard this change');await a.getByRole('button',{name:'Cancel',exact:true}).click();
+ await a.locator('.message-line.outgoing').first().hover();await a.getByRole('button',{name:'Edit your message'}).first().click();await a.locator('#edit-message-input').fill('Discard this change');await a.getByRole('button',{name:'Cancel edit',exact:true}).click();
  assert.equal(fixture.messages[0].body,'Hello, edited by Alex');
  await a.locator('#conversation-input').fill('Keep this unsent draft');await b.locator('#conversation-input').fill('A reply from Taylor');await b.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Keep this unsent draft');
  await a.locator('.inbox-toggle').click();assert.equal(await a.locator('.inbox-toggle').getAttribute('aria-expanded'),'false');await a.locator('.inbox-toggle').click();

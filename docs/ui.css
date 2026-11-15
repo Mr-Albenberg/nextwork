@@ -12443,9 +12443,26 @@ body.messages-page .messenger {
   box-shadow: none;
 }
 
-.message-edited { display: inline-block; margin-left: 8px; font-size: 10px; color: var(--muted); }
-.message-edit { margin-left: 8px; padding: 5px 7px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
+/* Reserve the edit slot so hovering never moves the timestamp. */
+.message-meta { display: flex; align-items: center; gap: 6px; min-height: 30px; }
+.message-meta .message-time { margin: 0; white-space: nowrap; flex: 0 0 auto; }
+.message-edit-slot { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 66px; opacity: 0; pointer-events: none; }
+.message-line:hover .message-edit-slot, .message-line:focus-within .message-edit-slot { opacity: 1; pointer-events: auto; }
+.message-edit { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 5px 2px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 11px; cursor: pointer; }
+.message-edit-dot { color: var(--muted); font-size: 16px; }
 .message-edit:hover, .message-edit:focus-visible { color: var(--ink); background: var(--theme-subtle); }
-.message-edit-dialog textarea { min-height: 130px; resize: vertical; }
+.message-edit:disabled { opacity: .4; cursor: default; }
+.message-edited { display: block; margin: 0; font-size: 10px; color: var(--muted); }
+.inline-message-editor { white-space: normal; min-width: min(240px, 45vw); }
+.inline-message-editor textarea { display: block; box-sizing: border-box; width: 100%; min-height: 80px; margin: 0; padding: 9px; resize: vertical; font: inherit; line-height: 1.5; border: 1px solid var(--line); border-radius: 5px; background: var(--theme-surface); color: var(--ink); }
+.message-edit-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 8px; }
+.message-edit-actions .icon-button { width: 32px; min-width: 32px; min-height: 32px; padding: 6px; background: var(--theme-surface); color: var(--ink); }
+.message-edit-actions button:disabled { opacity: .4; cursor: default; }
+.message-edit-error { margin: 6px 0 0; font-size: 11px; color: inherit; }
+.message-edit-error:empty { display: none; }
+@media (hover: none) { .message-edit-slot { opacity: 1; pointer-events: auto; } }
 
 .conversation-composer .composer-tools svg { display: block; width: 18px; height: 18px; overflow: visible; }
+
+.outgoing .message-meta { justify-content: flex-end; }
+.outgoing .message-edited { text-align: right; }
