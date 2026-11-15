@@ -12901,3 +12901,17 @@ body[data-auth="member"] .aside-bottom .account.active b { color: inherit; }
   .account-settings-layout .profile-resume-section > section { padding: 24px 28px 24px 0; }
   .account-settings-layout .account-panel { padding: 24px 0 24px 28px; border-left: 1px solid var(--line); }
 }
+
+/* Straight, edge-to-edge separators between account sections. */
+body:has(.account-settings-layout) main { --account-gutter: 40px; padding-inline: var(--account-gutter); }
+.account-settings-layout :is(.profile-summary-card, .profile-editor, .profile-resume-section, .account-panel, .settings-panel, .profile-completed-projects) { position: relative; border-top: 0; border-radius: 0; }
+.account-settings-layout :is(.profile-summary-card, .profile-editor, .profile-resume-section, .account-panel, .settings-panel, .profile-completed-projects)::before { content: ""; position: absolute; top: 0; left: calc(-1 * var(--account-gutter)); right: calc(-1 * var(--account-gutter)); height: 1px; background: var(--line); pointer-events: none; }
+.account-settings-layout .profile-summary-card { overflow: visible; }
+.account-settings-layout :is(.resume-document-view, .resume-document-empty, .profile-completed-projects article) { border-radius: 0; }
+@media (min-width: 1001px) {
+  .account-settings-layout .profile-resume-section::before { right: 0; }
+  .account-settings-layout .account-panel::before { left: 0; }
+}
+@media (max-width: 760px) {
+  body:has(.account-settings-layout) main { --account-gutter: 20px; }
+}
