@@ -377,6 +377,7 @@ const netFetch = async (url) => {
   const marketBody = { service: "nextwork-market", source: "live", postings: 18, fetchedAt: "2026-11-14T00:00:00Z", family: { id: "frontend", label: "Frontend / web development" }, sources: [{ name: "Greenhouse", count: 18 }], skills: [{ skill: "React", pct: 100 }, { skill: "TypeScript", pct: 50 }, { skill: "Accessibility", pct: 30 }, { skill: "Testing", pct: 20 }] };
   const aiProject = { title: "Accessible habit tracker", pitch: "A small app.", overview: "Build a habit tracker that works with a keyboard and screen reader, then deploy it.", why: "Shows accessibility and testing.", difficulty: "intermediate", build: ["Scaffold", "Test"], plan: [{ phase: "Set up", details: "Create the app and CI." }, { phase: "Build", details: "Add habits with keyboard support." }], tools: ["React", "Vitest"], deliverables: ["Live demo", "Repository"], stretch: ["Add offline mode"], showcase: "Link it from your resume.", skills: ["React", "Accessibility"], weeks: 4 };
   const ctx = {
+    Account: {user:{id:"recommend-test-user"},sessionEpoch:1},
     document: { documentElement: { dataset: {} }, getElementById: element, querySelector: element, querySelectorAll() { return []; }, addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} } } },
     localStorage: storage, workspaceLocal: storage, workspaceSession: storage, sessionStorage: storage,
     location: { hash: "#recommend", hostname: "nextwork-jobs.vercel.app" },
@@ -478,7 +479,7 @@ const netFetch = async (url) => {
   vm.runInContext("saveIdea(0)", ctx);
   assert.equal(JSON.parse(data["nw-saved-ideas"]).length, 0);
   vm.runInContext("saveIdea(1)", ctx);
-  vm.runInContext("removeIdea(0)", ctx);
+  await vm.runInContext("removeIdea(0)", ctx);
   assert.equal(JSON.parse(data["nw-saved-ideas"]).length, 0);
   vm.runInContext("copyIdea(0)", ctx);
   await Promise.resolve();
@@ -490,7 +491,7 @@ const netFetch = async (url) => {
   vm.runInContext("workTab='ideas';render()", ctx);
   out = element("#app").innerHTML;
   assert(out.includes("Saved project ideas · 1") && out.includes("Accessible habit tracker") && out.includes("View project plan") && out.includes("removeIdea(0)"));
-  vm.runInContext("removeIdea(0)", ctx);
+  await vm.runInContext("removeIdea(0)", ctx);
   assert(element("#app").innerHTML.includes("Saved project ideas · 0"));
 
   // The result survives a refresh (restored from the session).
