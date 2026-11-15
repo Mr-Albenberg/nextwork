@@ -12887,3 +12887,9 @@ body[data-auth="member"] .aside-bottom .account.active b { color: inherit; }
  body[data-auth="member"] .aside-bottom { border: 0; padding: 0; }
  body[data-auth="member"] .aside-bottom .account { padding: 4px; width: 44px; height: 58px; }
 }
+
+/* Keep account sections in one vertical column at every screen size. */
+.account-settings-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "summary" "editor" "resume" "account" "workspace"; }
+.account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "account" "workspace"; }
+.account-settings-layout .profile-summary-card, .account-settings-layout .profile-editor, .account-settings-layout .settings-panel { padding: 24px 0; border-left: 0; }
+.account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects, .account-settings-layout .account-panel { padding: 24px 0; }
