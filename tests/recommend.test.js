@@ -377,7 +377,6 @@ const netFetch = async (url) => {
   const marketBody = { service: "nextwork-market", source: "live", postings: 18, fetchedAt: "2026-11-14T00:00:00Z", family: { id: "frontend", label: "Frontend / web development" }, sources: [{ name: "Greenhouse", count: 18 }], skills: [{ skill: "React", pct: 100 }, { skill: "TypeScript", pct: 50 }, { skill: "Accessibility", pct: 30 }, { skill: "Testing", pct: 20 }] };
   const aiProject = { title: "Accessible habit tracker", pitch: "A small app.", overview: "Build a habit tracker that works with a keyboard and screen reader, then deploy it.", why: "Shows accessibility and testing.", difficulty: "intermediate", build: ["Scaffold", "Test"], plan: [{ phase: "Set up", details: "Create the app and CI." }, { phase: "Build", details: "Add habits with keyboard support." }], tools: ["React", "Vitest"], deliverables: ["Live demo", "Repository"], stretch: ["Add offline mode"], showcase: "Link it from your resume.", skills: ["React", "Accessibility"], weeks: 4 };
   const ctx = {
-    Account: {user:{id:"recommend-test-user"},sessionEpoch:1},
     document: { documentElement: { dataset: {} }, getElementById: element, querySelector: element, querySelectorAll() { return []; }, addEventListener() {}, body: { classList: { toggle() {}, add() {}, remove() {} } } },
     localStorage: storage, workspaceLocal: storage, workspaceSession: storage, sessionStorage: storage,
     location: { hash: "#recommend", hostname: "nextwork-jobs.vercel.app" },
@@ -423,7 +422,7 @@ const netFetch = async (url) => {
   assert(element("#nav").innerHTML.includes('aria-current="page"'), "Project ideas stays highlighted on the results page");
 
   // From here the client needs a signed-in account; render is wrapped so the real router runs without account chrome.
-  ctx.Account = { user: { id: 1 }, client: { auth: { getSession: async () => ({ data: { session: { access_token: "t" } } }) } } };
+  ctx.Account = { user: { id: 1 }, client: { storage: {from:()=>({list:async()=>({data:[]})})}, auth: { getSession: async () => ({ data: { session: { access_token: "t" } } }) } } };
   const realRender = ctx.render;
   ctx.render = () => {
     const saved = ctx.Account;
