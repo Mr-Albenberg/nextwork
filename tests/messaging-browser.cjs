@@ -24,6 +24,11 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  for(const width of [1360,768,390,320]){
   await a.setViewportSize({width,height:900});
   await a.evaluate(()=>document.getAnimations().forEach(animation=>animation.finish()));
+  const frame=await a.locator('.messenger').evaluate(el=>{
+   const style=getComputedStyle(el),app=getComputedStyle(document.querySelector('#app'));
+   return {radius:style.borderRadius,border:style.borderTopWidth,shadow:style.boxShadow,padding:app.padding};
+  });
+  assert.deepEqual(frame,{radius:'0px',border:'0px',shadow:'none',padding:'0px'},`Messages has no outer card at ${width}px`);
   const layout=await a.evaluate(()=>{
    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}};
    return {form:rect('#conversation-form'),input:rect('#conversation-input'),tools:rect('.composer-tools'),send:rect('#send-message'),buttons:[...document.querySelectorAll('.composer-tools button')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}}),width:innerWidth,height:innerHeight};

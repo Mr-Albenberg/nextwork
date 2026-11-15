@@ -12432,3 +12432,13 @@ body[data-auth="member"] main > * {
   .messages-page .conversation-composer .composer-actions { padding: 8px; }
   .messages-page .conversation-composer > small { font-size: 10px; }
 }
+
+/* Messages is a full workspace pane, without the generic page-card frame. */
+body.messages-page #app {
+  padding: 0;
+}
+body.messages-page .messenger {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
