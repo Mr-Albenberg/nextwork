@@ -12667,7 +12667,7 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
 body:has(.ideas-start-layout) main { max-width: none; min-height: calc(100dvh - var(--toolbar-height)); }
 body:has(.ideas-start-layout) .shell > footer { display: none; }
 .ideas-page:has(.ideas-start-layout) { max-width: none; margin: 0; }
-.ideas-page:has(.ideas-start-layout) .page-heading-row { padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.ideas-page:has(.ideas-start-layout) .page-heading-row { padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 .ideas-start-layout { grid-template-columns: minmax(0, 1fr) minmax(260px, 30%); gap: 0; align-items: stretch; }
 .ideas-start-layout .ideas-form { min-width: 0; padding: 28px 32px 28px 0; background: transparent; border: 0; box-shadow: none; }
 .ideas-start-layout .ideas-intro { min-width: 0; padding: 28px 0 28px 32px; border-left: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); }
@@ -12788,3 +12788,9 @@ body[data-page="explore"] > .shell { height: 100dvh; }
 body[data-page="explore"] main { height: calc(100dvh - var(--toolbar-height)); min-height: 0; overflow-y: auto; scrollbar-gutter: stable both-edges; }
 body[data-page="explore"] .shell > footer { display: none; }
 .jobs-view-list .listing-actions > .card-match { align-self: center; }
+
+.ideas-start-layout .ideas-intro .project-process-graphic { margin-bottom: 18px; }
+.ideas-start-layout .ideas-intro > small { margin-top: 16px; }
+
+.ideas-start-layout .process-graphic-stage:not(:last-child):after { content: ""; position: absolute; top: 37px; bottom: 3px; left: 17px; width: 1px; background: var(--line); }
+.ideas-start-layout .process-graphic-stage:last-child:after { content: none; }
