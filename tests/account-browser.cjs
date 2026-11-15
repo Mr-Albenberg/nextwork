@@ -392,6 +392,27 @@ async function login(page, email) {
     await page.getByRole("button", { name: "Save photo", exact: true }).click();
     await page.locator("[data-own-photo] img").waitFor();
     assert(photos.has(users["alice@example.com"].id));
+    const stableAvatars = await page.evaluate(async () => {
+      const selector = '.workspace-header .avatar img,aside .account .avatar img';
+      const images = [...document.querySelectorAll(selector)];
+      if (images.length !== 2) return false;
+      let removed = false;
+      const observer = new MutationObserver(records => {
+        if (records.some(record => [...record.removedNodes].some(node => images.includes(node)))) removed = true;
+      });
+      images.forEach(image => observer.observe(image.parentElement, {childList:true}));
+      for (const route of ['overview','explore','home','profile']) {
+        location.hash = route;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        if (!images.every(image => image.isConnected && image.complete && image.naturalWidth > 0)) removed = true;
+      }
+      observer.disconnect();
+      const profileImage = document.querySelector('[data-own-photo] img');
+      return !removed && images.every((image,index) => document.querySelectorAll(selector)[index] === image) &&
+        profileImage?.complete && profileImage.naturalWidth > 0;
+    });
+    assert(stableAvatars, 'Page changes must preserve loaded toolbar/sidebar images and render the cached profile photo');
+
     await page
       .getByRole("button", { name: "Change photo", exact: true })
       .click();
@@ -447,13 +468,14 @@ async function login(page, email) {
     await page.goto(base + '/#skills');
     assert.equal(await page.locator('#resume').inputValue(),'');
     await page.goto(base + '/#resume');
+    await page.getByRole('heading',{name:'Build a stronger application',exact:true}).waitFor();
     await page
       .getByLabel("Resume text")
       .fill(
         "Alice private resume: built React and JavaScript projects for a university team. Developed accessible interfaces, tested components, and wrote documentation.",
       );
     await page.waitForFunction(
-      () => Backend.pending.size === 0 && !Backend.saving,
+      () => workspaceSession.getItem('proof-resume')?.includes('Alice private') && Backend.pending.size === 0 && !Backend.saving,
     );
     assert(
       rows.get(users["alice@example.com"].id).resume.includes("Alice private"),
