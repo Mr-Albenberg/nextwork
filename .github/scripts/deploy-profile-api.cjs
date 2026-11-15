@@ -8,8 +8,14 @@ async function api(path,method='GET',body,scope=team){const url=new URL('https:/
  if(project)metadata=await api('/v9/projects/'+project);
  else{
   const scopes=[team||null];
-  if(!team){try{const result=await api('/v2/teams','GET',undefined,null);scopes.push(...(result.teams||[]).map(t=>t.id));}catch{}}
-  for(const scope of scopes){try{const candidate=await api('/v9/projects/nextwork-jobs','GET',undefined,scope);const domains=await api('/v9/projects/'+candidate.id+'/domains','GET',undefined,scope);if((domains.domains||[]).some(d=>d.name==='nextwork-jobs.vercel.app')){metadata=candidate;project=candidate.id;team=scope;break;}}catch(error){if(![401,403,404].includes(error.status))throw error;}}
+  if(!team){try{const result=await api('/v2/teams','GET',undefined,null);scopes.push(...(result.teams||[]).map(t=>t.id));}catch(error){if(error.status===401)throw Error('VERCEL_TOKEN is rejected by Vercel (HTTP 401). Replace the repository secret with a valid Vercel access token.');console.log('Team discovery returned HTTP '+error.status);}}
+  for(const scope of scopes){
+   const candidates=[];
+   try{candidates.push(await api('/v9/projects/nextwork-jobs','GET',undefined,scope));}catch(error){if(error.status===401)throw Error('Vercel rejected the deployment token (HTTP 401).');if(![403,404].includes(error.status))throw error;}
+   if(!candidates.length){let until='';for(let page=0;page<3;page++){const listed=await api('/v9/projects?limit=100'+until,'GET',undefined,scope);candidates.push(...(listed.projects||[]).filter(p=>/nextwork|prooflane/i.test(p.name)||p.link?.repo==='nextwork'));if(!listed.pagination?.next)break;until='&until='+listed.pagination.next;}}
+   for(const candidate of candidates){const domains=await api('/v9/projects/'+candidate.id+'/domains','GET',undefined,scope);if((domains.domains||[]).some(d=>d.name==='nextwork-jobs.vercel.app')){metadata=candidate;project=candidate.id;team=scope;break;}}
+   if(metadata)break;
+  }
  }
  if(!metadata||metadata.id!==project)throw Error('Could not identify the existing Nextwork API project. Configure VERCEL_PROJECT_ID and VERCEL_ORG_ID repository secrets.');
  const domains=await api('/v9/projects/'+project+'/domains');if(!(domains.domains||[]).some(d=>d.name==='nextwork-jobs.vercel.app'))throw Error('Project does not own the Nextwork API domain');

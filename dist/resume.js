@@ -12,7 +12,6 @@ const inputs=document.querySelectorAll('#resume-file,#profile-resume-file');
 inputs.forEach(input=>input.disabled=true);
 status.textContent='Processing and saving your resume…';
 try{
-// Capture unsaved manual profile input before filling blank fields.
 
 const text=await parseResumeFile(file);
 if(!current())return;
