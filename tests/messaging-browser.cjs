@@ -44,6 +44,7 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  }
  await a.setViewportSize({width:1360,height:900});
  assert.equal(await a.locator('#inbox-search').getAttribute('placeholder'),'Search conversations:');
+ assert.equal(await a.locator('.new-message-button').count(),0);assert.equal(await a.locator('.new-conversation').count(),1);
  const surfaces=await a.evaluate(()=>({composer:getComputedStyle(document.querySelector('.conversation-composer')).backgroundColor,pane:getComputedStyle(document.querySelector('.conversation-main')).backgroundColor,chat:getComputedStyle(document.querySelector('.chat-scroll')).backgroundColor}));assert.equal(surfaces.composer,'rgba(0, 0, 0, 0)');assert.equal(surfaces.pane,surfaces.chat);
 
  assert.equal(await a.locator('.inbox-person.selected small').textContent(),'Member');assert.equal(await a.locator('.person-heading small').textContent(),'Member · View profile');
