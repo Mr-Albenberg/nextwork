@@ -92,10 +92,10 @@ body[data-auth="guest"]>aside,body[data-auth="loading"]>aside{display:none}body[
 :root{color-scheme:light}
 :root[data-theme="dark"]{
  color-scheme:dark;
- --theme-surface:#171e30;--theme-subtle:#1c263b;--theme-raised:#283650;
- --theme-line:#35425b;--theme-ink:#edf2ff;--theme-muted:#b1bfd8;
- --theme-brand:#059669;--theme-accent:#9aafff;--theme-danger:#ffaaa4;--theme-success:#8edbb0;--theme-warning:#ebcf87;
- --bg:#101625;--ink:#edf2ff;--muted:#b1bfd8;--line:#35425b;--green:#9aafff;
+ --theme-surface:#12251d;--theme-subtle:#1a3328;--theme-raised:#24443a;
+ --theme-line:#254236;--theme-ink:#e6f5ee;--theme-muted:#9cbfaf;
+ --theme-brand:#059669;--theme-accent:#34d399;--theme-danger:#ffaaa4;--theme-success:#8edbb0;--theme-warning:#ebcf87;
+ --bg:#0b1a14;--ink:#e6f5ee;--muted:#9cbfaf;--line:#254236;--green:#34d399;
 }
 .theme-control{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;height:40px;padding:0;color:var(--ink);background:var(--theme-surface,#fff);border:1px solid var(--line);border-radius:9px;cursor:pointer}
 
