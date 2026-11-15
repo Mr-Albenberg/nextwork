@@ -12701,9 +12701,6 @@ body[data-page="signup"] .workspace-header #account-link,
 body[data-page="signup"] .workspace-header .public-signup,
 body[data-page="login"] .workspace-header #account-link,
 body[data-page="login"] .workspace-header .public-signup { display: none; }
-.auth-linkedin-details { margin: 10px 0 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
-.auth-linkedin-details summary { cursor: pointer; }
-.auth-linkedin-details .linkedin-data-consent { margin: 8px 0 0; font-size: 12px; }
 
 /* Compact opportunity summaries; full evidence stays on the project page. */
 .jobs .job.opportunity-card { padding: 16px 20px; }
