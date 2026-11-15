@@ -419,9 +419,9 @@ async function login(page, email) {
     await page.locator("[data-own-photo] img").waitFor();
     assert(photos.has(users["alice@example.com"].id));
     const stableAvatars = await page.evaluate(async () => {
-      const selector = '.workspace-header .avatar img';
+      const selector = '.workspace-header .avatar img,aside .account .avatar img';
       const images = [...document.querySelectorAll(selector)];
-      if (images.length !== 1) return false;
+      if (images.length !== 2) return false;
       let removed = false;
       const observer = new MutationObserver(records => {
         if (records.some(record => [...record.removedNodes].some(node => images.includes(node)))) removed = true;
@@ -437,7 +437,7 @@ async function login(page, email) {
       return !removed && images.every((image,index) => document.querySelectorAll(selector)[index] === image) &&
         profileImage?.complete && profileImage.naturalWidth > 0;
     });
-    assert(stableAvatars, 'Page changes must preserve the loaded toolbar image and render the cached profile photo');
+    assert(stableAvatars, 'Page changes must preserve loaded toolbar/sidebar images and render the cached profile photo');
 
     await page
       .getByRole("button", { name: "Change photo", exact: true })
