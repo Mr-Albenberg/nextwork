@@ -981,7 +981,8 @@ if (require.main === module) (async () => {
     assert.equal(await page.locator('.job .bookmark').first().locator('svg').getAttribute('fill'),'currentColor');
     // Auth callbacks can replace the page between a locator resolving and layout being measured.
     await page.waitForFunction(()=>Math.round(document.querySelector('.job .bookmark')?.getBoundingClientRect().width||0)===38);
-    await page.locator('.job').first().screenshot({path:'test-artifacts/saved-listing.png'});
+    await page.waitForFunction(()=>Backend.pending.size===0&&!Backend.saving&&!catalogLoading);
+    await page.screenshot({path:'test-artifacts/saved-listing.png',fullPage:true});
     await page.goto(base + '/#profile');
     await page.evaluate(()=>{profileStep=2;render()});
     await page.locator('#profile-skills-input').fill('pythn');
