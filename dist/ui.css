@@ -12655,20 +12655,20 @@ body.messages-page .messenger {
   .inbox-collapsed .conversation-shortcuts { flex-direction: row; margin: 0; padding: 0 0 0 12px; border-top: 0; border-left: 1px solid var(--line); overflow-x: auto; overflow-y: hidden; }
 }
 
-/* Rounded chat bubbles with the tail on the sender's bottom corner. */
+/* Rounded rectangles with a small curved tail at the lower side edge. */
 .message-line .message-bubble {
   position: relative;
-  border-radius: 24px;
+  border-radius: 16px;
 }
 .message-line .message-bubble::after {
   content: "";
   position: absolute;
-  bottom: -6px;
-  width: 14px;
+  bottom: 2px;
+  width: 9px;
   height: 10px;
   background: inherit;
-  clip-path: path("M0 0H14V10Q4 8 0 0Z");
+  clip-path: path("M0 0C4 1 2 7 9 10C4 10 1 8 0 6Z");
   pointer-events: none;
 }
-.message-line.outgoing .message-bubble::after { right: 10px; }
-.message-line.incoming .message-bubble::after { left: 10px; transform: scaleX(-1); }
+.message-line.outgoing .message-bubble::after { right: -5px; }
+.message-line.incoming .message-bubble::after { left: -5px; transform: scaleX(-1); }
