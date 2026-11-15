@@ -461,7 +461,13 @@ function updateAccountChrome(page) {
 
   const hiring = isOrganizationAccount();
   document.body.dataset.accountType = hiring ? "organization" : "personal";
-  document.querySelectorAll('a.account').forEach(link => link.href = '#settings');
+  document.querySelectorAll('a.account').forEach(link => {
+    link.href = '#settings';
+    const active = page === 'profile' || page === 'settings';
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
   const brand = document.querySelector('.workspace-header .brand');
   if (brand) brand.href = Account.user ? (hiring ? '#organization' : '#overview') : '#home';
   const nextStep = document.querySelector('.sidebar-next-step');

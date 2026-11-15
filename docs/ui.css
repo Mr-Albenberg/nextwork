@@ -12876,3 +12876,14 @@ body[data-auth="member"] .aside-bottom .account:hover { background: var(--theme-
  body[data-auth="member"] #nav { margin-left: 50px; width: calc(100% - 50px); }
  body[data-auth="member"] .shell > .workspace-header { padding-inline: 4vw; }
 }
+
+/* Profile uses the same rounded selection surface as the workspace links. */
+body[data-auth="member"] .aside-bottom { border-top: 1px solid var(--line); padding-top: 12px; }
+body[data-auth="member"] .aside-bottom .account { border: 0; border-radius: 6px; padding: 10px 13px; min-height: 40px; margin: 0; background: transparent; box-shadow: none; }
+body[data-auth="member"] .aside-bottom .account:hover { color: var(--ink); background: var(--theme-subtle); }
+body[data-auth="member"] .aside-bottom .account.active { color: var(--sidebar-active); background: var(--sidebar-selected); font-weight: 600; }
+body[data-auth="member"] .aside-bottom .account.active b { color: inherit; }
+@media(max-width: 760px) {
+ body[data-auth="member"] .aside-bottom { border: 0; padding: 0; }
+ body[data-auth="member"] .aside-bottom .account { padding: 4px; width: 44px; height: 58px; }
+}

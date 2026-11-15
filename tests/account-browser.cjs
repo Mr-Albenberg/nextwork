@@ -428,9 +428,9 @@ if (require.main === module) (async () => {
     await page.locator("[data-own-photo] img").waitFor();
     assert(photos.has(users["alice@example.com"].id));
     const stableAvatars = await page.evaluate(async () => {
-      const selector = '.workspace-header .avatar img,aside .account .avatar img';
+      const selector = 'aside .account .avatar img';
       const images = [...document.querySelectorAll(selector)];
-      if (images.length !== 2) return false;
+      if (images.length !== 1) return false;
       let removed = false;
       const observer = new MutationObserver(records => {
         if (records.some(record => [...record.removedNodes].some(node => images.includes(node)))) removed = true;
@@ -446,7 +446,7 @@ if (require.main === module) (async () => {
       return !removed && images.every((image,index) => document.querySelectorAll(selector)[index] === image) &&
         profileImage?.complete && profileImage.naturalWidth > 0;
     });
-    assert(stableAvatars, 'Page changes must preserve loaded toolbar/sidebar images and render the cached profile photo');
+    assert(stableAvatars, 'Page changes must preserve the loaded sidebar image and render the cached profile photo');
 
     await page
       .getByRole("button", { name: "Change photo", exact: true })
@@ -649,6 +649,8 @@ if (require.main === module) (async () => {
     assert.equal(await page.getByRole('heading', {name:'Account & connections', exact:true}).count(), 1);
     assert.equal(await page.locator('#nav [data-nav="settings"]').count(), 0);
     assert(await page.locator('.aside-bottom a.account').isVisible());
+    assert.equal(await page.locator('.aside-bottom a.account').getAttribute('aria-current'), 'page');
+    assert.equal(await page.locator('.aside-bottom a.account').evaluate(el => getComputedStyle(el).borderRadius), '6px');
     const appHeader = await page.locator('.workspace-header').boundingBox();
     assert.equal(appHeader.x, 0);
     assert.equal(appHeader.width, 1280);
@@ -959,7 +961,8 @@ if (require.main === module) (async () => {
     await page.goto(base+'/#recommend/saved/0');
     await page.setViewportSize({width:390,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-    assert.equal(await page.locator('#nav .nav-link:visible').count(),6);
+    assert.equal(await page.locator('#nav .nav-link:visible').count(),5);
+    assert(await page.locator('.aside-bottom a.account').isVisible());
     await page.screenshot({path:'test-artifacts/project-plan-mobile.png',fullPage:true});
     for(const route of ['explore','projects','profile','premium']){
       await page.goto(base+'/#'+route);

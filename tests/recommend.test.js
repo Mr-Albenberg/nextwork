@@ -410,7 +410,7 @@ const netFetch = async (url) => {
   vm.runInContext("render()", ctx);
   let html = element("#app").innerHTML;
   assert(html.includes("Turn your ambition into a project.") && html.includes("Generate project ideas"));
-  assert(html.includes('id="reco-role"') && html.includes('id="reco-resume"') && html.includes('href="#profile"') && !html.includes('id="reco-file"'));
+  assert(html.includes('id="reco-role"') && html.includes('id="reco-resume"') && html.includes('href="#resume"') && !html.includes('href="#profile"') && !html.includes('id="reco-file"'));
   for (const gone of ["reco-method", "reco-family", "reco-hours", "reco-consent", "Time you can give", "Recommendation method"]) assert(!html.includes(gone), "removed option is gone: " + gone);
   assert(html.includes("sent to Google Gemini"), "AI use is disclosed next to the button");
   assert(element("#nav").innerHTML.includes("Project ideas"));
