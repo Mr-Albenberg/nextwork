@@ -12915,3 +12915,6 @@ body:has(.account-settings-layout) main { --account-gutter: 40px; padding-inline
 @media (max-width: 760px) {
   body:has(.account-settings-layout) main { --account-gutter: 20px; }
 }
+
+/* Override shared panel rounding on the account workspace sections. */
+body[data-auth="member"] .account-settings-layout :is(.profile-editor, .profile-resume-section > section, .settings-panel, .profile-completed-projects, .account-panel) { border-radius: 0; }

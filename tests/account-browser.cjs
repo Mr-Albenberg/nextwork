@@ -646,6 +646,14 @@ if (require.main === module) (async () => {
     await page.goto(base + "/#settings");
     assert.equal(await page.locator('#profile-form').count(), 1, 'Account settings contains one profile editor');
     assert.equal(await page.locator('.account-panel').count(), 1, 'Account settings contains one account controls panel');
+    for (const selector of ['.profile-editor', '.profile-resume-section > section', '.settings-panel', '.account-panel']) {
+      assert.equal(await page.locator(selector).evaluate(el => getComputedStyle(el).borderRadius), '0px', selector + ' must have straight section edges');
+    }
+    assert(await page.locator('.account-panel').evaluate(el => {
+      const line = getComputedStyle(el, '::before');
+      const box = el.getBoundingClientRect();
+      return line.content !== 'none' && Math.abs(box.left + parseFloat(line.left) - document.querySelector('.shell').getBoundingClientRect().left) < 2 && Math.abs(box.right - parseFloat(line.right) - innerWidth) < 2;
+    }), 'The divider above account connections must span the workspace');
     assert.equal(await page.getByRole('heading', {name:'Account & connections', exact:true}).count(), 1);
     assert.equal(await page.locator('#nav [data-nav="settings"]').count(), 0);
     assert(await page.locator('.aside-bottom a.account').isVisible());
