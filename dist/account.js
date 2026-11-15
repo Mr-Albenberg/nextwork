@@ -498,6 +498,7 @@ function openDeleteAccount() {
         await saveWorkspace();
       if (typeof cleanupMessagingUploads === "function") await cleanupMessagingUploads();
       if (typeof cleanupResumeUploads === "function") await cleanupResumeUploads();
+      if (typeof cleanupProjectUploads === "function") await cleanupProjectUploads();
       let result = await Account.client.rpc("delete_my_account");
       if (result.error?.message?.includes("PHOTO_CLEANUP_REQUIRED")) {
         if (Account.client.storage)

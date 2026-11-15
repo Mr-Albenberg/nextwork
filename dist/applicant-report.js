@@ -18,7 +18,7 @@ return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${S(Ap
 @page{size:A4;margin:16mm 15mm}*{box-sizing:border-box}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body{margin:0;font:13px/1.55 "Segoe UI",Helvetica,Arial,sans-serif;color:#1b2238}
 .top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:14px;border-bottom:3px solid #1d3be0}
-.brand{font-weight:700;font-size:20px;color:#1d3be0;letter-spacing:-.02em}.meta{text-align:right;color:#5a6479;font-size:11px;line-height:1.6}
+.brand{display:flex;align-items:center;gap:10px;font-family:Arial,sans-serif;font-weight:800;font-size:24px;color:#182438;letter-spacing:-.045em}.brand img{width:34px;height:34px;object-fit:contain}.meta{text-align:right;color:#5a6479;font-size:11px;line-height:1.6}
 .hero{margin:22px 0 6px}.hero h1{margin:6px 0 2px;font-size:28px;letter-spacing:-.02em}.hero p{margin:0;color:#4a5570;font-size:14px}
 .status{display:inline-block;padding:3px 11px;border-radius:99px;background:#e8ecff;color:#1d3be0;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.06em}
 .status.accepted{background:#dcf5e6;color:#17703c}.status.declined{background:#fde4e2;color:#a3281f}.status.shortlisted{background:#fff1d3;color:#8a5a00}.status.withdrawn{background:#eceef3;color:#555e73}
@@ -34,7 +34,7 @@ h2{margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #dfe3ee;font-size:1
 .msg b{font-size:12px}.msg span{margin-left:8px;color:#7a8398;font-size:10.5px}.msg p{margin:3px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .foot{margin-top:28px;padding-top:9px;border-top:1px solid #dfe3ee;color:#8a93a8;font-size:10px;display:flex;justify-content:space-between}
 </style></head><body>
-<div class="top"><div class="brand">nextwork</div><div class="meta"><b>${S(orgName)}</b><br>Application report<br>Generated ${S(ApplicantReport.date(Date.now()))}</div></div>
+<div class="top"><div class="brand"><img src="https://mr-albenberg.github.io/nextwork/assets/brand/nextwork-icon.png" alt=""><span>nextwork</span></div><div class="meta"><b>${S(orgName)}</b><br>Application report<br>Generated ${S(ApplicantReport.date(Date.now()))}</div></div>
 <div class="hero"><span class="status ${S(a.status)}">${S(a.status)}</span><h1>${S(p.name||'Applicant')}</h1><p>${S([p.role,p.email].filter(Boolean).join(' · '))}</p><p style="font-size:12px;margin-top:4px">Applied ${S(ApplicantReport.date(a.created_at))}${a.updated_at&&a.updated_at!==a.created_at?` · Last updated ${S(ApplicantReport.date(a.updated_at))}`:''}</p></div>
 ${listingBlock}
 <section><h2>Applicant details</h2>${facts.length?`<div class="grid">${facts.map(([k,v])=>`<div><small>${S(k)}</small><span>${S(v)}</span></div>`).join('')}</div>`:'<p>No additional details provided.</p>'}${skills.length?`<p class="chips">${skills.map(s=>`<span>${S(s)}</span>`).join('')}</p>`:''}</section>

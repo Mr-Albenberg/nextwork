@@ -12311,3 +12311,18 @@ body[data-auth="member"] main > * {
   color: var(--ink);
 }
 @media(max-width:760px){.home-career-scene{height:552px}.scene-portfolio{top:458px}}
+
+/* One Nextwork lockup across public, account, and workspace surfaces. */
+:root :is(.brand,.sidebar-brand,.landing-brand,.auth-brand){align-items:center;gap:10px;font-family:Inter,Arial,sans-serif;font-size:26px;font-weight:800;letter-spacing:-1.2px;line-height:1.1;color:var(--theme-ink);white-space:nowrap}
+:root :is(.brand,.sidebar-brand,.landing-brand,.auth-brand)>img{width:36px;height:36px;flex:0 0 36px;object-fit:contain;border-radius:0}
+:root :is(.brand,.sidebar-brand,.landing-brand,.auth-brand)>span{font:inherit;letter-spacing:inherit;color:inherit}
+.project-files{margin-top:24px;padding:24px 0;border-top:1px solid var(--theme-line)}
+.project-files-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.project-files-heading h3{margin:0 0 7px}.project-files-heading p{color:var(--theme-muted);line-height:1.6;margin:0 0 18px}.project-files-heading>span{white-space:nowrap;font-size:12px;color:var(--theme-muted)}
+.project-upload-button{display:inline-flex;align-items:center;gap:8px;position:relative;cursor:pointer;overflow:hidden}.project-upload-button input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}.project-upload-button:focus-within{outline:2px solid var(--theme-accent);outline-offset:3px}.project-upload-button:has(input:disabled){opacity:.6;cursor:wait}
+.project-file-hint{display:block;color:var(--theme-muted);line-height:1.7;margin-top:10px}.project-file-list{list-style:none;margin:18px 0 0;padding:0}.project-file-list li{display:flex;align-items:center;gap:12px;padding:15px 0;border-top:1px solid var(--theme-line)}.project-file-list li>div{flex:1;min-width:0}.project-file-list strong{display:block;overflow-wrap:anywhere;font-size:13px}.project-file-list small{display:block;color:var(--theme-muted);margin-top:5px}.project-file-symbol{color:var(--theme-accent);flex-shrink:0}.project-file-list button{font-size:12px;flex-shrink:0}.project-files-empty{font-size:13px;color:var(--theme-muted)}.project-file-progress{display:flex;align-items:center;gap:12px;margin-top:16px;color:var(--theme-muted);font-size:13px}.project-file-progress progress{width:100px;accent-color:var(--theme-accent)}
+@media(max-width:600px){.project-file-list li{flex-wrap:wrap}.project-file-list li>div{flex-basis:calc(100% - 40px)}:root :is(.brand,.sidebar-brand,.landing-brand,.auth-brand){font-size:24px}:root :is(.brand,.sidebar-brand,.landing-brand,.auth-brand)>img{width:32px;height:32px;flex-basis:32px}}
+.project-files .project-file-list>li{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:12px;width:100%;min-width:0}
+.project-files .project-file-list>li>div{width:auto;min-width:0}.project-files .project-file-list button,.project-files .project-upload-button{width:auto;max-width:100%;margin:0}
+.completed-project-files{display:inline-flex;margin:10px 16px 0 0;gap:6px}
+@media(max-width:600px){.project-files .project-file-list>li{grid-template-columns:22px minmax(0,1fr) auto}.project-files .project-file-list button:first-of-type{grid-column:2;justify-self:start}.project-files .project-file-list button:last-of-type{grid-column:3;grid-row:2}.project-files .project-file-list>li>div{grid-column:2/4}}

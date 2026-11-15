@@ -2,6 +2,7 @@
 const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
 const base = process.env.TEST_BASE_URL || "http://localhost:3000";
+const projectObjects = new Map();
 const rows = new Map(),
   requests = [];
 let failStorage = false;
@@ -155,6 +156,13 @@ async function setup(browser) {
           contentType: "application/json",
           body: JSON.stringify(data),
         });
+      if (url.pathname === "/storage/v1/object/list/project-files") return reply([...projectObjects.keys()].filter(p=>p.startsWith(body.prefix+'/')).map(p=>({id:'file',name:p.slice(body.prefix.length+1)})));
+      if (url.pathname === "/storage/v1/object/project-files") {for(const key of body.prefixes||[])projectObjects.delete(key);return reply([]);}
+      if (url.pathname.startsWith("/storage/v1/object/project-files/")) {
+        const key=decodeURIComponent(url.pathname.split('/project-files/')[1]);
+        if(method==='GET')return route.fulfill({contentType:'text/plain',body:projectObjects.get(key)||''});
+        projectObjects.set(key,'Project upload test content');return reply({Key:key,Id:'file'});
+      }
       if (url.pathname === "/storage/v1/object/list/account-resumes") return reply([]);
       if (url.pathname.startsWith("/storage/v1/object/account-resumes/")) return reply({Key:url.pathname,Id:'resume-file'});
       if (url.pathname === "/storage/v1/object/account-resumes") return reply([]);
@@ -865,6 +873,18 @@ async function login(page, email) {
     await page.getByRole('link',{name:'View project plan',exact:false}).first().click();
     await page.waitForURL('**/#recommend/saved/0');
     await page.getByRole('button',{name:'Start this project',exact:false}).click();
+    await page.getByLabel('Upload project files',{exact:true}).setInputFiles({name:'deliverable.txt',mimeType:'text/plain',buffer:Buffer.from('Project upload test content')});
+    await page.locator('.project-file-list strong').filter({hasText:'deliverable.txt'}).waitFor();
+    await page.waitForFunction(()=>!ProjectFiles.busy&&Backend.pending.size===0&&!Backend.saving);
+    await page.reload();
+    await page.locator('.project-file-list strong').filter({hasText:'deliverable.txt'}).waitFor();
+    const downloadEvent=page.waitForEvent('download');
+    await page.getByRole('button',{name:'Download deliverable.txt',exact:true}).click();
+    assert.equal((await downloadEvent).suggestedFilename(),'deliverable.txt');
+    await page.getByRole('button',{name:'Remove deliverable.txt',exact:true}).click();
+    await page.waitForFunction(()=>!ProjectFiles.busy&&recoSavedIdeas()[0].files.length===0);
+    assert.equal(projectObjects.size,0);
+    assert(await page.evaluate(()=>[...document.querySelectorAll('.sidebar-brand img,.brand img')].every(img=>img.getAttribute('src')==='assets/brand/nextwork-icon.png')));
     await page.getByRole('checkbox').first().check();
     await page.waitForFunction(()=>Backend.pending.size===0&&!Backend.saving);
     await page.reload();

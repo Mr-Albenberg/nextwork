@@ -306,13 +306,16 @@ function saveIdea(i) {
   toast(list.some((x) => x.title === p.title) ? "Project saved to My work." : "Project removed");
 }
 
-function removeIdea(n) {
-  const list = recoSavedIdeas();
-  if (!list[n]) return;
-  list.splice(n, 1);
-  storeTrackedIdeas(list);
-  recoRefreshSaved();
-  toast("Project removed");
+async function removeIdea(n) {
+  if (typeof ProjectFiles !== 'undefined' && ProjectFiles.busy) {toast('Wait for the file operation to finish.');return;}
+  const record = recoSavedIdeas()[n],actor=Account.user?.id,epoch=Account.sessionEpoch;
+  if (!record) return;
+  try {if(record.id && typeof ProjectFiles !== 'undefined')await ProjectFiles.cleanup(record.id);}
+  catch {toast('Could not remove project files. Try again before removing this project.');return;}
+  if(Account.user?.id!==actor || Account.sessionEpoch!==epoch)return;
+  const list=recoSavedIdeas();const position=list.findIndex(p=>record.id?p.id===record.id:p.title===record.title);
+  if(position<0)return;
+  list.splice(position,1);storeTrackedIdeas(list);recoRefreshSaved();toast('Project removed');
 }
 
 function recoBrief(p, role) {
