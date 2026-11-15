@@ -68,4 +68,17 @@ Use two real accounts in separate browser profiles, with recognizable profile na
 
 Until the bucket and migration are configured, Messages intentionally reports that it is unavailable. The old sample contacts and account-only preview threads are not real recipients and are not migrated into real conversations.
 
+## 5. Turn on application decisions, reapplying and shared resume files
+
+Requires migrations 001–004 to already be applied. In **SQL Editor**, run the full contents of **[009 — application lifecycle](supabase/migrations/202611150009_application_lifecycle.sql)**. It is additive: existing applications keep their data and start at attempt 1 with no decision note.
+
+It adds the `application-resumes` private Storage bucket (5 MB; PDF, DOCX, TXT). Confirm it exists and **Public is off**; don't add any public policy.
+
+- [ ] Migration 009 completed without errors and `application-resumes` is private.
+- [ ] An organization declines an application with a note; the applicant sees the note under **My work → Applications**.
+- [ ] The applicant clicks **Reapply**, resubmits, and the organization sees the application as Submitted again (attempt 2).
+- [ ] When applying with a saved resume file, the organization can preview the PDF on the applicant's page. Another account cannot open it.
+
+Until 009 is applied, the app still works: decisions save without notes (with a warning to the organization), and Reapply reports that a database update is pending.
+
 After completing this checklist, let the developer know that setup is applied so live verification can be repeated. No admin or service-role secret belongs in the frontend, GitHub Pages files, or a chat message.

@@ -1,4 +1,5 @@
 function overviewPage() {
+  if (typeof ensureApplicationsLoaded === "function") ensureApplicationsLoaded();
   const p = graduateProfile(),
     progress = profileCompletion(),
     name = (p.name || "").trim().split(/\s+/)[0],
@@ -11,8 +12,8 @@ function overviewPage() {
   return `<div class="dashboard-topline"><div><span class="section-label">YOUR WORKSPACE</span><h1>${name ? "Welcome back, " + esc(name) + "." : "Welcome to Nextwork."}</h1><p class="dashboard-subtitle">A clear view of your opportunities, projects, and next steps.</p></div><a class="primary" href="#explore">${icon("search", 17)} Find work</a></div><div class="workspace-stat-grid">${[
     [
       "apps",
-      applications.length,
-      "Application drafts",
+      (Organization.mine || []).length + applications.length,
+      "Applications",
       "projects",
       "workTab='applications'",
     ],
