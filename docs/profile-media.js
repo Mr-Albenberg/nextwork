@@ -2,6 +2,7 @@ const ProfileMedia = {
   owner: null,
   generation: 0,
   photos: new Map(),
+  images: new Map(),
   requests: new Map(),
   error: "",
   importError: "",
@@ -17,6 +18,8 @@ function resetProfileMedia() {
   ProfileMedia.revision++;
   ProfileMedia.owner = null;
   ProfileMedia.photos.clear();
+  ProfileMedia.images.clear();
+  document.querySelectorAll("img[data-profile-photo]").forEach(image => image.remove());
   ProfileMedia.requests.clear();
   ProfileMedia.error = "";
   ProfileMedia.importError = "";
@@ -103,47 +106,52 @@ function updatePhotoStatus() {
       node.textContent = ProfileMedia.importing ? "Importing…" : ProfileMedia.needsConsent ? "Fill missing details from LinkedIn" : "Retry LinkedIn import";
     });
 }
+function profilePhotoMarkup(id, name) {
+  const photo = ProfileMedia.photos.get(id), cached = ProfileMedia.images.get(id);
+  return photo?.hasPhoto && photo.expiresAt > Date.now() && validPhotoURL(photo.url) &&
+    cached?.url === photo.url && cached.ready ? cached.image.outerHTML : profileInitials(name);
+}
+function prepareProfilePhoto(id, photo) {
+  let cached = ProfileMedia.images.get(id);
+  if (cached?.url === photo.url) return cached;
+  const generation = ProfileMedia.generation;
+  const image = document.createElement("img");
+  image.dataset.profilePhoto = id;
+  image.alt = id === Account.user.id ? "Your profile photo" : "Member profile photo";
+  image.referrerPolicy = "no-referrer";
+  image.decoding = "sync";
+  cached = { url: photo.url, image, ready: false };
+  ProfileMedia.images.set(id, cached);
+  image.src = photo.url;
+  // Decode away from the visible avatar so its current picture stays on screen.
+  image.decode().then(() => {
+    if (generation !== ProfileMedia.generation || ProfileMedia.images.get(id) !== cached) return;
+    cached.ready = true;
+    paintProfilePhotos();
+  }).catch(() => {
+    if (generation !== ProfileMedia.generation || ProfileMedia.images.get(id) !== cached) return;
+    if (id === Account.user?.id) {
+      ProfileMedia.error = "Your profile photo could not be displayed. Please try again.";
+      updatePhotoStatus();
+    }
+  });
+  return cached;
+}
 function paintProfilePhotos() {
   if (typeof Account === "undefined" || !Account.user) return;
-  document
-    .querySelectorAll(
-      ".avatar,.landing-account-avatar,[data-own-photo],[data-member-id]",
-    )
-    .forEach((node) => {
-      const id = node.dataset.memberId || Account.user.id,
-        photo = ProfileMedia.photos.get(id);
-      if (id === Account.user.id && typeof isOrganizationAccount === "function" && isOrganizationAccount()) return;
-      if (
-        photo?.hasPhoto &&
-        validPhotoURL(photo.url) &&
-        photo.expiresAt > Date.now()
-      ) {
-        if (node.querySelector("img")?.src === photo.url) return;
-        const img = document.createElement("img");
-        img.src = photo.url;
-        img.alt =
-          id === Account.user.id
-            ? "Your profile photo"
-            : "Member profile photo";
-        img.referrerPolicy = "no-referrer";
-        img.decoding = "async";
-        img.onerror = () => {
-          node.replaceChildren(
-            document.createTextNode(
-              id === Account.user?.id
-                ? profileInitials(graduateProfile().name)
-                : "?",
-            ),
-          );
-        };
-        node.replaceChildren(img);
-      } else if (!node.querySelector("img")) {
-        if (id === Account.user.id)
-          node.textContent = profileInitials(graduateProfile().name);
-        if (!photo || photo.expiresAt < Date.now())
-          loadProfilePhoto(id).catch(() => {});
-      }
-    });
+  document.querySelectorAll(".avatar,.landing-account-avatar,[data-own-photo],[data-member-id]").forEach(node => {
+    const id = node.dataset.memberId || Account.user.id, photo = ProfileMedia.photos.get(id);
+    if (id === Account.user.id && typeof isOrganizationAccount === "function" && isOrganizationAccount()) return;
+    if (!photo || photo.expiresAt < Date.now()) loadProfilePhoto(id).catch(() => {});
+    if (photo?.hasPhoto && validPhotoURL(photo.url) && photo.expiresAt > Date.now()) {
+      if (node.querySelector("img")?.src === photo.url) return;
+      const cached = prepareProfilePhoto(id, photo);
+      if (cached.ready) node.replaceChildren(cached.image.cloneNode(true));
+    } else if (!photo?.hasPhoto && photo) {
+      node.querySelector("img[data-profile-photo]")?.remove();
+      if (id === Account.user.id) node.textContent = profileInitials(graduateProfile().name);
+    }
+  });
   updatePhotoStatus();
 }
 async function loadProfilePhoto(id = Account.user?.id) {
@@ -268,7 +276,7 @@ function initializeProfileMedia(user) {
   fillMissingFromLinkedIn().catch(() => {});
 }
 function profilePhotoEditor(p) {
-  return `<div class="profile-photo-editor"><button type="button" class="profile-photo-trigger" data-photo-action="open" aria-label="Change profile photo"><span class="profile-photo-current" data-own-photo>${profileInitials(p.name)}</span><span class="photo-camera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg></span></button><div class="profile-photo-controls"><button type="button" class="account-text-button" data-photo-action="open">Change photo</button><button type="button" class="account-text-button" data-photo-action="remove" ${ownPhoto().hasPhoto ? "" : "hidden"}>Remove photo</button><p data-photo-status role="status">Visible to signed-in Nextwork members.</p><small class="linkedin-data-consent" data-photo-consent ${ProfileMedia.needsConsent ? "" : "hidden"}>${photoConsentText()}</small><button type="button" class="account-text-button" data-photo-action="import" ${canRetryLinkedInImport() ? "" : "hidden"}>Fill missing details from LinkedIn</button></div></div>`;
+  return `<div class="profile-photo-editor"><button type="button" class="profile-photo-trigger" data-photo-action="open" aria-label="Change profile photo"><span class="profile-photo-current" data-own-photo>${profilePhotoMarkup(Account.user.id, p.name)}</span><span class="photo-camera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg></span></button><div class="profile-photo-controls"><button type="button" class="account-text-button" data-photo-action="open">Change photo</button><button type="button" class="account-text-button" data-photo-action="remove" ${ownPhoto().hasPhoto ? "" : "hidden"}>Remove photo</button><p data-photo-status role="status">Visible to signed-in Nextwork members.</p><small class="linkedin-data-consent" data-photo-consent ${ProfileMedia.needsConsent ? "" : "hidden"}>${photoConsentText()}</small><button type="button" class="account-text-button" data-photo-action="import" ${canRetryLinkedInImport() ? "" : "hidden"}>Fill missing details from LinkedIn</button></div></div>`;
 }
 function closePhotoPreview() {
   if (ProfileMedia.preview) URL.revokeObjectURL(ProfileMedia.preview);
@@ -479,7 +487,7 @@ function bindProfileMedia() {
 }
 
 function memberPhotoAvatar(userId, name) {
-  return `<span class="member-photo-avatar" data-member-id="${esc(userId)}" aria-label="${esc(name || "Member")}">${profileInitials(name)}</span>`;
+  return `<span class="member-photo-avatar" data-member-id="${esc(userId)}" aria-label="${esc(name || "Member")}">${profilePhotoMarkup(userId, name)}</span>`;
 }
 
 let profilePhotoPaintQueued = false;
