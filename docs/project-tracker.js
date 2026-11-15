@@ -14,39 +14,41 @@ function projectSteps(p) {
 }
 function projectFit(p) {
   const resume = marketplaceResume(),
-    skills = [...new Set(p.skills || [])],
-    evidenced = skills.filter((s) =>
-      typeof RecommendEngine !== "undefined"
-        ? RecommendEngine.has(resume, s)
-        : ResumeEngine.has(resume, s),
-    ),
-    growth = skills.filter((s) => !evidenced.includes(s)),
-    roleSkills =
-      p.fitRoleSkills ||
-      (!p.role || p.role === recoState.result?.role
-        ? recoState.result?.profile?.skills?.map((s) => s.skill) || []
-        : []),
-    aligned = skills.filter((s) =>
-      roleSkills.some((x) => String(x).toLowerCase() === s.toLowerCase()),
-    );
+    skills = [...new Set((p.skills || []).filter(s => typeof s === "string" && s.trim()))],
+    hasResume = resume.trim().length >= 100,
+    matcher = typeof NextworkMatch !== "undefined" ? NextworkMatch : null,
+    assessments = !hasResume ? [] : matcher
+      ? matcher.evaluate(resume, {
+          job: skills.map((skill, i) => ({id: "project-skill-" + i, label: skill, terms: [skill], kind: "Project skill"})),
+          baseline: [],
+        })
+      : skills.map((skill, i) => {
+          const found = typeof RecommendEngine !== "undefined" ? RecommendEngine.has(resume, skill) : ResumeEngine.has(resume, skill);
+          return {id: "project-skill-" + i, text: skill, value: found ? 100 : 0, status: found ? "Keyword found" : "Not evidenced", evidence: "", reason: "Text comparison fallback; the trained model is unavailable."};
+        }),
+    evidenced = assessments.filter(r => r.value === 100).map(r => r.text),
+    partial = assessments.filter(r => r.value > 0 && r.value < 100).map(r => r.text),
+    growth = hasResume ? assessments.filter(r => r.value === 0).map(r => r.text) : skills,
+    roleSkills = p.fitRoleSkills || (!p.role || p.role === recoState.result?.role
+      ? recoState.result?.profile?.skills?.map(s => s.skill) || [] : []),
+    aligned = skills.filter(s => roleSkills.some(x => String(x).toLowerCase() === s.toLowerCase()));
   return {
-    skills,
-    evidenced,
-    growth,
-    aligned,
-    hasResume: resume.trim().length >= 100,
-    coverage: skills.length
-      ? Math.round((evidenced.length / skills.length) * 100)
-      : 0,
+    skills, evidenced, partial, growth, aligned, assessments, hasResume,
+    coverage: skills.length ? Math.round(assessments.reduce((n, r) => n + r.value, 0) / skills.length) : 0,
+    method: hasResume && skills.length ? (matcher ? matcher.id : "keyword-fallback") : null,
     hasRoleProfile: roleSkills.length > 0,
   };
 }
 function projectFitHTML(p, compact = false) {
-  const f = projectFit(p);
+  const f = projectFit(p), classes = "project-fit " + (compact ? "project-fit-compact" : "");
   if (!f.hasResume)
-    return `<section class="project-fit ${compact ? "project-fit-compact" : ""}"><div class="project-fit-title"><span>${icon("resume", 16)} Resume comparison</span></div><p class="resume-hint">Add a resume to compare your starting skills with this project.</p><a class="text-link" href="#resume">Add resume ${icon("arrow", 14)}</a></section>`;
-  return `<section class="project-fit ${compact ? "project-fit-compact" : ""}" aria-label="Why this project fits"><div class="project-fit-title"><span>${icon("route", 16)} Starting skill coverage</span><b>${f.hasResume ? f.evidenced.length + "/" + f.skills.length : "Add resume"}</b></div><div class="project-fit-bar" role="meter" aria-label="Project skills evidenced in your resume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${f.hasResume ? f.coverage : 0}"><i style="width:${f.hasResume ? f.coverage : 0}%"></i></div>${compact ? `<p>${f.hasResume ? `${f.evidenced.length} ${f.evidenced.length === 1 ? "skill" : "skills"} evidenced · ${f.growth.length} to develop` : "Add a resume to see your starting point"}${f.hasRoleProfile ? ` · ${f.aligned.length}/${f.skills.length} role skills` : ""}</p>` : `<div class="project-fit-breakdown"><div><strong>${f.evidenced.length}</strong><span>Resume-supported skills</span><p>${esc(f.evidenced.join(", ") || "No direct terms found")}</p></div><div><strong>${f.growth.length}</strong><span>Skills to develop or evidence</span><p>${esc(f.growth.join(", ") || "Build depth in the skills you already use")}</p></div>${f.hasRoleProfile ? `<div><strong>${f.aligned.length}/${f.skills.length}</strong><span>Aligned with the target-role profile</span><p>Compared with the skill profile used to generate this idea.</p></div>` : ""}</div><small>Keyword coverage explains your starting point, not your proficiency or chance of getting hired.</small>`}</section>`;
+    return `<section class="${classes}"><div class="project-fit-title"><span>${icon("resume", 16)} Resume comparison</span></div><p class="resume-hint">Add a resume to compare your starting skills with this project.</p><a class="text-link" href="#resume">Add resume ${icon("arrow", 14)}</a></section>`;
+  if (!f.skills.length)
+    return `<section class="${classes}"><p class="resume-hint">This idea needs a skill list before its starting coverage can be assessed.</p></section>`;
+  const trained = f.method === "nextwork-evidencenet-v1";
+  return `<section class="${classes}" aria-label="Why this project fits"><div class="project-fit-title"><span>${icon("route", 16)} Starting skill coverage</span><b>${f.coverage}%</b></div><div class="project-fit-bar" role="meter" aria-label="Project skills evidenced in your resume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${f.coverage}"><i style="width:${f.coverage}%"></i></div><p class="project-fit-method">${trained ? "Nextwork Match · EvidenceNet beta" : "Text comparison fallback"}</p>${compact ? `<p>${f.evidenced.length} supported · ${f.partial.length} partial · ${f.growth.length} to practice</p>` : `<div class="project-fit-breakdown"><div><strong>${f.evidenced.length}</strong><span>Supported contributions</span><p>${esc(f.evidenced.join(", ") || "No specific contributions found")}</p></div><div><strong>${f.partial.length}</strong><span>Partial evidence</span><p>${esc(f.partial.join(", ") || "No partial evidence found")}</p></div><div><strong>${f.growth.length}</strong><span>Skills to practice or clarify</span><p>${esc(f.growth.join(", ") || "Build depth in your existing skills")}</p></div></div>${f.hasRoleProfile ? `<p class="resume-hint">${f.aligned.length}/${f.skills.length} skills align with the target-role profile used to suggest this idea.</p>` : ""}<details class="project-fit-evidence"><summary>See the skill evidence ${icon("eye", 14)}</summary>${f.assessments.map(r => `<article><div><b>${esc(r.text)}</b><span>${esc(r.status)}</span></div>${r.evidence ? `<blockquote>${esc(r.evidence)}</blockquote>` : ""}${r.counterEvidence ? `<p>Conflicting passage: “${esc(r.counterEvidence)}”</p>` : ""}<p>${esc(r.reason || "")}</p></article>`).join("")}</details><small>${trained ? "Supported contributions earn full credit; partial evidence earns half. Conflicting statements and missing evidence need review. This is a starting point for practice, not verified proficiency." : "Keyword coverage is a fallback, not a model assessment or verified proficiency."}</small>`}</section>`;
 }
+
 function ideaRecord(p, role) {
   return {
     ...p,

@@ -76,6 +76,7 @@ jobs:
         run: |
           node tests/recommend.test.js
           node tests/project-tracker.test.js
+          node tests/project-idea-ai.test.js
           node tests/project-files.test.js
       - name: Test profile photo validation and import
         run: |
