@@ -12654,3 +12654,21 @@ body.messages-page .messenger {
   .messages-page .inbox-collapsed .inbox-heading { flex-direction: row; width: auto; flex-shrink: 0; }
   .inbox-collapsed .conversation-shortcuts { flex-direction: row; margin: 0; padding: 0 0 0 12px; border-top: 0; border-left: 1px solid var(--line); overflow-x: auto; overflow-y: hidden; }
 }
+
+/* Rounded chat bubbles with the tail on the sender's bottom corner. */
+.message-line .message-bubble {
+  position: relative;
+  border-radius: 24px;
+}
+.message-line .message-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  width: 14px;
+  height: 10px;
+  background: inherit;
+  clip-path: path("M0 0H14V10Q4 8 0 0Z");
+  pointer-events: none;
+}
+.message-line.outgoing .message-bubble::after { right: 10px; }
+.message-line.incoming .message-bubble::after { left: 10px; transform: scaleX(-1); }

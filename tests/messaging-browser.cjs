@@ -90,6 +90,8 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  await a.locator('.message-line.outgoing').first().hover();await a.getByRole('button',{name:'Edit your message'}).first().click();await a.locator('#edit-message-input').fill('Discard this change');await a.getByRole('button',{name:'Cancel edit',exact:true}).click();
  assert.equal(fixture.messages[0].body,'Hello, edited by Alex');
  await a.locator('#conversation-input').fill('Keep this unsent draft');await b.locator('#conversation-input').fill('A reply from Taylor');await b.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Keep this unsent draft');
+ await a.screenshot({path:'test-artifacts/message-bottom-tails.png'});
+
  const jordan='00000000-0000-0000-0000-000000000004';fixture.profiles.push({user_id:jordan,name:'Jordan',role:'Member',company:'',skills:[]});await fixture.rpc(ids.alex,'chat_start_conversation',{recipient:jordan});await a.evaluate(()=>refreshMessaging(true));
  await a.locator('.inbox-toggle').click();assert.equal(await a.locator('.inbox-toggle').getAttribute('aria-expanded'),'false');
  await a.evaluate(()=>document.getAnimations().forEach(animation=>animation.finish()));
