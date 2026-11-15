@@ -7,7 +7,8 @@ insert into public.account_workspaces(user_id,profile) values
  ('00000000-0000-0000-0000-000000000001','{"name":"Alex","role":"Developer","skills":"React, SQL","email":"never-exposed@example.com"}'),
  ('00000000-0000-0000-0000-000000000002','{"name":"Taylor","role":"Designer","skills":"Figma"}'),
  ('00000000-0000-0000-0000-000000000003','{"name":"Outsider"}');
-insert into public.organizations(owner_id,name,description) values('00000000-0000-0000-0000-000000000004','Real startup','A real organization profile');
+insert into auth.users(id,raw_user_meta_data) values('00000000-0000-0000-0000-000000000005','{"account_kind":"organization"}');
+insert into public.organizations(owner_id,name,description) values('00000000-0000-0000-0000-000000000004','Real startup','A real organization profile'),('00000000-0000-0000-0000-000000000005','Second startup','Another organization');
 select public.chat_test_assert(not has_function_privilege('anon','public.chat_send_message(uuid,uuid,text,jsonb,uuid[])','execute'),'anonymous RPC denied');
 select public.chat_test_assert(not has_table_privilege('anon','public.chat_messages','select'),'anonymous reads denied');
 select public.chat_test_assert(not has_table_privilege('authenticated','public.chat_messages','insert'),'sender spoofing via direct insert denied');
@@ -20,13 +21,18 @@ select public.chat_sync_profile();
 select public.chat_test_assert(public.chat_setup_version()=1,'private bucket activation check');
 select public.chat_test_assert((select count(*)=1 from public.chat_search_people('Real startup')),'organization discoverable');
 select public.chat_test_assert(not exists(select 1 from public.chat_profiles where to_jsonb(chat_profiles)::text like '%never-exposed%'),'directory excludes private email');
-select public.chat_start_conversation('00000000-0000-0000-0000-000000000002') as conversation \gset
-select public.chat_test_assert(public.chat_start_conversation('00000000-0000-0000-0000-000000000002')=:'conversation','one conversation per pair');
+select public.chat_start_conversation('00000000-0000-0000-0000-000000000004') as conversation \gset
+select public.chat_test_assert(public.chat_start_conversation('00000000-0000-0000-0000-000000000004')=:'conversation','one conversation per pair');
+select public.chat_test_assert((select count(*)=0 from public.chat_search_people('Taylor')),'personal members cannot search other personal members');
+select public.chat_test_assert((select count(*)=1 from public.chat_search_people('Second startup')),'personal members can find any organization without applying');
+do $$ begin
+ begin perform public.chat_start_conversation('00000000-0000-0000-0000-000000000002');raise exception 'Unexpected personal chat'; exception when insufficient_privilege then null; end;
+end $$;
 select public.chat_reserve_attachment(:'conversation','notes.txt',5) as unused;
 select id as attachment,path as filepath from public.chat_attachments where conversation_id=:'conversation' \gset
 insert into storage.objects(bucket_id,name,metadata) values('message-attachments',:'filepath','{"size":5}');
 select public.chat_test_assert(chat_private.chat_can_read_file(:'filepath'),'sender reads staged own file');
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false);
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
 select public.chat_test_assert(not chat_private.chat_can_read_file(:'filepath'),'recipient cannot read unsent upload');
 select public.chat_test_assert((select count(*)=0 from public.chat_attachments),'recipient cannot see staged metadata');
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
@@ -34,8 +40,13 @@ select public.chat_send_message(:'conversation','10000000-0000-0000-0000-0000000
 select public.chat_send_message(:'conversation','10000000-0000-0000-0000-000000000001','Hello Taylor','{"id":7,"title":"A paid project","company":"Startup"}',array[:'attachment'::uuid]);
 select public.chat_test_assert((select count(*)=1 from public.chat_messages),'retry is idempotent');
 select public.chat_test_assert((select unread=0 from public.chat_inbox()),'sender message marked read');
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false);
-select public.chat_test_assert((select body='Hello Taylor' from public.chat_messages),'recipient receives actual sender content');
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
+select public.chat_test_assert((select count(*)=1 from public.chat_search_people('Outsider')),'organizations can find any personal member');
+select public.chat_test_assert((select count(*)=0 from public.chat_search_people('Second startup')),'organizations cannot search other organizations');
+do $$ begin
+ begin perform public.chat_start_conversation('00000000-0000-0000-0000-000000000005');raise exception 'Unexpected organization chat'; exception when insufficient_privilege then null; end;
+end $$;
+select public.chat_test_assert((select body='Hello Taylor' from public.chat_messages where conversation_id=:'conversation'),'recipient receives actual sender content');
 select public.chat_test_assert((select unread=1 from public.chat_inbox()),'recipient unread count');
 select public.chat_test_assert((select sender_id='00000000-0000-0000-0000-000000000001' from public.chat_messages),'sender attributed by server');
 select public.chat_test_assert(chat_private.chat_can_read_file(:'filepath'),'recipient can download sent file');
@@ -77,12 +88,22 @@ select public.chat_test_assert((select deleted_at is not null and body='' and li
 select public.chat_test_assert(not chat_private.chat_can_read_file(:'filepath'),'deleted message files no longer downloadable');
 reset role;
 -- Account removal cascades through conversation data and revokes access to any orphaned blobs.
-delete from auth.users where id='00000000-0000-0000-0000-000000000002';
+delete from auth.users where id='00000000-0000-0000-0000-000000000004';
 select public.chat_test_assert((select count(*)=0 from public.chat_conversations),'deleted account removes conversation');
 select public.chat_test_assert((select count(*)=0 from public.chat_messages),'deleted account removes associated messages');
 select public.chat_test_assert((select count(*)=0 from public.chat_attachments),'deleted account removes attachment metadata');
 set role authenticated;
-select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false);
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
 select public.chat_test_assert((select count(*)=0 from public.chat_profiles),'deleted account token cannot browse member directory');
+reset role;
+-- Older personal-to-personal conversations stay readable but cannot receive new messages.
+insert into public.chat_conversations(id,member_a,member_b) values('20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000003');
+set role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
+do $$ begin
+ begin perform public.chat_send_message('20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000099','Not allowed');raise exception 'Unexpected personal send'; exception when insufficient_privilege then null; end;
+end $$;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000005',false);
+select public.chat_test_assert(public.chat_start_conversation('00000000-0000-0000-0000-000000000003') is not null,'organizations can message a personal member who never applied');
 reset role;
 drop function public.chat_test_assert(boolean,text);
