@@ -1,6 +1,7 @@
 // Optional browser integration check: serve dist on port 3000, then run with Playwright installed.
 const assert = require("node:assert/strict");
 const { chromium } = require("playwright");
+const { ChatFixture } = require("./helpers/chat-fixture.cjs");
 const base = process.env.TEST_BASE_URL || "http://localhost:3000";
 const projectObjects = new Map();
 const resumeObjects = new Map();
@@ -70,6 +71,9 @@ function token(user) {
   ].join(".");
 }
 async function setup(browser) {
+  const chat = new ChatFixture();
+  const sampleCreator = '5a000000-0000-4000-8000-000000000007';
+  chat.profiles.push({user_id:sampleCreator,name:'Casey Morgan',role:'Founder & frontend lead',company:'Patchwork',bio:'',skills:['React']});
   const context = await browser.newContext();
   const page = await context.newPage();
   page.setDefaultTimeout(10000);
@@ -272,11 +276,19 @@ async function setup(browser) {
         );
       }
       if (url.pathname.endsWith('/chat_attachments')) { assert(user); return reply([]); }
-      if (url.pathname.endsWith('/rpc/chat_setup_version')) return reply(0);
+      if (url.pathname.includes('/rpc/chat_')) {
+        assert(user, 'Chat RPC must have authenticated bearer');
+        const result = await chat.rpc(user.id, url.pathname.split('/rpc/')[1], body || {});
+        return result.error ? reply(result.error, 400) : reply(result.data);
+      }
+      if (url.pathname.endsWith('/chat_messages')) {
+        assert(user, 'Message reads must have authenticated bearer');
+        return reply(chat.rows(user.id, (url.searchParams.get('conversation_id') || '').replace(/^eq\./, '')));
+      }
       return reply({});
     },
   );
-  return { context, page, errors };
+  return { context, page, errors, chat };
 }
 async function login(page, email) {
   await page.goto(base + "/#login");
@@ -1008,10 +1020,16 @@ if (require.main === module) (async () => {
     await page.getByRole('heading',{name:'What you’ll work on',exact:true}).waitFor();
     assert.equal(await page.locator('.listing-person-photo').count(),2);
     await page.getByRole('button',{name:'Message Casey',exact:true}).click();
-    await page.locator('#sample-chat-text').fill('How would we review accessibility before handing over the booking flow?');
-    await page.locator('#sample-chat-form button[type="submit"]').click();
-    await page.locator('.sample-chat-bubble.outgoing').waitFor();
-    await page.getByRole('button',{name:'Close',exact:true}).click();
+    await page.waitForURL('**/#messages');
+    const sampleMessage = 'How would we review accessibility before handing over the booking flow?';
+    await page.locator('#conversation-input').fill(sampleMessage);
+    await page.locator('#send-message').click();
+    await page.locator('.outgoing .message-bubble').filter({hasText:sampleMessage}).waitFor();
+    assert.equal(await page.locator('.incoming').count(),0,'Sample creators must not generate canned replies');
+    assert.equal(await page.locator('.person-heading img').getAttribute('src'),'assets/people/creator-7.svg');
+    await page.reload();
+    await page.locator('.outgoing .message-bubble').filter({hasText:sampleMessage}).waitFor();
+    assert.equal(await page.locator('.incoming').count(),0,'Reload must not generate sample replies');
     assert.equal(await page.locator('#nav a[href="#skills"],#nav a[href="#career"]').count(),0);
     assert.equal(await page.locator('#nav > a[href="#recommend"]').count(),1);
     assert.equal(await page.locator('#nav a[href="#tools"]').count(),0);
