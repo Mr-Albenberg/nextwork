@@ -96,7 +96,6 @@ function linkedInImportLabel() {
 }
 function updatePhotoStatus() {
   const update = (node, property, value) => { if (node[property] !== value) node[property] = value; };
-  document.querySelectorAll("[data-photo-consent]").forEach(node => update(node, "hidden", !ProfileMedia.needsConsent));
   document.querySelectorAll("[data-photo-status]").forEach(node => update(node, "textContent", photoStatusText()));
   document.querySelectorAll('[data-photo-action="remove"]').forEach(node => update(node, "hidden", !ownPhoto().hasPhoto));
   document.querySelectorAll('[data-photo-action="import"]').forEach(node => {
@@ -279,7 +278,7 @@ function initializeProfileMedia(user) {
   fillMissingFromLinkedIn().catch(() => {});
 }
 function profilePhotoEditor(p) {
-  return `<div class="profile-photo-editor"><button type="button" class="profile-photo-trigger" data-photo-action="open" aria-label="Change profile photo"><span class="profile-photo-current" data-own-photo>${profilePhotoMarkup(Account.user.id, p.name)}</span><span class="photo-camera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg></span></button><div class="profile-photo-controls"><button type="button" class="account-text-button" data-photo-action="open">Change photo</button><button type="button" class="account-text-button" data-photo-action="remove" ${ownPhoto().hasPhoto ? "" : "hidden"}>Remove photo</button><p data-photo-status role="status">${esc(photoStatusText())}</p><small class="linkedin-data-consent" data-photo-consent ${ProfileMedia.needsConsent ? "" : "hidden"}>${photoConsentText()}</small><button type="button" class="account-text-button" data-photo-action="import" ${canRetryLinkedInImport() ? "" : "hidden"}>${linkedInImportLabel()}</button></div></div>`;
+  return `<div class="profile-photo-editor"><button type="button" class="profile-photo-trigger" data-photo-action="open" aria-label="Change profile photo"><span class="profile-photo-current" data-own-photo>${profilePhotoMarkup(Account.user.id, p.name)}</span><span class="photo-camera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h4l2-3h4l2 3h4v13H4Z"/><circle cx="12" cy="13" r="4"/></svg></span></button><div class="profile-photo-controls"><button type="button" class="account-text-button" data-photo-action="open">Change photo</button><button type="button" class="account-text-button" data-photo-action="remove" ${ownPhoto().hasPhoto ? "" : "hidden"}>Remove photo</button><p data-photo-status role="status">${esc(photoStatusText())}</p><button type="button" class="account-text-button" data-photo-action="import" ${canRetryLinkedInImport() ? "" : "hidden"}>${linkedInImportLabel()}</button></div></div>`;
 }
 function closePhotoPreview() {
   if (ProfileMedia.preview) URL.revokeObjectURL(ProfileMedia.preview);
