@@ -4,7 +4,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: profile-ai-api-deploy
+  group: nextwork-vercel-production
   cancel-in-progress: false
 jobs:
   deploy:

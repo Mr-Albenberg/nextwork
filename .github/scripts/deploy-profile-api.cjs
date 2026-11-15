@@ -1,4 +1,4 @@
-// Deploy the existing Nextwork API without reading or changing runtime configuration.
+// Deploy the complete existing Nextwork Vercel project without changing runtime configuration.
 const token=process.env.VERCEL_TOKEN;
 let project=process.env.VERCEL_PROJECT_ID,team=process.env.VERCEL_ORG_ID;
 if(!token)throw Error('API deployment requires the VERCEL_TOKEN repository secret.');
@@ -20,6 +20,6 @@ async function api(path,method='GET',body,scope=team){const url=new URL('https:/
  if(!metadata||metadata.id!==project)throw Error('Could not identify the existing Nextwork API project. Configure VERCEL_PROJECT_ID and VERCEL_ORG_ID repository secrets.');
  const domains=await api('/v9/projects/'+project+'/domains');if(!(domains.domains||[]).some(d=>d.name==='nextwork-jobs.vercel.app'))throw Error('Project does not own the Nextwork API domain');
  const deployment=await api('/v13/deployments','POST',{name:metadata.name,project,target:'production',gitSource:{type:'github',repoId:Number(process.env.GITHUB_REPOSITORY_ID),ref:process.env.GITHUB_SHA}});
- for(let attempt=0;attempt<60;attempt++){const state=await api('/v13/deployments/'+deployment.id);if(state.readyState==='READY'){const response=await fetch('https://nextwork-jobs.vercel.app/api/resume');const info=await response.json();if(!Object.hasOwn(info,'profileImportAvailable'))throw Error('Production API did not expose the updated profile processor');console.log('Updated profile processor deployed. AI configured: '+info.profileImportAvailable);return;}if(['ERROR','CANCELED'].includes(state.readyState))throw Error('API deployment ended in '+state.readyState);await new Promise(resolve=>setTimeout(resolve,5000));}
+ for(let attempt=0;attempt<60;attempt++){const state=await api('/v13/deployments/'+deployment.id);if(state.readyState==='READY'){const response=await fetch('https://nextwork-jobs.vercel.app/api/resume');const info=await response.json();if(!Object.hasOwn(info,'profileImportAvailable'))throw Error('Production API did not expose the updated profile processor');const homepage=await fetch('https://nextwork-jobs.vercel.app/',{cache:'no-store'});const html=await homepage.text();if(!homepage.ok||!html.includes('id="app"')||!html.includes('app.js'))throw Error('Production frontend verification failed');console.log('Nextwork frontend and API deployed: https://nextwork-jobs.vercel.app');console.log('Profile AI configured: '+info.profileImportAvailable);return;}if(['ERROR','CANCELED'].includes(state.readyState))throw Error('API deployment ended in '+state.readyState);await new Promise(resolve=>setTimeout(resolve,5000));}
  throw Error('API deployment timed out');
 })().catch(error=>{console.error(error.message);process.exitCode=1});

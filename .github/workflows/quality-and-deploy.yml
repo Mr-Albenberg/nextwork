@@ -1,4 +1,4 @@
-name: Check Nextwork (GitHub Pages)
+name: Check and deploy Nextwork (Pages + Vercel)
 
 on:
   push:
@@ -47,6 +47,8 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           for file in dist/*.js api/*.js lib/*.js; do node --check "$file"; done
+      - name: Test Vercel deployment wiring
+        run: node tests/vercel-deploy.test.cjs
       - name: Test resume analysis and backend
         run: |
           node tests/resume.test.js
@@ -223,3 +225,24 @@ jobs:
       - name: Configure private resume documents and application sharing
         if: steps.setup.outputs.configured == 'true'
         run: node .github/scripts/provision-resume-documents.cjs
+
+  deploy-vercel:
+    name: Deploy app and APIs to Vercel
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: nextwork-vercel-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Deploy existing Nextwork project and verify frontend and API
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: node .github/scripts/deploy-profile-api.cjs

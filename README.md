@@ -86,7 +86,7 @@ Official references: https://ai.google.dev/gemini-api/docs/pricing and https://a
 
 ## GitHub Actions and deployment
 
-GitHub Actions checks syntax, app behavior, database permissions, Chrome workflows, and the recursive Pages mirror. GitHub Pages publishes `docs/` on pushes to `main`. Automatic Vercel deployments are disabled; no Vercel deployment secret is needed for publishing.
+GitHub Actions checks syntax, app behavior, database permissions, Chrome workflows, and the recursive Pages mirror. GitHub Pages publishes `docs/` on pushes to `main`. After checks pass on `main`, GitHub Actions also deploys the full frontend and serverless APIs to the existing Vercel project at https://nextwork-jobs.vercel.app using `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, and `VERCEL_ORG_ID` repository secrets. Git-triggered Vercel deployments stay disabled to avoid duplicate deployments. Pull requests run checks without deploying. The existing manual API workflow can still redeploy the same project.
 
 Supabase continues to provide authentication, shared messages, private file storage, and account data. SQL migrations and Storage bucket configuration must be applied separately by an authorized member of the existing project. The `api/` Vercel functions are retained as legacy optional integrations: GitHub Pages cannot run server functions, and the new messaging system does not call them.
 
