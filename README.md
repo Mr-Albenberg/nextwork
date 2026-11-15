@@ -391,3 +391,24 @@ Original-document sharing is configured by GitHub Actions after checks using the
 ## Applying to sample listings
 
 Sample opportunities support profile-backed submission, an introduction, optional matching text and an independent private copy of the uploaded resume. They appear under **My work → Applications**, count in All/In progress/Closed, survive reload, and support withdrawal and reapplication without duplicate entries. These applications remain in the applicant’s account; no fictional employer account is created and nothing is emailed or sent externally. Real organization applications keep their existing delivery flow. No database migration is needed; sample records use the private workspace application column.
+
+### Sample creator messaging
+
+Apply `supabase/migrations/202611150013_sample_creators.sql` after migrations 001–012
+before deploying the updated frontend (`docs/sample-creators-setup.sql` is the same
+SQL for the Supabase SQL editor). It creates the 14 existing catalog creators as
+organization messaging recipients, with fixed IDs, no email/phone/password, and
+permanent authentication bans enforced on updates. It does not create OAuth
+identities or sessions. Their existing catalog profiles and illustrated portraits
+are preserved. Treat these identities as permanent sample data; do not repurpose
+them for real users.
+
+Creator message buttons now use normal Messages, including database persistence,
+attachments, editing, and per-sender private conversations. There are no generated
+replies. Existing workspace preview conversations are retained in workspace data
+and are not imported into Messages. Standard Supabase administrator/service-role
+access still applies; application users can only read their own conversations.
+
+`node tests/sample-creators.test.js` checks catalog routing and deployment copies;
+`tests/sample-creators.test.sql` checks storage, privacy, and locked credentials
+against the disposable messaging test database in CI.
