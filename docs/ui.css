@@ -12849,3 +12849,6 @@ body:has(.account-settings-layout) .shell > footer { display: none; }
  .jobs-view-list .company-info small { margin: 0; }
  .jobs-view-list .job.opportunity-card { row-gap: 0.4rem; }
 }
+
+/* Search and filters belong directly to the Find work workspace. */
+body[data-page="explore"] .opportunity-search-panel { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 0; margin-bottom: 1rem; }
