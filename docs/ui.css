@@ -12473,3 +12473,98 @@ body.messages-page .messenger {
 
 .message-line.outgoing > div { display: flex; flex-direction: column; align-items: flex-end; }
 .message-line.outgoing .message-bubble { max-width: 100%; }
+
+/* The composer floats inside the conversation, with a constant pill radius. */
+.messages-page .conversation-composer {
+  padding: 12px 20px 16px;
+  border: 0;
+  background: var(--pl-subtle, var(--theme-surface));
+}
+.conversation-composer #conversation-form {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+}
+.composer-pill {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--theme-surface);
+  box-shadow: 0 3px 14px rgb(0 0 0 / 6%);
+}
+.composer-pill:focus-within { border-color: var(--theme-brand, var(--theme-accent)); }
+.conversation-composer #conversation-input {
+  flex: 1 1 auto;
+  width: 0;
+  height: 40px;
+  min-height: 40px;
+  max-height: 180px;
+  padding: 9px 0;
+  font-size: 14px;
+  line-height: 22px;
+  border: 0;
+  border-radius: 0;
+  resize: none;
+  overflow-y: hidden;
+}
+.composer-add, .conversation-composer #send-message {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  cursor: pointer;
+}
+.composer-add { color: var(--ink); background: transparent; }
+.composer-add:hover { background: var(--theme-subtle); }
+.conversation-composer #send-message:disabled {
+  background: var(--tone-neutral-bg, #e5e7eb);
+  color: var(--tone-neutral-fg, #8a929b);
+  opacity: .65;
+  cursor: default;
+}
+.composer-menu {
+  position: fixed;
+  inset: auto;
+  width: 220px;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--theme-surface);
+  color: var(--ink);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 12%);
+}
+.composer-menu:popover-open { display: grid; gap: 2px; }
+.composer-menu .text-control {
+  width: 100%;
+  min-height: 40px;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--ink);
+}
+.composer-menu .text-control:hover { background: var(--theme-subtle); }
+.composer-menu svg { flex: 0 0 18px; width: 18px; height: 18px; overflow: visible; }
+.conversation-composer .message-attachments:not(:empty) { padding: 10px 12px 0; }
+.conversation-composer > small { max-width: 900px; margin: 6px auto 0; padding-right: 12px; font-size: 10px; }
+@media (max-width: 760px) {
+  .messages-page .conversation-composer { padding: 10px 12px 12px; }
+  .messages-page .conversation-composer #conversation-input { min-height: 40px; max-height: 180px; padding: 9px 0; font-size: 16px; }
+}

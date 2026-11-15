@@ -17,6 +17,7 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  await page.route(base+'/messaging-test',route=>route.fulfill({contentType:'text/html',body:html}));await page.goto(base+'/messaging-test#messages');await page.evaluate(async actor=>{Account.user={id:actor};Account.client=client();await connectMessaging()},actor);pages.push(page);return page}
  fixture.listeners.add(()=>{for(const page of pages)if(!page.isClosed())page.evaluate(()=>window.testEmit()).catch(()=>{})});
  try{
+ fixture.profiles.find(p=>p.user_id===ids.taylor).company='Taylor';
  const a=await open(ids.alex),b=await open(ids.taylor),c=await open(ids.outsider);
  await a.getByRole('button',{name:'New conversation',exact:true}).click();await a.locator('.people-row').filter({hasText:'Taylor'}).getByRole('button',{name:'Message',exact:true}).click();
  await a.locator('#conversation-input').waitFor();await b.evaluate(()=>refreshMessaging(true));await b.locator('#conversation-input').waitFor();
@@ -31,21 +32,32 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
   assert.deepEqual(frame,{radius:'0px',border:'0px',shadow:'none',padding:'0px'},`Messages has no outer card at ${width}px`);
   const layout=await a.evaluate(()=>{
    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}};
-   return {form:rect('#conversation-form'),input:rect('#conversation-input'),tools:rect('.composer-tools'),send:rect('#send-message'),buttons:[...document.querySelectorAll('.composer-tools button')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}}),width:innerWidth,height:innerHeight};
+   return {form:rect('#conversation-form'),input:rect('#conversation-input'),tools:rect('#composer-add'),send:rect('#send-message'),buttons:[...document.querySelectorAll('#composer-add')].map(el=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom}}),width:innerWidth,height:innerHeight};
   });
   for(const r of [layout.input,layout.send,...layout.buttons]){
    assert(r.left>=0&&r.right<=layout.width,`Control stays inside viewport at ${width}px`);
    assert(r.left>=layout.form.left&&r.right<=layout.form.right,`Control stays inside composer at ${width}px`);
    assert(r.bottom<=layout.form.bottom&&r.bottom<=layout.height,`Control stays above bottom edge at ${width}px`);
   }
-  assert(layout.input.bottom<=layout.tools.top&&layout.input.bottom<=layout.send.top,`Text area clears toolbar at ${width}px`);
+  assert(layout.tools.right<=layout.input.left&&layout.input.right<=layout.send.left,`Text area clears controls at ${width}px`);
   for(const r of layout.buttons)assert(r.right<=layout.send.left||r.bottom<=layout.send.top||r.top>=layout.send.bottom,`Tools clear Send at ${width}px`);
  }
  await a.setViewportSize({width:1360,height:900});
+ assert.equal(await a.locator('#inbox-search').getAttribute('placeholder'),'Search conversations:');
+ assert.equal(await a.locator('.inbox-person.selected small').textContent(),'Member');assert.equal(await a.locator('.person-heading small').textContent(),'Member · View profile');
+ assert(await a.locator('#send-message').isDisabled());await a.locator('#conversation-input').fill('  \n  ');assert(await a.locator('#send-message').isDisabled());
+ await a.locator('#conversation-input').fill('One line');const short=await a.locator('.composer-pill').boundingBox();
+ const radius=await a.locator('.composer-pill').evaluate(el=>getComputedStyle(el).borderRadius);
+ await a.locator('#conversation-input').fill('First line\nSecond line\nThird line');const tall=await a.locator('.composer-pill').boundingBox();assert(tall.height>short.height);assert.equal(await a.locator('.composer-pill').evaluate(el=>getComputedStyle(el).borderRadius),radius);
+ await a.getByRole('button',{name:'Add attachment',exact:true}).click();assert(await a.locator('#composer-menu').isVisible());assert.equal(await a.locator('#composer-menu button').count(),2);
+ await a.screenshot({path:'test-artifacts/composer-pill-desktop.png'});
+ await a.keyboard.press('Escape');assert(await a.locator('#composer-menu').isHidden());
  await a.locator('#conversation-input').fill('Hello from a real member');await a.locator('#send-message').click();await b.locator('.message-bubble').filter({hasText:'Hello from a real member'}).waitFor();
  assert.equal(await a.getByRole('button',{name:'Delete your message'}).count(),0);
  const edge=await a.evaluate(()=>({bubble:document.querySelector('.outgoing .message-bubble').getBoundingClientRect().right,pane:document.querySelector('#chat-scroll').getBoundingClientRect().right}));
- assert(Math.abs(edge.bubble-edge.pane)<2,'Sent message reaches conversation edge');
+ const gutter=await a.locator('#chat-scroll').evaluate(el=>parseFloat(getComputedStyle(el).paddingRight));
+ assert(gutter>0&&Math.abs(edge.pane-edge.bubble-gutter)<2,'Sent message retains gutter');
+ const metadataRight=await a.locator('.outgoing .message-meta').first().evaluate(el=>el.getBoundingClientRect().right);assert(Math.abs(metadataRight-edge.bubble)<2,'Bubble aligns with metadata');
 
  assert.equal(await b.getByRole('button',{name:'Edit your message'}).count(),0);
  await a.locator('#conversation-input').fill('Another editable message');await a.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'Another editable message'}).waitFor();
@@ -70,12 +82,12 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  assert.equal(fixture.messages[0].body,'Hello, edited by Alex');
  await a.locator('#conversation-input').fill('Keep this unsent draft');await b.locator('#conversation-input').fill('A reply from Taylor');await b.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Keep this unsent draft');
  await a.locator('.inbox-toggle').click();assert.equal(await a.locator('.inbox-toggle').getAttribute('aria-expanded'),'false');await a.locator('.inbox-toggle').click();
- await a.locator('#conversation-input').fill('');await a.locator('#message-file').setInputFiles({name:'notes.txt',mimeType:'text/plain',buffer:Buffer.from('hello')});await a.locator('#send-message').click();await b.getByRole('button',{name:'Download notes.txt',exact:true}).waitFor();const downloadPromise=b.waitForEvent('download');await b.getByRole('button',{name:'Download notes.txt',exact:true}).click();const download=await downloadPromise;assert.equal(download.suggestedFilename(),'notes.txt');assert.equal(fs.readFileSync(await download.path(),'utf8'),'hello');
- await a.getByRole('button',{name:'Share a project',exact:true}).click();await a.locator('.project-share-option').first().click();await b.locator('.shared-project').filter({hasText:'Build a tested booking flow'}).waitFor();
+ await a.locator('#conversation-input').fill('');await a.locator('#message-file').setInputFiles({name:'notes.txt',mimeType:'text/plain',buffer:Buffer.from('hello')});assert(await a.locator('#send-message').isDisabled());await a.locator('#conversation-input').fill('Here are my notes');await a.locator('#send-message').click();await b.getByRole('button',{name:'Download notes.txt',exact:true}).waitFor();const downloadPromise=b.waitForEvent('download');await b.getByRole('button',{name:'Download notes.txt',exact:true}).click();const download=await downloadPromise;assert.equal(download.suggestedFilename(),'notes.txt');assert.equal(fs.readFileSync(await download.path(),'utf8'),'hello');
+ await a.getByRole('button',{name:'Add attachment',exact:true}).click();await a.getByRole('button',{name:'Share a project',exact:true}).click();await a.locator('.project-share-option').first().click();await b.locator('.shared-project').filter({hasText:'Build a tested booking flow'}).waitFor();
  await c.evaluate(()=>refreshMessaging(true));assert.equal(await c.locator('#app').getByText('Hello from a real member').count(),0);assert.equal(await c.locator('.inbox-person').count(),0);
  fixture.failAfterCommit=true;await a.locator('#conversation-input').fill('Retry without duplicates');await a.locator('#send-message').click();await a.locator('#message-feedback').filter({hasText:'Connection lost after commit'}).waitFor();assert.equal(await a.locator('#conversation-input').inputValue(),'Retry without duplicates');await a.locator('#send-message').click();await a.waitForFunction(()=>document.querySelector('#conversation-input').value==='');assert.equal(fixture.messages.filter(m=>m.body==='Retry without duplicates').length,1);
  await a.reload();await a.evaluate(async()=>{Account.user={id:'00000000-0000-0000-0000-000000000001'};Account.client=client();await connectMessaging()});await a.locator('.message-bubble').filter({hasText:'A reply from Taylor'}).waitFor();
- await a.setViewportSize({width:390,height:844});await a.getByRole('button',{name:'Share a project',exact:true}).click();await a.locator('#share-project-search').fill('React');await a.waitForTimeout(100);const fit=await a.locator('.project-share-dialog').evaluate(el=>({height:el.getBoundingClientRect().height,scroll:el.scrollHeight,client:el.clientHeight,bottom:el.getBoundingClientRect().bottom,viewport:innerHeight}));assert(fit.bottom<=fit.viewport);assert(fit.scroll<=fit.client+1);
+ await a.setViewportSize({width:390,height:844});await a.getByRole('button',{name:'Add attachment',exact:true}).click();await a.getByRole('button',{name:'Share a project',exact:true}).click();await a.locator('#share-project-search').fill('React');await a.waitForTimeout(100);const fit=await a.locator('.project-share-dialog').evaluate(el=>({height:el.getBoundingClientRect().height,scroll:el.scrollHeight,client:el.clientHeight,bottom:el.getBoundingClientRect().bottom,viewport:innerHeight}));assert(fit.bottom<=fit.viewport);assert(fit.scroll<=fit.client+1);
 
  await a.evaluate(()=>closeModal());await a.setViewportSize({width:1360,height:900});
  assert(await a.locator('#message-widget').isHidden());
