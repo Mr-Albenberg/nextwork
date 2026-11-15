@@ -12893,3 +12893,11 @@ body[data-auth="member"] .aside-bottom .account.active b { color: inherit; }
 .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary" "editor" "resume" "projects" "account" "workspace"; }
 .account-settings-layout .profile-summary-card, .account-settings-layout .profile-editor, .account-settings-layout .settings-panel { padding: 24px 0; border-left: 0; }
 .account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects, .account-settings-layout .account-panel { padding: 24px 0; }
+
+/* Keep resume and account controls together, with a single divider. */
+@media (min-width: 1001px) {
+  .account-settings-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "summary summary" "editor editor" "resume account" "workspace workspace"; }
+  .account-settings-layout:has(.profile-completed-projects) { grid-template-areas: "summary summary" "editor editor" "resume account" "projects projects" "workspace workspace"; }
+  .account-settings-layout .profile-resume-section > section { padding: 24px 28px 24px 0; }
+  .account-settings-layout .account-panel { padding: 24px 0 24px 28px; border-left: 1px solid var(--line); }
+}
