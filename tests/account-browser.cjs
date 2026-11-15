@@ -461,7 +461,7 @@ async function login(page, email) {
     await page.locator('#profile-resume-file').setInputFiles({name:'alice-resume.txt',mimeType:'text/plain',buffer:Buffer.from('Alice Updated\nFrontend Developer\nSUMMARY\nI build accessible React applications for community teams and improve user experiences.\nEXPERIENCE\nBuilt a volunteer dashboard using JavaScript.\nEDUCATION\nExample University\nBachelor of Science in Computer Science\nExpected graduation: 2028\nSKILLS: React, JavaScript, SQL')});
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
     assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Upload must not change profile fields');
-    await page.locator('#profile-import-consent').check();
+    assert.equal(await page.locator('#profile-import-consent').count(),0);
     await page.getByRole('button',{name:'Prepare profile suggestions',exact:true}).click();
     await page.getByRole('heading',{name:'Review suggested changes'}).waitFor();
     assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Preparing suggestions must not save them');
