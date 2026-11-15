@@ -21,7 +21,7 @@
     const theme = preference === 'system' ? (system.matches ? 'dark' : 'light') : preference;
     document.documentElement.dataset.theme = theme;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = theme === 'dark' ? '#0b1a14' : '#059669';
+    if (meta) meta.content = theme === 'dark' ? '#0f1714' : '#28634d';
     document.querySelectorAll('.theme-control').forEach(button => {
       button.dataset.preference = preference;
       const next = modes[(modes.indexOf(preference) + 1) % modes.length];
