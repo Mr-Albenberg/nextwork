@@ -221,8 +221,9 @@ function recoDoneHTML() {
 <p>Designed from ${esc(basis)} and your resume.</p>
 <div class="rp-chips"><span class="rp-pill strong">${p.source === "live" ? "Live postings" : p.source === "ai-estimate" ? "AI estimate" : "Baseline estimate"}</span>${a.coverage !== null ? `<span class="rp-pill">${a.coverage}% of employer demand already in your resume</span>` : ""}<a href="#projects">Saved ideas →</a></div></div>
 ${s.note ? `<div class="notice" style="margin-bottom:18px">${esc(s.note)}</div>` : ""}
+<section class="rp-section"><h2 class="rp-h2">What employers are asking for</h2><p class="rp-sub">What the job postings ask for, and how your resume compares. The projects below are built to close these gaps.</p>${recoMarketHTML(s)}${recoGapHTML(s)}</section>
+<section class="rp-section"><h2 class="rp-h2">Projects to build</h2><p class="rp-sub">Each one targets a gap above. Save the ones you want.</p></section>
 ${s.projects.map((x, i) => recoProjectHTML(x, i)).join("")}
-<section class="rp-section"><h2 class="rp-h2">What employers are asking for</h2><p class="rp-sub">The skills behind these projects, and how your resume compares.</p>${recoMarketHTML(s)}${recoGapHTML(s)}</section>
 </div>`;
 }
 
@@ -272,8 +273,7 @@ function recommendPage() {
   return `<div class="rp-wrap">
 <div class="rp-hero"><span class="eyebrow">PROJECT IDEAS</span><h1>Build the project that gets you hired.</h1><p>Tell us the job you want and add your resume. We read real job postings, see what employers ask for, and design three projects that fill your gaps.</p></div>
 <form id="reco-form" class="rp-card" novalidate>
-<label class="field">What job do you want?<input id="reco-role" required minlength="2" maxlength="120" list="reco-roles" placeholder="e.g. Mechanical engineer, UX designer, Data analyst, Nurse" value="${esc(role)}" autocomplete="off"></label>
-<datalist id="reco-roles">${RecommendEngine.families.map((f) => `<option value="${esc(f.label)}">`).join("")}</datalist>
+<label class="field">What job do you want?<input id="reco-role" required minlength="2" maxlength="120" placeholder="e.g. Mechanical engineer, UX designer, Data analyst, Nurse" value="${esc(role)}" autocomplete="off"></label>
 <div class="rp-label">Your profile resume</div>
 <div id="reco-saved" class="rp-resume-ok"><span>${hasResume?'✓ Using your saved profile resume':'Upload your resume once in your profile to get started.'}</span><a class="outline" href="#profile">${hasResume?'Manage resume':'Upload resume'}</a></div>
 <details class="rp-text" id="reco-text-wrap"><summary>View saved resume text</summary><textarea id="reco-resume" readonly maxlength="30000">${esc(resume)}</textarea></details>
