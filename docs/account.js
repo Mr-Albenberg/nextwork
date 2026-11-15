@@ -291,6 +291,8 @@ function activateWorkspace(user) {
     applications = JSON.parse(workspaceLocal.getItem("lp-apps") || "[]");
     resumeReport = null;
     profileStep = 0;
+    if (typeof workTab !== "undefined") workTab = "applications";
+    if (typeof recoState !== "undefined") recoState = { status: "idle", step: "", error: "", result: null, busy: false };
     activePerson = "";
     inboxFilter = "inbox";
     inboxQuery = "";
@@ -447,6 +449,9 @@ function requireAccount(message = "Log in to access your Nextwork workspace.") {
 function updateAccountChrome(page) {
   document.body.dataset.auth = Account.user ? "member" : "guest";
   document.body.dataset.page = page;
+  const pageLabel = document.querySelector('.workspace-page-label');
+  if (pageLabel) { const labels={overview:'Overview',explore:'Find work',projects:'My work',recommend:'Project ideas',resume:'Resume review',profile:'My profile',messages:'Messages',organization:'Hiring portal',premium:'Premium',checkout:'Membership',settings:'Settings'}; pageLabel.textContent=labels[page.split('/')[0]]||''; }
+
   const hiring = isOrganizationAccount();
   document.body.dataset.accountType = hiring ? "organization" : "personal";
   document.querySelectorAll('a.account, header .header-account').forEach(link => link.href = hiring ? '#settings' : '#profile');

@@ -409,7 +409,7 @@ const netFetch = async (url) => {
   }
   vm.runInContext("render()", ctx);
   let html = element("#app").innerHTML;
-  assert(html.includes("Build the project that gets you hired.") && html.includes("Find my projects"));
+  assert(html.includes("Build experience worth showing.") && html.includes("Generate project ideas"));
   assert(html.includes('id="reco-role"') && html.includes('id="reco-resume"') && html.includes('href="#profile"') && !html.includes('id="reco-file"'));
   for (const gone of ["reco-method", "reco-family", "reco-hours", "reco-consent", "Time you can give", "Recommendation method"]) assert(!html.includes(gone), "removed option is gone: " + gone);
   assert(html.includes("sent to Google Gemini"), "AI use is disclosed next to the button");
@@ -419,7 +419,7 @@ const netFetch = async (url) => {
   ctx.location.hash = "#recommend/results";
   vm.runInContext("render()", ctx);
   assert(element("#app").innerHTML.includes("No project plan yet"));
-  assert(element("#nav").innerHTML.includes('class="active"'), "Project ideas stays highlighted on the results page");
+  assert(element("#nav").innerHTML.includes('aria-current="page"'), "Project ideas stays highlighted on the results page");
 
   // From here the client needs a signed-in account; render is wrapped so the real router runs without account chrome.
   ctx.Account = { user: { id: 1 }, client: { auth: { getSession: async () => ({ data: { session: { access_token: "t" } } }) } } };
@@ -455,11 +455,16 @@ const netFetch = async (url) => {
   assert.equal(aiRequest.body.hoursPerWeek, 8);
   assert(!aiRequest.body.custom);
   let out = element("#app").innerHTML;
-  assert(out.includes("Accessible habit tracker") && out.includes("Your plan") && out.includes("Create the app and CI."));
-  assert(out.includes("Live postings") && out.includes("What employers are asking for") && out.includes("100%"));
-  assert(out.includes("Tools to use") && out.includes("Vitest") && out.includes("How to show it off") && out.includes("Add offline mode"));
-  assert((out.match(/class="rp-project"/g) || []).length === 3);
-  assert(out.includes("Intermediate") && out.includes("About 32 hours"));
+  assert(out.includes("Accessible habit tracker") && out.includes("View project plan"));
+  assert(out.includes("public job postings") && out.includes("How these ideas were chosen"));
+  assert(!out.includes('class="progress"') && !out.includes('% of employer demand'));
+  assert((out.match(/class="rp-project idea-card"/g) || []).length === 3);
+  assert(out.includes("Intermediate") && out.includes("32 hours"));
+  ctx.location.hash = '#recommend/idea/0';vm.runInContext('render()',ctx);
+  const planPage=element('#app').innerHTML;
+  assert(planPage.includes('YOUR PLAN') && planPage.includes('Create the app and CI.') && planPage.includes('Vitest') && planPage.includes('Add offline mode'));
+  assert(planPage.includes('What you’ll create') && planPage.includes('Copy full project brief'));
+  ctx.location.hash='#recommend/results';vm.runInContext('render()',ctx);
   assert(!out.includes("javascript:") && !out.includes("<img src=x"));
   assert.equal(data["nw-reco-role"], "Frontend developer");
   assert.equal(data["proof-resume"], resume);
@@ -482,9 +487,9 @@ const netFetch = async (url) => {
   // Saved projects appear on the Applications page with a remove button.
   vm.runInContext("saveIdea(0)", ctx);
   ctx.location.hash = "#projects";
-  vm.runInContext("render()", ctx);
+  vm.runInContext("workTab='ideas';render()", ctx);
   out = element("#app").innerHTML;
-  assert(out.includes("Saved project ideas · 1") && out.includes("Accessible habit tracker") && out.includes("See the plan") && out.includes("removeIdea(0)"));
+  assert(out.includes("Saved project ideas · 1") && out.includes("Accessible habit tracker") && out.includes("View project plan") && out.includes("removeIdea(0)"));
   vm.runInContext("removeIdea(0)", ctx);
   assert(element("#app").innerHTML.includes("Saved project ideas · 0"));
 
@@ -515,8 +520,8 @@ const netFetch = async (url) => {
   apiMode = "offline";
   await submit({ resume, role: "Robotics engineer" });
   out = element("#app").innerHTML;
-  assert(out.includes("template projects are shown instead") && out.includes("Baseline estimate"));
-  assert((out.match(/class="rp-project"/g) || []).length === 3);
+  assert(out.includes("template projects are shown instead") && out.includes("Role baseline"));
+  assert((out.match(/class="rp-project idea-card"/g) || []).length === 3);
   apiMode = "ok";
 
   console.log("Project recommendation engine, live and baseline market data, AI validation, quota gate, API auth and page behavior checks passed.");

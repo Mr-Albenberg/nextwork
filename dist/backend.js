@@ -21,6 +21,7 @@ const extraKeys = [
   "nextwork-growth",
   "nextwork-demo-chats",
   "nw-saved-ideas",
+  "nw-reco-last",
 ];
 const accountColumns = {
   "proof-profile": "profile",

@@ -723,6 +723,47 @@ async function login(page, email) {
     // Separate hiring login and role-specific navigation, with no candidate workspace created.
     ({ context, page, errors } = await setup(browser));
     await login(page, "alice@example.com");
+    await page.goto(base+'/#recommend');
+    await page.getByRole('heading',{name:'Build experience worth showing.',exact:true}).waitFor();
+    assert.equal(await page.locator('#reco-run').count(),1);
+    assert.equal(await page.locator('#nav a[href="#tools"]').count(),0);
+    await page.screenshot({path:'test-artifacts/project-ideas-start.png',fullPage:true});
+    await page.evaluate(()=>{
+      const projects=Array.from({length:3},(_,i)=>({title:['Accessible community dashboard','Product onboarding study','Customer insights notebook'][i],overview:'Build a focused project with clear outcomes and a useful handoff.',pitch:'A practical project.',why:'Practice relevant skills and explain your contribution.',difficulty:'beginner',hours:24,weeks:3,skills:['React','Accessibility'],covers:['Accessibility'],buildsOn:['React'],build:['Research','Build','Review'],plan:[{phase:'Define the problem',details:'Choose a user need and a small, testable scope.'},{phase:'Build a working version',details:'Create a usable solution and test key interactions.'},{phase:'Explain the result',details:'Write a short handoff and document what you learned.'}],tools:['React','Figma'],deliverables:['A working project','A short case study'],stretch:['Test another user scenario'],showcase:'Link to the project and describe your decisions.',demand:{}}));
+      recoState={status:'done',busy:false,result:{role:'Frontend developer',profile:{source:'baseline',skills:[{skill:'React',tier:'common'},{skill:'Accessibility',tier:'common'}],family:{label:'Frontend developer'}},family:{label:'Frontend developer'},analysis:{have:[{skill:'React'}],gaps:[{skill:'Accessibility'}],coverage:50},projects,note:''}};
+      workspaceLocal.setItem(RECO_LAST_KEY,JSON.stringify({...recoState.result,source:'local'}));
+      location.hash='recommend/results';
+    });
+    await page.getByRole('heading',{name:'Your next project starts here.',exact:true}).waitFor();
+    assert.equal(await page.locator('.idea-card').count(),3);
+    assert.equal(await page.locator('.reco-skill,.idea-cards .progress').count(),0);
+    assert.equal(await page.locator('.idea-source-details').getAttribute('open'),null);
+    await page.screenshot({path:'test-artifacts/project-ideas-results.png',fullPage:true});
+    await page.getByRole('link',{name:'View project plan',exact:false}).first().click();
+    await page.waitForURL('**/#recommend/idea/0');
+    assert.equal(await page.locator('.idea-plan-steps>li').count(),3);
+    await page.getByRole('button',{name:'Save project',exact:true}).click();
+    await page.getByRole('button',{name:'Saved ✓',exact:true}).waitFor();
+    await page.waitForFunction(()=>Backend.pending.size===0&&!Backend.saving);
+    await page.reload();
+    await page.getByRole('heading',{name:'Accessible community dashboard',exact:true}).waitFor();
+    await page.goto(base+'/#projects');
+    await page.getByRole('tab',{name:/Project ideas/}).click();
+    await page.getByRole('heading',{name:'Accessible community dashboard',exact:true}).waitFor();
+    await page.getByRole('link',{name:'View project plan',exact:false}).first().click();
+    await page.waitForURL('**/#recommend/saved/0');
+    await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    assert.equal(await page.locator('#nav .nav-link:visible').count(),5);
+    await page.screenshot({path:'test-artifacts/project-plan-mobile.png',fullPage:true});
+    for(const route of ['explore','projects','profile','premium']){
+      await page.goto(base+'/#'+route);
+      await page.waitForFunction(()=>Account.ready&&Backend.ready);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'No mobile overflow on '+route);
+    }
+    await page.goto(base+'/#tools');
+    await page.waitForURL('**/#resume');
+    await page.setViewportSize({width:1280,height:900});
     await page.goto(base + '/#explore');
     // Every select has a text search control, including marketplace sort.
     assert.equal(await page.locator('select:not([hidden])').count(),0);
@@ -748,6 +789,7 @@ async function login(page, email) {
     await page.getByRole('button',{name:'Close',exact:true}).click();
     assert.equal(await page.locator('#nav a[href="#skills"],#nav a[href="#career"]').count(),0);
     assert.equal(await page.locator('#nav > a[href="#recommend"]').count(),1);
+    assert.equal(await page.locator('#nav a[href="#tools"]').count(),0);
     await page.goto(base + "/#organization");
     await page.getByRole('heading', {name:'A separate organization account is required.'}).waitFor();
     assert.equal(await page.locator('#organization-profile').count(), 0);
