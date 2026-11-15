@@ -12928,3 +12928,15 @@ body[data-auth="member"] .account-settings-layout :is(.profile-editor, .profile-
   .account-settings-layout .profile-summary-card::before { right: 0; }
   .account-settings-layout .profile-editor::before { left: 0; }
 }
+
+/* The overview and editor form one profile section. */
+.account-settings-layout .profile-editor { border-left: 0; }
+@media (min-width: 1001px) {
+  .account-settings-layout .profile-summary-card { padding-right: 18px; }
+  .account-settings-layout .profile-editor { padding-left: 18px; border-left: 0; }
+}
+@media (max-width: 1000px) {
+  .account-settings-layout .profile-summary-card { padding-bottom: 12px; }
+  .account-settings-layout .profile-editor { padding-top: 12px; }
+  .account-settings-layout .profile-editor::before { content: none; }
+}
