@@ -5112,7 +5112,8 @@ body:has(.home-redesign) main {
   #nav .nav-link[data-nav="projects"],
   #nav .nav-link[data-nav="recommend"],
   #nav .nav-link[data-nav="messages"],
-  #nav .nav-link[data-nav="profile"],
+  #nav .nav-link[data-nav="settings"],
+  #nav .nav-link[data-nav="resume"],
   body[data-account-type="organization"] #nav .nav-link {
     display: flex;
     flex: 1;
@@ -12691,3 +12692,7 @@ body.messages-page .messenger {
 }
 
 .message-edit-swap .message-edited { pointer-events: none; }
+
+/* Keep account settings at the bottom of the workspace navigation. */
+@media(min-width:761px){body[data-auth="member"]>aside #nav{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow-y:auto}#nav .nav-link[data-nav="settings"]{margin-top:auto;flex-shrink:0}}
+@media(max-width:760px){#nav .nav-link[data-nav="settings"] span{white-space:normal;text-align:center;line-height:1.1}#nav .nav-link[data-nav="resume"] span{white-space:nowrap}}

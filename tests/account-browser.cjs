@@ -419,9 +419,9 @@ async function login(page, email) {
     await page.locator("[data-own-photo] img").waitFor();
     assert(photos.has(users["alice@example.com"].id));
     const stableAvatars = await page.evaluate(async () => {
-      const selector = '.workspace-header .avatar img,aside .account .avatar img';
+      const selector = '.workspace-header .avatar img';
       const images = [...document.querySelectorAll(selector)];
-      if (images.length !== 2) return false;
+      if (images.length !== 1) return false;
       let removed = false;
       const observer = new MutationObserver(records => {
         if (records.some(record => [...record.removedNodes].some(node => images.includes(node)))) removed = true;
@@ -437,7 +437,7 @@ async function login(page, email) {
       return !removed && images.every((image,index) => document.querySelectorAll(selector)[index] === image) &&
         profileImage?.complete && profileImage.naturalWidth > 0;
     });
-    assert(stableAvatars, 'Page changes must preserve loaded toolbar/sidebar images and render the cached profile photo');
+    assert(stableAvatars, 'Page changes must preserve the loaded toolbar image and render the cached profile photo');
 
     await page
       .getByRole("button", { name: "Change photo", exact: true })
@@ -608,6 +608,17 @@ async function login(page, email) {
     }
     await page.setViewportSize({width:1280,height:900});
     await page.goto(base + "/#settings");
+    assert.equal(await page.locator('#profile-form').count(), 1, 'Account settings contains one profile editor');
+    assert.equal(await page.locator('.account-panel').count(), 1, 'Account settings contains one account controls panel');
+    assert.equal(await page.getByRole('heading', {name:'Account & connections', exact:true}).count(), 1);
+    assert.equal(await page.locator('#nav [data-nav="settings"]').count(), 1);
+    assert.equal(await page.locator('#nav [data-nav="resume"]').innerText(), 'My resume');
+    assert.equal(await page.locator('#nav .nav-caption').count(), 1);
+    assert.equal(await page.locator('#nav a').last().getAttribute('data-nav'), 'settings');
+    await page.setViewportSize({width:390,height:844});
+    assert(await page.locator('#nav [data-nav="settings"]').isVisible());
+    assert(await page.locator('#nav [data-nav="resume"]').isVisible());
+    await page.setViewportSize({width:1280,height:900});
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await page.waitForURL("**/#login");
     failPhotoImport = true;
@@ -624,7 +635,7 @@ async function login(page, email) {
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const input = document.querySelector('#profile-form [name="name"]');
       const controls = document.querySelector('.profile-photo-controls');
-      const connected = document.querySelector('.profile-settings-shortcut');
+      const connected = document.querySelector('.account-panel');
       const status = document.querySelector('[data-photo-status]');
       const statusText = status.textContent;
       input.value = 'Unsent profile edit';
@@ -907,7 +918,7 @@ async function login(page, email) {
     await page.goto(base+'/#recommend/saved/0');
     await page.setViewportSize({width:390,height:844});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-    assert.equal(await page.locator('#nav .nav-link:visible').count(),5);
+    assert.equal(await page.locator('#nav .nav-link:visible').count(),6);
     await page.screenshot({path:'test-artifacts/project-plan-mobile.png',fullPage:true});
     for(const route of ['explore','projects','profile','premium']){
       await page.goto(base+'/#'+route);
