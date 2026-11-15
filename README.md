@@ -1,7 +1,5 @@
 # Nextwork
 
-> **Jack: messaging needs Supabase activation.** Follow [JACK_SETUP.md](JACK_SETUP.md) to enable it in the existing project. No second Supabase project is needed.
-
 [Find paid projects](https://mr-albenberg.github.io/nextwork/) · [Set up your profile](https://mr-albenberg.github.io/nextwork/#profile) · [Resume Studio](https://mr-albenberg.github.io/nextwork/#resume)
 
 A graduate marketplace for paid, scoped startup projects. Browse and filter opportunities, compare resume evidence with a listing, save opportunities, and prepare an application.
@@ -280,16 +278,9 @@ Organization signup asks only for organization name, work email, and password. I
 All select controls use the shared searchable combobox, preserving canonical underlying form values and supported database enums. Skill selection searches 8,882 skill/tool labels, industry search includes 1,022 labels, and role/title suggestions include 1,016 occupations. See `data/catalog-sources.md` for public data attribution. Catalog breadth does not expand the matching engine’s claimed expertise. Search supports common aliases and approximate spelling, keyboard navigation, explicit canonical selection, and bounded suggestion lists. Optional selectors can be left blank.
 
 
-## Real messaging: activate in the existing Supabase project
+## Real messaging
 
 Messaging uses **only** `https://zkoqafidgromlbvczwzy.supabase.co`, the same project as authentication and account data. It runs directly from GitHub Pages with the existing publishable key; no Vercel API, second Supabase project, service-role key in the browser, or new hosting service is required.
-
-A project owner/admin (Jack, or a member he grants the relevant permissions) must do this once:
-
-1. Open the **existing** project in the Supabase Dashboard and enable Storage if necessary. Under Storage, create a bucket named **`message-attachments`**. Keep it **private**, set the maximum file size to **10 MB**, and allow MIME type **`application/octet-stream`**. Do not use a public bucket.
-2. Ensure the account, organization, account-update, and account-type setup migrations (001–004) are already applied. In the SQL Editor, run [the messaging migration](supabase/migrations/202611140005_messaging.sql). The same SQL is distributed as `docs/messaging-setup.sql` for easy download. It creates shared conversation/message tables, deliberately limited member profiles, private file policies, authenticated RPCs, and the Realtime publication entries. It does not delete existing account/application data or create another project.
-3. In Authentication → URL Configuration, set the Pages site URL to `https://mr-albenberg.github.io/nextwork/` and allow that URL plus `https://mr-albenberg.github.io/nextwork/?auth=recovery` for redirects. Keep additional local development redirects only if needed.
-4. Sign in with two **different real accounts** in separate browser profiles. Set a recognizable profile name for each. In Messages, use New conversation to find the other member, send and reply, refresh each browser, share a listing, and send/download an attachment. Verify a third account cannot see the conversation. Organization accounts have Messages in their own navigation too.
 
 The database exposes member names, public biography, role/company, and skills to signed-in member search. It does not expose account emails, resume text, or private application snapshots. Draft text/files remain in memory until sent and are cleared on account changes. Sends use a stable UUID for retries, private Storage for file bytes, and per-user read/saved/archive state. Realtime refreshes incoming messages without replacing the composer; a 15-second polling fallback catches reconnects. Threads load the newest 50 messages and support loading earlier messages.
 
@@ -299,7 +290,7 @@ Until the existing project has the migration and private bucket, the Messages pa
 
 For account deletion the client removes its uploaded files through the Storage API before deleting the auth account. Conversations and metadata cascade on account removal. If an account is deleted outside the app or a browser is closed during an upload, an administrator should periodically clean up unreferenced/pending files through the **Storage API**, never by deleting `storage.objects` rows directly. Pending reservations are capped; staged files are visible only to their uploader until sent, and deleted messages no longer authorize downloads.
 
-Validation: `node tests/messaging.test.js` tests service contracts and retries. `node tests/messaging-browser.cjs` uses isolated synthetic accounts against a shared transport fixture to test browser interactions, live refresh, attachments, reload, and mobile layout. `tests/messaging.test.sql` exercises the real PostgreSQL RPCs/RLS with three identities plus an organization in a disposable database. These are not a claim that Jack's hosted project has been migrated or verified; the live two-account check is required after activation.
+Validation: `node tests/messaging.test.js` tests service contracts and retries. `node tests/messaging-browser.cjs` uses isolated synthetic accounts against a shared transport fixture to test browser interactions, live refresh, attachments, reload, and mobile layout. `tests/messaging.test.sql` exercises the real PostgreSQL RPCs/RLS with three identities plus an organization in a disposable database. A live two-account check is required after activation.
 ## Profile photos and shared LinkedIn imports
 
 Photos run entirely on Supabase; GitHub Pages serves the website. Vercel deployments remain disabled. No paid Storage image transformations or external image service is used. The separate existing AI/market APIs keep their current hosting; this change moves the photo backend only.
