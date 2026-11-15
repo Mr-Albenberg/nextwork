@@ -12468,3 +12468,8 @@ body.messages-page .messenger {
 .outgoing .message-edited { text-align: right; }
 
 .message-meta .message-edit, .message-meta .message-time { font-size: 10px; line-height: 1.5; }
+
+/* Sent bubbles sit against the conversation edge, without a second width inset. */
+.messages-page .chat-scroll { padding-right: 0; }
+.message-line.outgoing > div { display: flex; flex-direction: column; align-items: flex-end; }
+.message-line.outgoing .message-bubble { max-width: 100%; }

@@ -44,6 +44,9 @@ const base=process.env.NEXTWORK_TEST_URL||'http://127.0.0.1:3000';
  await a.setViewportSize({width:1360,height:900});
  await a.locator('#conversation-input').fill('Hello from a real member');await a.locator('#send-message').click();await b.locator('.message-bubble').filter({hasText:'Hello from a real member'}).waitFor();
  assert.equal(await a.getByRole('button',{name:'Delete your message'}).count(),0);
+ const edge=await a.evaluate(()=>({bubble:document.querySelector('.outgoing .message-bubble').getBoundingClientRect().right,pane:document.querySelector('#chat-scroll').getBoundingClientRect().right}));
+ assert(Math.abs(edge.bubble-edge.pane)<2,'Sent message reaches conversation edge');
+
  assert.equal(await b.getByRole('button',{name:'Edit your message'}).count(),0);
  await a.locator('#conversation-input').fill('Another editable message');await a.locator('#send-message').click();await a.locator('.message-bubble').filter({hasText:'Another editable message'}).waitFor();
  await a.locator('#conversation-input').hover();
