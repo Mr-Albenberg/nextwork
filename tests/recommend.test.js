@@ -397,7 +397,7 @@ const netFetch = async (url) => {
     }
   };
   vm.createContext(ctx);
-  const pageScripts = [...fs.readFileSync("dist/index.html", "utf8").matchAll(/<script src="([^"]+)"/g)].map((x) => x[1]).filter((f) => !["supabase.js", "account.js", "backend.js"].includes(f));
+  const pageScripts = [...fs.readFileSync("dist/index.html", "utf8").matchAll(/<script src="([^"]+)"/g)].map((x) => x[1].split("?")[0]).filter((f) => !["supabase.js", "account.js", "backend.js"].includes(f));
   assert(pageScripts.includes("recommend.js") && pageScripts.indexOf("recommend.js") < pageScripts.indexOf("app.js"), "recommend.js must load before app.js");
   for (const f of pageScripts) {
     vm.runInContext(fs.readFileSync("dist/" + f, "utf8"), ctx);

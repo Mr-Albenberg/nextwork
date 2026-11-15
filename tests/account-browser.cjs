@@ -462,17 +462,22 @@ async function login(page, email) {
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
     assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Upload must not change profile fields');
     assert.equal(await page.locator('#profile-import-consent').count(),0);
-    await page.getByRole('button',{name:'Prepare profile suggestions',exact:true}).click();
-    await page.getByRole('heading',{name:'Review suggested changes'}).waitFor();
+    await page.getByRole('button',{name:'Fill in profile details',exact:true}).click();
+    await page.getByRole('dialog').filter({has:page.getByRole('heading',{name:'Your profile details are ready'})}).waitFor();
+    assert.equal(await page.locator('.profile-import-table').count(),0);
+    assert.equal(await page.getByText('Review suggested changes',{exact:true}).count(),0);
     assert(!rows.get(users['alice@example.com'].id).profile.tagline,'Preparing suggestions must not save them');
-    await page.getByRole('button',{name:/Fill missing profile details/}).click();
+    await page.getByRole('button',{name:'Fill empty fields',exact:true}).click();
     await page.waitForFunction(()=>!Backend.saving&&Backend.pending.size===0);
     assert.equal(rows.get(users['alice@example.com'].id).profile.degree,'BS in Computer Science');
     assert.equal(rows.get(users['alice@example.com'].id).profile.education,'Real University','Filling blanks preserves existing values');
     assert.equal(rows.get(users['alice@example.com'].id).profile.graduation,'2028');
-    await page.getByRole('button',{name:/Update all different details/}).click();
+    await page.getByRole('button',{name:'Fill in profile details',exact:true}).click();
+    await page.getByRole('heading',{name:'Your profile details are ready'}).waitFor();
+    await page.getByRole('button',{name:'Update everything',exact:true}).click();
     await page.waitForFunction(()=>!Backend.saving&&Backend.pending.size===0);
     assert.equal(rows.get(users['alice@example.com'].id).profile.education,'Example University');
+    assert.equal(await page.getByRole('heading',{name:'Your profile details are ready'}).count(),0);
     assert(rows.get(users['alice@example.com'].id).extras['proof-resume-report']);
     await page.reload();
     await page.getByText('Saved resume: alice-resume.txt',{exact:true}).waitFor();
@@ -497,6 +502,7 @@ async function login(page, email) {
     await page.waitForURL('**/#recommend');
     assert.equal(await page.locator('#reco-resume').inputValue(),'');
     await page.goto(base + '/#resume');
+    assert.equal(await page.locator('#review-consent').count(),0);
     await page.getByRole('heading',{name:'Build a stronger application',exact:true}).waitFor();
     await page
       .getByLabel("Resume text")
