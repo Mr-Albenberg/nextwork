@@ -65,7 +65,9 @@ jobs:
       - name: Test applicant PDF report
         run: node tests/applicant-report.test.js
       - name: Test application lifecycle and fit analyzer
-        run: node tests/applications.test.js
+        run: |
+          node tests/applications.test.js
+          node tests/sample-applications.test.js
       - name: Test compatibility ranking and marketplace flow
         run: node tests/listing-match.test.js
       - name: Test profile setup, field criteria and grounded AI evidence
@@ -102,6 +104,7 @@ jobs:
           trap 'kill "$account_server_pid"' EXIT
           curl --retry-connrefused --retry 5 --retry-delay 1 --fail --silent http://localhost:3000/ > /dev/null
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/account-browser.cjs
+          NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/sample-applications-browser.cjs
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/resume-documents-browser.cjs
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/theme-browser.cjs
           NODE_PATH="$RUNNER_TEMP/nextwork-browser/node_modules" CHROMIUM_PATH="$(command -v google-chrome)" node tests/messaging-browser.cjs

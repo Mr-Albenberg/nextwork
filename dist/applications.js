@@ -173,7 +173,7 @@ function applicationSnapshot(user) {
 }
 function myApplicationFor(listingId) { return Organization.mine.find(a => Number(a.listing_id) === Number(listingId)); }
 function applyButtonLabel(job) {
-  if (!job.organizationId) return applications.includes(job.id) ? 'View your application' : 'Apply to this project ↗';
+  if (!job.organizationId) {const record=applicationRecord(job.id);return record ? 'View your application' : 'Apply to this project ↗';}
   ensureApplicationsLoaded();
   const existing = myApplicationFor(job.id);
   if (!existing) return 'Apply to this opportunity ↗';
@@ -277,15 +277,15 @@ function myApplicationCard(app) {
 }
 function myApplicationsHTML() {
   ensureApplicationsLoaded();
-  const all = Organization.mine || [], filter = Organization.mineFilter || 'all';
+  const samples=typeof sampleApplicationRows==='function'?sampleApplicationRows():[];
+  const all = [...(Organization.mine || []),...samples], filter = Organization.mineFilter || 'all';
   const groups = { all: all, active: all.filter(a => ['submitted', 'shortlisted'].includes(a.status)), accepted: all.filter(a => a.status === 'accepted'), closed: all.filter(a => ['declined', 'withdrawn'].includes(a.status)) };
   const shown = groups[filter] || all;
-  const drafts = applications.map(id => jobs.find(j => j.id === id)).filter(Boolean);
   const loading = !Organization.loaded && !Organization.error;
   return `<div class="applications-overview">${[['all', 'All applications', groups.all.length], ['active', 'In progress', groups.active.length], ['accepted', 'Accepted', groups.accepted.length], ['closed', 'Closed', groups.closed.length]].map(([key, label, n]) => `<button class="${filter === key ? 'active' : ''}" aria-pressed="${filter === key}" onclick="setApplicationFilter('${key}')"><strong>${n}</strong><span>${label}</span></button>`).join('')}</div>
     ${Organization.error ? `<div class="org-error" role="alert">${esc(Organization.error)}</div>` : ''}
-    <div class="my-application-list">${loading ? inlineLoading('Loading your applications…') : shown.map(myApplicationCard).join('') || `<div class="empty-state">${icon('apps', 30)}<h2>${all.length ? 'Nothing here right now.' : 'Make your first move.'}</h2><p>${all.length ? 'Try another filter.' : 'Apply to an organization’s opportunity and track every decision here.'}</p>${all.length ? '' : '<a class="primary" href="#explore">Explore opportunities</a>'}</div>`}</div>
-    ${drafts.length ? `<section class="drafts-section"><div class="section-title"><h2>Practice drafts</h2><small>Sample listings — drafts stay private in your account.</small></div>${drafts.map(j => `<article class="application-row compact">${logo(j)}<div><small>${esc(j.c)}</small><h3>${esc(j.title)}</h3></div><span class="status-pill tone-neutral">Draft</span><button class="outline" onclick="apply(${j.id})">Open draft ${icon('arrow', 14)}</button></article>`).join('')}</section>` : ''}`;
+    <div class="my-application-list">${loading&&!samples.length ? inlineLoading('Loading your applications…') : shown.map(a=>a.isSample?sampleApplicationCard(a):myApplicationCard(a)).join('') || `<div class="empty-state">${icon('apps', 30)}<h2>${all.length ? 'Nothing here right now.' : 'Make your first move.'}</h2><p>${all.length ? 'Try another filter.' : 'Apply to an opportunity and track your applications here.'}</p>${all.length ? '' : '<a class="primary" href="#explore">Explore opportunities</a>'}</div>`}</div>
+    `;
 }
 function submissionsPage() { workTab = 'applications'; setTimeout(() => { location.hash = 'projects'; }, 0); return loadingView('Opening My work', 'Your applications now live in My work.'); }
 

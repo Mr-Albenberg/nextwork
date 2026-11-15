@@ -12946,3 +12946,4 @@ body[data-auth="member"] .account-settings-layout :is(.profile-editor, .profile-
 /* Use one type scale for account section headings and introductions. */
 .account-settings-layout :is(.editor-heading h2, .profile-resume-heading h2, .settings-panel > h2, .account-heading h2, .profile-completed-projects .section-title h2) { font-size: 22px; font-weight: 700; line-height: 1.3; letter-spacing: -0.02em; margin: 0 0 10px; }
 .account-settings-layout :is(.profile-resume-heading p, .settings-panel > p, .account-heading p) { font-size: 13px; line-height: 1.7; color: var(--muted); margin: 0 0 12px; }
+.sample-application-card .my-app-head>.company-logo{flex-shrink:0;width:42px;height:42px}.sample-application-introduction{white-space:pre-wrap;line-height:1.8}.sample-application-card .resume-hint{margin:14px 0 18px;max-width:640px}.application-dialog .application-facts{min-width:0}.application-dialog .application-facts span{overflow-wrap:anywhere}
