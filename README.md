@@ -29,6 +29,16 @@ The three-step setup collects name, email, education, target field/role, engagem
 
 Email/password and LinkedIn accounts use Supabase Auth. Signed-in profiles, saved projects, application drafts, and resume text are saved in a private account workspace after the database migration is applied. Profiles are available only after sign-in. Legacy guest profiles are no longer used. No employer-facing submissions are enabled. Self-reported profile skills are not counted as verified resume evidence. Logged-out visitors cannot access resume tools. Signed-in resume text is automatically saved; Clear resume data clears the active resume, while prior application snapshots are retained.
 
+## Applications to organizations
+
+Personal accounts track every organization application under **My work → Applications**: status (Submitted, Shortlisted, Accepted, Not selected, Withdrawn), a progress tracker, and any note the organization left with its decision. Declined or withdrawn applications can be resubmitted while the listing is still published (up to 5 attempts); resubmitting clears the previous decision. The old `#submissions` page redirects to My work.
+
+When applying, the applicant chooses what to share: their full profile snapshot, resume text, and (if saved in their profile) the original resume file. The file is copied into the private `application-resumes` bucket under the application's ID, so only the applicant and the hiring organization can read it.
+
+Organizations review each applicant on a full page: profile details, skills (highlighted where they match the listing), introduction, an in-browser PDF preview of the resume, and a **role fit analyzer**. The fit estimate is 55% resume evidence (the same listing criteria and field foundations used for marketplace scores), 30% requested skills (resume evidence counts fully, profile-only skills partly), and 15% stated preferences (field, engagement, availability, work style). Without resume text the estimate is capped at 60. It is a review aid, not a hiring decision; keyword evidence is not verified proficiency.
+
+Database: run `supabase/migrations/202611150010_application_lifecycle.sql` (see JACK_SETUP.md step 5).
+
 ## Listing and field compatibility
 
 `dist/criteria.js` defines the six sample listings' individual criteria and field foundations. The marketplace calculates a quick local evidence score from resume text:

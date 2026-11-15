@@ -36,11 +36,12 @@ h2{margin:0 0 9px;padding-bottom:5px;border-bottom:1px solid #dfe3ee;font-size:1
 </style></head><body>
 <div class="top"><div class="brand"><img src="https://mr-albenberg.github.io/nextwork/assets/brand/nextwork-icon.png" alt=""><span>nextwork</span></div><div class="meta"><b>${S(orgName)}</b><br>Application report<br>Generated ${S(ApplicantReport.date(Date.now()))}</div></div>
 <div class="hero"><span class="status ${S(a.status)}">${S(a.status)}</span><h1>${S(p.name||'Applicant')}</h1><p>${S([p.role,p.email].filter(Boolean).join(' · '))}</p><p style="font-size:12px;margin-top:4px">Applied ${S(ApplicantReport.date(a.created_at))}${a.updated_at&&a.updated_at!==a.created_at?` · Last updated ${S(ApplicantReport.date(a.updated_at))}`:''}</p></div>
+${a.decision_note?`<section><h2>Decision note shared with applicant</h2><p class="prose">${S(a.decision_note)}</p></section>`:''}
 ${listingBlock}
 <section><h2>Applicant details</h2>${facts.length?`<div class="grid">${facts.map(([k,v])=>`<div><small>${S(k)}</small><span>${S(v)}</span></div>`).join('')}</div>`:'<p>No additional details provided.</p>'}${skills.length?`<p class="chips">${skills.map(s=>`<span>${S(s)}</span>`).join('')}</p>`:''}</section>
 <section><h2>Introduction</h2><p class="prose">${S(a.introduction)}</p></section>
 ${rows.long.filter(([k])=>!['bio','introduction','resume'].includes(k.toLowerCase())).length?`<section><h2>Additional profile information</h2>${rows.long.filter(([k])=>!['bio','introduction','resume'].includes(k.toLowerCase())).map(([k,v])=>`<div class="longrow"><small>${S(ApplicantReport.label(k))}</small><p class="prose">${S(v)}</p></div>`).join('')}</section>`:''}
-<section><h2>Resume</h2>${a.resume?`<pre class="resume">${S(a.resume)}</pre>`:'<p>No resume attached.</p>'}</section>
+<section><h2>Resume</h2>${a.resume_file?.name?`<p>Original file shared through Nextwork: <b>${S(a.resume_file.name)}</b></p>`:''}${a.resume?`<pre class="resume">${S(a.resume)}</pre>`:'<p>No resume attached.</p>'}</section>
 ${thread}
 <div class="foot"><span>Confidential. Shared privately with ${S(orgName)} through Nextwork.</span><span>${S(p.name||'Applicant')} · ${S(a.organization_listings?.title||'')}</span></div>
 </body></html>`},
