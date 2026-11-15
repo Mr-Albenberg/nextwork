@@ -12794,3 +12794,30 @@ body[data-page="explore"] .shell > footer { display: none; }
 
 .ideas-start-layout .process-graphic-stage:not(:last-child):after { content: ""; position: absolute; top: 37px; bottom: 3px; left: 17px; width: 1px; background: var(--line); }
 .ideas-start-layout .process-graphic-stage:last-child:after { content: none; }
+
+/* Account settings: page sections instead of enclosing cards. */
+body:has(.account-settings-layout) main { max-width: none; }
+body:has(.account-settings-layout) .shell > footer { display: none; }
+.account-settings-layout { gap: 0; }
+.account-settings-layout .profile-summary-card,
+.account-settings-layout .profile-editor,
+.account-settings-layout .profile-resume-section > section,
+.account-settings-layout .settings-panel,
+.account-settings-layout .profile-completed-projects,
+.account-settings-layout .account-panel { background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.account-settings-layout .profile-summary-card { display: block; padding: 24px 28px 28px 0; border-top: 1px solid var(--line); }
+.account-settings-layout .profile-summary-cover { height: auto; min-height: 0; padding: 0; background: transparent; overflow: visible; }
+.account-settings-layout .profile-summary-cover:after { display: none; }
+.account-settings-layout .profile-summary-cover > span { color: var(--theme-accent); }
+.account-settings-layout .profile-summary-body { padding: 18px 0 0; }
+.account-settings-layout .profile-summary-body .profile-photo-editor { margin-top: 0; }
+.account-settings-layout .profile-editor { padding: 24px 0 28px 28px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.account-settings-layout .profile-resume-section { border-top: 1px solid var(--line); }
+.account-settings-layout .profile-resume-section > section { padding: 28px 28px 28px 0; }
+.account-settings-layout .settings-panel { padding: 28px 0 28px 28px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.account-settings-layout .profile-completed-projects, .account-settings-layout .account-panel { padding: 28px 0; border-top: 1px solid var(--line); }
+@media (max-width: 1000px) {
+  .account-settings-layout .profile-summary-card, .account-settings-layout .profile-editor, .account-settings-layout .settings-panel { padding: 24px 0; border-left: 0; }
+  .account-settings-layout .profile-resume-section > section { padding: 24px 0; }
+  .account-settings-layout .profile-completed-projects, .account-settings-layout .account-panel { padding: 24px 0; }
+}
