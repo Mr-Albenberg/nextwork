@@ -12882,7 +12882,7 @@ body:has(.ideas-start-layout) main { max-width: none; min-height: calc(100dvh - 
 body:has(.ideas-start-layout) .shell > footer { display: none; }
 .ideas-page:has(.ideas-start-layout) { max-width: none; margin: 0; }
 .ideas-page:has(.ideas-start-layout) .page-heading-row { padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-.ideas-start-layout { grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 0; align-items: stretch; }
+.ideas-start-layout { grid-template-columns: minmax(0, 1fr) minmax(260px, 30%); gap: 0; align-items: stretch; }
 .ideas-start-layout .ideas-form { min-width: 0; padding: 28px 32px 28px 0; background: transparent; border: 0; box-shadow: none; }
 .ideas-start-layout .ideas-intro { min-width: 0; padding: 28px 0 28px 32px; border-left: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); }
 .ideas-start-layout .ideas-intro .project-process-graphic { background: transparent; border: 0; padding: 0; max-width: none; }
