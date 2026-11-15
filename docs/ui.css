@@ -12729,3 +12729,12 @@ body[data-page="login"] .workspace-header .public-signup { display: none; }
   .jobs .card-match-score { grid-column: 1; grid-row: 3; text-align: left; }
   .jobs .listing-creator-row { display: none; }
 }
+
+/* Align account cards in two consistent stacks. */
+.account-settings-layout { grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.2fr); gap: 24px; }
+.account-settings-layout .profile-side-column, .account-settings-layout .profile-main-column { display: grid; align-content: start; gap: 24px; min-width: 0; }
+.account-settings-layout .account-panel, .account-settings-layout .settings-panel, .account-settings-layout .profile-editor, .account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects { margin: 0; padding: 25px; border-radius: 14px; }
+.account-settings-layout .account-heading, .account-settings-layout .account-setting, .account-settings-layout .account-danger, .account-settings-layout .account-footer { flex-wrap: wrap; }
+.account-settings-layout .account-setting-copy { min-width: 0; }
+@media (max-width: 1000px) { .account-settings-layout { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .account-settings-layout, .account-settings-layout .profile-side-column, .account-settings-layout .profile-main-column { gap: 18px; } .account-settings-layout .account-panel, .account-settings-layout .settings-panel, .account-settings-layout .profile-editor, .account-settings-layout .profile-resume-section > section, .account-settings-layout .profile-completed-projects { padding: 20px; } }
