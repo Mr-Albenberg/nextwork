@@ -5,11 +5,11 @@
  --pl-shadow-sm:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.05);
  --pl-shadow:0 2px 4px rgba(15,23,42,.04),0 8px 24px rgba(15,23,42,.08);
  --pl-shadow-lg:0 12px 48px rgba(10,15,31,.22);
- --pl-brand:var(--theme-brand,#059669);--pl-accent:var(--theme-accent,#059669);
+ --pl-brand:var(--theme-brand,#1d3be0);--pl-accent:var(--theme-accent,#1d3be0);
  --pl-surface:var(--theme-surface,#fff);--pl-subtle:var(--theme-subtle,#f4f6fc);--pl-line:var(--theme-line,#e1e5ef);
  --pl-ease:cubic-bezier(.2,.7,.2,1)
 }
-:root[data-theme="dark"]{--pl-shadow-sm:0 1px 2px rgba(0,0,0,.4);--pl-shadow:0 2px 4px rgba(0,0,0,.25),0 8px 24px rgba(0,0,0,.35);--pl-shadow-lg:0 12px 48px rgba(0,0,0,.6);--pl-brand:#10b981}
+:root[data-theme="dark"]{--pl-shadow-sm:0 1px 2px rgba(0,0,0,.4);--pl-shadow:0 2px 4px rgba(0,0,0,.25),0 8px 24px rgba(0,0,0,.35);--pl-shadow-lg:0 12px 48px rgba(0,0,0,.6);--pl-brand:#3b57f0}
 
 /* Typography and base */
 body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;line-height:1.55}
