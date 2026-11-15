@@ -12915,3 +12915,26 @@ body:has(.ideas-start-layout) .shell > footer { display: none; }
 @media(max-width: 760px) {
  .jobs-view-list .opportunity-compensation > .card-match { grid-column: 2; grid-row: 1; text-align: right; margin: 0; }
 }
+
+/* Find work fills its available workspace; columns scale with its width. */
+body[data-page="explore"] main { max-width: none; width: 100%; box-sizing: border-box; padding-inline: 2vw; }
+body[data-page="explore"] .marketplace-layout,
+body[data-page="explore"] .marketplace-main,
+body[data-page="explore"] .jobs { width: 100%; max-width: none; min-width: 0; }
+.jobs-view-list .job.opportunity-card { grid-template-columns: minmax(0, 72%) minmax(0, 26%); column-gap: 2%; }
+.jobs-view-list .opportunity-compensation { grid-row: 2; align-self: start; }
+.jobs-view-list .job-top .company-info { flex: 0 1 auto; }
+.jobs-view-list .job.opportunity-card > .card-match { grid-column: 1 / -1; width: 100%; margin-top: 1%; }
+.jobs-view-list .listing-actions { margin-top: 1%; }
+.jobs-view-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1%; }
+.jobs-view-grid .opportunity-compensation > .card-match { grid-column: 1 / -1; grid-row: 2; width: 100%; text-align: left; }
+.jobs-view-grid .opportunity-compensation > .view-project-button,
+.jobs-view-grid .opportunity-compensation > .fit-link { grid-row: 3; }
+@media(max-width: 1200px) { .jobs-view-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width: 760px) {
+ body[data-page="explore"] main { padding-inline: 4vw; }
+ .jobs-view-list .job.opportunity-card, .jobs-view-grid { grid-template-columns: minmax(0, 100%); }
+ .jobs-view-list .opportunity-compensation { grid-row: auto; }
+ .jobs-view-list .job.opportunity-card > .card-match { margin-top: 2%; }
+ .jobs-view-list .listing-actions { margin-top: 2%; }
+}
