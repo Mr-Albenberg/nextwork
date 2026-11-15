@@ -600,19 +600,33 @@ async function login(page, email) {
     await page.screenshot({path:'test-artifacts/resume-dark-results.png',fullPage:true});
     await page.evaluate(()=>document.documentElement.dataset.theme='light');
     await page.goto(base+'/#explore');
-    await page.getByRole('button',{name:'Browse view',exact:true}).click();
-    const browseChoice=page.locator('[data-preview-job]').nth(1);
-    const chosenTitle=await browseChoice.locator('h3').textContent();
-    await browseChoice.click();
-    assert.equal(await page.locator('#opportunity-preview h2').textContent(),chosenTitle,'Selecting a result must update the detail panel');
-    assert(await page.locator('#opportunity-preview').getByRole('link',{name:'View project & apply',exact:false}).isVisible());
-    await page.screenshot({path:'test-artifacts/job-browse-view.png',fullPage:true});
+    assert.equal(await page.getByRole('button',{name:'Browse view',exact:true}).count(),0);
     await page.getByRole('button',{name:'Grid view',exact:true}).click();
     assert(await page.locator('#jobs').evaluate(e=>e.classList.contains('jobs-view-grid')));
+    const gridLayout = await page.locator('.opportunity-card').evaluateAll(cards => cards.map(card => {
+      const box = card.getBoundingClientRect(), footer = card.querySelector('.opportunity-compensation').getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, divider: footer.top, footerBottom: footer.bottom };
+    }));
+    for (const card of gridLayout) {
+      const row = gridLayout.filter(other => Math.abs(other.top - card.top) < 1);
+      assert(Math.max(...row.map(other => other.divider)) - Math.min(...row.map(other => other.divider)) < 2, 'Grid dividers must align within a row');
+      assert(Math.abs(card.bottom - card.footerBottom - 15) < 2, 'Grid footer must stay at the bottom of its card');
+    }
+
     await page.locator('#query').fill('React');
     await page.locator('#search button').click();
     await page.getByRole('button',{name:'List view',exact:true}).click();
     assert.equal(await page.locator('#query').inputValue(),'React','Changing layout must preserve the search');
+    const actionCenters = await page.locator('.listing-actions').first().evaluate(row => [...row.children].map(child => {
+      const box = child.getBoundingClientRect(); return box.top + box.height / 2;
+    }));
+    assert(Math.max(...actionCenters) - Math.min(...actionCenters) < 2, 'List match indicator and buttons must share a row');
+    const gutters = await page.evaluate(() => {
+      const pane = document.querySelector('main').getBoundingClientRect(), results = document.querySelector('#jobs').getBoundingClientRect();
+      return [results.left - pane.left, pane.right - results.right];
+    });
+    assert(Math.abs(gutters[0] - gutters[1]) < 1, 'Find work must have equal outer gutters');
+
     await page.screenshot({path:'test-artifacts/jobs-list-view.png',fullPage:true});
     for(const height of [420,600,768]){
       await page.setViewportSize({width:1366,height});
