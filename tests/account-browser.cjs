@@ -366,23 +366,23 @@ async function login(page, email) {
       .waitFor();
     await login(page, "alice@example.com");
     await page.goto(base + "/#overview");
-    await page.getByRole("heading", { name: "Your next steps" }).waitFor();
+    await page.getByRole("heading", { name: "Where do you want to start?" }).waitFor();
     assert.equal(await page.locator("#landing").count(), 0);
     await page.goto(base + "/#home");
     await page
-      .locator(".landing-nav-actions")
-      .getByRole("link", { name: "Open app", exact: true })
+      .locator(".home-nav>div")
+      .getByRole("link", { name: "Open workspace", exact: true })
       .waitFor();
     assert.equal(
       await page
-        .locator(".landing-nav-actions")
+        .locator(".home-nav>div")
         .getByRole("link", { name: "Log in", exact: true })
         .count(),
       0,
     );
     await page
-      .locator(".landing-nav-actions")
-      .getByRole("link", { name: "Open app", exact: true })
+      .locator(".home-nav>div")
+      .getByRole("link", { name: "Open workspace", exact: true })
       .click();
     await page.waitForURL("**/#overview");
     await page.goto(base + "/#profile");
@@ -515,7 +515,7 @@ async function login(page, email) {
     assert(
       rows.get(users["alice@example.com"].id).resume.includes("Alice private"),
     );
-    await page.goto(base + "/#profile");
+    await page.goto(base + "/#settings");
     await page.getByRole("button", { name: "Sign out", exact: true }).click();
     await page.waitForURL("**/#login");
     failPhotoImport = true;
@@ -531,7 +531,7 @@ async function login(page, email) {
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       const input = document.querySelector('#profile-form [name="name"]');
       const controls = document.querySelector('.profile-photo-controls');
-      const connected = document.querySelector('.account-connected');
+      const connected = document.querySelector('.profile-settings-shortcut');
       const status = document.querySelector('[data-photo-status]');
       const statusText = status.textContent;
       input.value = 'Unsent profile edit';
@@ -646,7 +646,7 @@ async function login(page, email) {
     await page
       .getByText("The passwords do not match.", { exact: true })
       .waitFor();
-    await page.goto(base + "/#profile");
+    await page.goto(base + "/#settings");
     await context.route("https://www.linkedin.com/**", (route) =>
       route.fulfill({ body: "LinkedIn authorization test" }),
     );
@@ -658,6 +658,7 @@ async function login(page, email) {
     ({ context, page, errors } = await setup(browser));
     await login(page, "bob@example.com");
     failLogout = true;
+    await page.goto(base + "/#settings");
     await page
       .getByRole("button", { name: "Delete account", exact: true })
       .click();
@@ -724,10 +725,33 @@ async function login(page, email) {
     ({ context, page, errors } = await setup(browser));
     await login(page, "alice@example.com");
     await page.goto(base+'/#recommend');
-    await page.getByRole('heading',{name:'Build experience worth showing.',exact:true}).waitFor();
+    await page.getByRole('heading',{name:'Turn your ambition into a project.',exact:true}).waitFor();
     assert.equal(await page.locator('#reco-run').count(),1);
     assert.equal(await page.locator('#nav a[href="#tools"]').count(),0);
     await page.screenshot({path:'test-artifacts/project-ideas-start.png',fullPage:true});
+    const roleSearch=page.getByRole('combobox',{name:'Target role',exact:true});
+    await roleSearch.fill('front end');
+    await page.getByRole('option',{name:'Frontend Developer',exact:true}).waitFor();
+    await page.screenshot({path:'test-artifacts/search-dropdown.png',fullPage:true});
+    await roleSearch.press('ArrowUp');
+    await roleSearch.press('Enter');
+    assert.equal(await roleSearch.inputValue(),'Frontend Developer');
+    assert.equal(await roleSearch.getAttribute('aria-expanded'),'false');
+    await page.evaluate(()=>{recoState.busy=true;recoState.status='loading';location.hash='recommend/results';render()});
+    await page.getByRole('progressbar').waitFor();
+    assert.equal(await page.getByRole('progressbar').getAttribute('aria-valuenow'),null,'Unknown request durations must not show fabricated percentages');
+    await page.screenshot({path:'test-artifacts/project-loading.png',fullPage:true});
+    await page.evaluate(()=>{recoState.busy=false;recoState.status='idle';location.hash='recommend';render()});
+    for(const width of [390,768,1440]){
+      await page.setViewportSize({width,height:900});
+      for(const route of ['overview','explore','profile','resume','recommend','settings','messages']){
+        await page.goto(base+'/#'+route);
+        await page.waitForFunction(()=>Account.ready&&Backend.ready);
+        assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'No horizontal overflow on '+route+' at '+width);
+      }
+    }
+    await page.goto(base+'/#recommend');
+
     await page.evaluate(()=>{
       const projects=Array.from({length:3},(_,i)=>({title:['Accessible community dashboard','Product onboarding study','Customer insights notebook'][i],overview:'Build a focused project with clear outcomes and a useful handoff.',pitch:'A practical project.',why:'Practice relevant skills and explain your contribution.',difficulty:'beginner',hours:24,weeks:3,skills:['React','Accessibility'],covers:['Accessibility'],buildsOn:['React'],build:['Research','Build','Review'],plan:[{phase:'Define the problem',details:'Choose a user need and a small, testable scope.'},{phase:'Build a working version',details:'Create a usable solution and test key interactions.'},{phase:'Explain the result',details:'Write a short handoff and document what you learned.'}],tools:['React','Figma'],deliverables:['A working project','A short case study'],stretch:['Test another user scenario'],showcase:'Link to the project and describe your decisions.',demand:{}}));
       recoState={status:'done',busy:false,result:{role:'Frontend developer',profile:{source:'baseline',skills:[{skill:'React',tier:'common'},{skill:'Accessibility',tier:'common'}],family:{label:'Frontend developer'}},family:{label:'Frontend developer'},analysis:{have:[{skill:'React'}],gaps:[{skill:'Accessibility'}],coverage:50},projects,note:''}};

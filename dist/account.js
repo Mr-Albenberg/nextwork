@@ -75,7 +75,7 @@ function linkedinButton(label, action) {
 }
 function accountPanel() {
   if (!Account.ready)
-    return '<section class="panel account-panel" role="status">Loading your account…</section>';
+    return loadingView('Opening your account','Loading your account settings.',true);
   if (!Account.user)
     return `<section class="account-panel account-guest"><div><span class="account-eyebrow">YOUR NEXTWORK ACCOUNT</span><h2>Your next chapter, all in one place.</h2><p>Save your profile, save your resume, and make your next connection.</p></div><div class="account-guest-actions">${linkedinButton("Log in with LinkedIn", "oauth")}<a class="account-button" href="#login">Log in with email</a><p>New here? <a href="#signup">Create an account</a></p></div>${accountFeedback()}</section>`;
   const linked = Account.user.identities?.some(
@@ -140,6 +140,8 @@ async function runAuth(action) {
   if (Account.busy) return;
   Account.busy = true;
   authFeedback();
+  const busyFeedback=document.querySelector('#auth-feedback');
+  if(busyFeedback)busyFeedback.innerHTML=inlineLoading('Connecting securely…');
   document
     .querySelectorAll("[data-auth-action],#auth-form button")
     .forEach((b) => (b.disabled = true));
@@ -153,6 +155,8 @@ async function runAuth(action) {
     authFeedback(authError(error));
   } finally {
     Account.busy = false;
+    const busyFeedback=document.querySelector('#auth-feedback');
+    if(busyFeedback?.querySelector('.inline-loading'))busyFeedback.textContent=Account.error||Account.message||'';
     document
       .querySelectorAll("[data-auth-action],#auth-form button")
       .forEach((b) => (b.disabled = false));

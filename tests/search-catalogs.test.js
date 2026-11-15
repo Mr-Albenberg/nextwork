@@ -16,4 +16,8 @@ assert.equal(rank(['Remote','Hybrid','On-site'],'nonsensezzzz').length,0);
 assert.equal(new Set(catalog.skills).size,catalog.skills.length);
 assert(catalog.skills.every(s=>!s.includes(',')),'Skill tags must round-trip through canonical comma-separated profile storage');
 assert(rank(catalog.skills,'').length<=30);
+assert.equal(rank(catalog.roles,'front end')[0],'Frontend Developer');
+assert.equal(rank(catalog.roles,'data analyst')[0],'Data Analyst');
+assert(!rank(catalog.roles,'front end').includes('Crane and Tower Operators'));
+
 console.log(`Search catalogs: ${catalog.skills.length} skills, ${catalog.industries.length} industries, ${catalog.roles.length} roles; typos, aliases, ranking, result bounds and canonical storage passed.`);

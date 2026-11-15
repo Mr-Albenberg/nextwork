@@ -18,7 +18,7 @@ function profileImportChanges(profile,mode){
 function profileImportPanel(){return `<div id="profile-import-panel">${profileImportContents()}</div>`;}
 function profileImportContents(){
  const state=profileImportCurrent();
- return `<h3>Fill in your profile from your resume</h3><p>Use your saved resume to prepare profile details, then choose how to apply them.</p><button type="button" class="primary" id="prepare-profile-import" onclick="prepareProfileImport()" ${state.busy?'disabled':''}>${state.busy?'Reading your resume…':'Fill in profile details'}</button><p class="resume-hint">Uses Google Gemini to process your resume. Google may use free-tier content to improve its products.</p><p role="alert" class="review-error">${esc(state.error)}</p><p role="status" class="resume-hint">${esc(state.notice)}</p>`;
+ return `<h3>Fill in your profile from your resume</h3><p>Use your saved resume to prepare profile details, then choose how to apply them.</p><button type="button" class="primary" id="prepare-profile-import" onclick="prepareProfileImport()" ${state.busy?'disabled':''}>${state.busy?'Reading your resume…':'Fill in profile details'}</button>${state.busy?loadingView('Reading your resume','Preparing profile suggestions from your experience.',true):''}<p class="resume-hint">Uses Google Gemini to process your resume. Google may use free-tier content to improve its products.</p><p role="alert" class="review-error">${esc(state.error)}</p><p role="status" class="resume-hint">${esc(state.notice)}</p>`;
 }
 function openProfileImportDialog(){
  const state=profileImportCurrent();if(!state.suggestions)return;
